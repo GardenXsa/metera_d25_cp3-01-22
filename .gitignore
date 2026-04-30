@@ -1,5 +1,5 @@
-# Резервные копии AI / временные файлы
-.ai_backup/
+# Резервные копии AI
+.ai_backups/
 
 # Node.js
 node_modules/
@@ -11,12 +11,6 @@ __pycache__/
 venv/
 .venv/
 
-# Скомпилированные бинарники (engine)
-engine/debug_test
-engine/debug_test.exe
-engine/raw_test
-engine/raw_test.exe
-
 # TTS – большие модели и голосовые данные
 tts/
 
@@ -24,9 +18,6 @@ tts/
 *.dll
 *.onnx
 *.ort
-
-# Пользовательские настройки
-config.json
 
 # Системные файлы
 .DS_Store
