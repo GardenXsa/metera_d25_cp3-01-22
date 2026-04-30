@@ -1,0 +1,122 @@
+[
+  {
+    "id": "wood_pine",
+    "name": "Сосна",
+    "type": "wall",
+    "health": 50.0,
+    "flammable": true,
+    "thermal_insulation": 0.6
+  },
+  {
+    "id": "wood_oak",
+    "name": "Дуб",
+    "type": "wall",
+    "health": 80.0,
+    "flammable": true,
+    "thermal_insulation": 0.7
+  },
+  {
+    "id": "stone_limestone",
+    "name": "Известняк",
+    "type": "wall",
+    "health": 150.0,
+    "flammable": false,
+    "thermal_insulation": 0.4
+  },
+  {
+    "id": "stone_granite",
+    "name": "Гранит",
+    "type": "wall",
+    "health": 200.0,
+    "flammable": false,
+    "thermal_insulation": 0.3
+  },
+  {
+    "id": "brick_clay",
+    "name": "Кирпич",
+    "type": "wall",
+    "health": 120.0,
+    "flammable": false,
+    "thermal_insulation": 0.5
+  },
+  {
+    "id": "wattle_daub",
+    "name": "Плетень с глиной",
+    "type": "wall",
+    "health": 30.0,
+    "flammable": true,
+    "thermal_insulation": 0.5
+  },
+  {
+    "id": "iron_bars",
+    "name": "Железные прутья",
+    "type": "wall",
+    "health": 180.0,
+    "flammable": false,
+    "thermal_insulation": 0.1
+  },
+  {
+    "id": "floor_dirt",
+    "name": "Земляной пол",
+    "type": "floor",
+    "health": 20.0,
+    "flammable": false,
+    "thermal_insulation": 0.3
+  },
+  {
+    "id": "floor_wood_planks",
+    "name": "Деревянный настил",
+    "type": "floor",
+    "health": 40.0,
+    "flammable": true,
+    "thermal_insulation": 0.6
+  },
+  {
+    "id": "floor_stone_slabs",
+    "name": "Каменные плиты",
+    "type": "floor",
+    "health": 120.0,
+    "flammable": false,
+    "thermal_insulation": 0.2
+  },
+  {
+    "id": "floor_tile_ceramic",
+    "name": "Керамическая плитка",
+    "type": "floor",
+    "health": 80.0,
+    "flammable": false,
+    "thermal_insulation": 0.3
+  },
+  {
+    "id": "floor_marble",
+    "name": "Мраморный пол",
+    "type": "floor",
+    "health": 150.0,
+    "flammable": false,
+    "thermal_insulation": 0.2
+  },
+  {
+    "id": "straw_thatch",
+    "name": "Соломенная крыша",
+    "type": "roof",
+    "health": 15.0,
+    "flammable": true,
+    "thermal_insulation": 0.8
+  },
+  {
+    "id": "clay_roof_tiles",
+    "name": "Глиняная черепица",
+    "type": "roof",
+    "health": 90.0,
+    "flammable": false,
+    "thermal_insulation": 0.5
+  },
+  {
+    "id": "slate_tiles",
+    "name": "Сланцевая кровля",
+    "type": "roof",
+    "health": 130.0,
+    "flammable": false,
+    "thermal_insulation": 0.4
+  }
+]
