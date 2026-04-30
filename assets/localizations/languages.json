@@ -1,0 +1,10 @@
+{
+  "ru": {
+    "name": "Русский",
+    "file": "assets/localizations/ru.json"
+  },
+  "en": {
+    "name": "English",
+    "file": "assets/localizations/en.json"
+  }
+}

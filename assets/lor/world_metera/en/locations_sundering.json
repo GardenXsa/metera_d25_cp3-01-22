@@ -1,0 +1,17 @@
+{
+  "falling_aquilon": { "name": "Falling Aquilon (Ruins)", "description": "Fragments of the once-great capital crashing from the skies into a sea of fire.", "x": 0, "y": 0 },
+  "expanding_scar": { "name": "Expanding Ether Scar (Rift)", "description": "A rift spewing pure chaos and consuming reality itself.", "x": 100, "y": 80 },
+  "shattered_peaks": { "name": "Shattered Peaks (Mountains)", "description": "Mountains torn apart by gravitational anomalies.", "x": 50, "y": -100 },
+  "void_wastes": { "name": "Void Wastes (Plains)", "description": "Lands where matter has ceased to exist, leaving only gray mist.", "x": -150, "y": 150 },
+  "boiling_sea": { "name": "Boiling Sea (Ocean)", "description": "An ocean evaporating under the heat of out-of-control reactors.", "x": -50, "y": 180 },
+  "mutant_hive": { "name": "Mutant Hive (Cave)", "description": "The epicenter of biological corruption, spawning twisted creatures.", "x": -120, "y": -50 },
+  "burning_forest": { "name": "Burning Forest (Forest)", "description": "Trees engulfed in eternal plasma fire that never burns them to ash.", "x": 80, "y": -20 },
+  "chasm_of_screams": { "name": "Chasm of Screams (Ruins)", "description": "A collapsed underground city echoing with the cries of those trapped in time.", "x": 20, "y": -100 },
+  "glass_desert": { "name": "Glass Desert (Plains)", "description": "Sands fused into glass by orbital strikes from maddened defense systems.", "x": -250, "y": -100 },
+  "storms_eye": { "name": "Storm's Eye (Anomaly)", "description": "The center of a permanent ether hurricane where gravity shifts every second.", "x": 200, "y": 50 },
+  "bleeding_earth": { "name": "Bleeding Earth (Mountains)", "description": "Fissures in the crust spewing lava mixed with raw mana.", "x": 150, "y": -150 },
+  "sunken_arcanum": { "name": "Sunken Arcanum (Ruins)", "description": "Archives sinking into acidic swamps.", "x": -100, "y": -50 },
+  "flesh_labyrinth": { "name": "Flesh Labyrinth (Cave)", "description": "A canyon overgrown with pulsating bio-mass that consumes all living things.", "x": -80, "y": 50 },
+  "ruined_sky_harbor": { "name": "Ruined Sky Harbor (Ruins)", "description": "A graveyard of crashed Aerowhales and transport ships.", "x": 120, "y": 80 },
+  "ashen_coast": { "name": "Ashen Coast (Plains)", "description": "A shore where waves wash up tons of ash and dead sea mutants.", "x": -30, "y": 120 }
+}

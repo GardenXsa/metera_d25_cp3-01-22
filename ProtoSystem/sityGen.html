@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Fantasy City Generator</title>
+    <style>
+        :root {
+            --ui-bg: #c0c0c0; /* Классический серый цвет Windows/старых UI */
+            --ui-border-light: #ffffff;
+            --ui-border-dark: #808080;
+            --text-color: #000000;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace; /* Ретро шрифт */
+            background-color: #008080; /* Классический цвет фона рабочего стола Win 95 */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Окно программы в ретро-стиле */
+        .window {
+            background-color: var(--ui-bg);
+            border-top: 2px solid var(--ui-border-light);
+            border-left: 2px solid var(--ui-border-light);
+            border-bottom: 2px solid var(--ui-border-dark);
+            border-right: 2px solid var(--ui-border-dark);
+            padding: 2px;
+            box-shadow: 2px 2px 0px #000;
+            margin-bottom: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .title-bar {
+            background-color: #000080;
+            color: white;
+            padding: 3px 5px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .content {
+            padding: 10px;
+            display: flex;
+            gap: 15px;
+        }
+
+        /* --- КАРТА (SIMCITY STYLE) --- */
+        .map-container {
+            border: 2px inset #fff;
+            background: #000;
+            padding: 2px;
+        }
+
+        .map-grid {
+            display: grid;
+            /* Отключаем зазоры - тайлы должны сливаться */
+            gap: 0; 
+            /* Включаем пиксельный рендеринг */
+            image-rendering: pixelated; 
+        }
+
+        .tile {
+            width: 48px;
+            height: 48px;
+            box-sizing: border-box;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        .tile:hover::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 2px solid yellow;
+            z-index: 10;
+        }
+
+        .tile.selected::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border: 2px solid red;
+            background: rgba(255, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        /* --- РЕТРО-ТЕКСТУРЫ ЧЕРЕЗ CSS --- */
+        
+        /* Пустырь / Трава */
+        .type-empty {
+            background-color: #00aa00;
+            background-image: 
+                radial-gradient(#008800 15%, transparent 16%),
+                radial-gradient(#00cf00 15%, transparent 16%);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px;
+        }
+
+        /* Дорога (Грязь/Камень) */
+        .type-road {
+            background-color: #a08060;
+            background-image: repeating-linear-gradient(
+                45deg,
+                #907050 25%,
+                transparent 25%, transparent 75%,
+                #907050 75%, #907050
+            );
+            background-size: 4px 4px;
+        }
+
+        /* Обычный дом (Дерево, вид сверху на покатую крышу) */
+        .type-house {
+            background-color: #8b4513;
+            /* Делаем псевдо-3D крышу бордерами */
+            border-top: 12px solid #a0522d;
+            border-left: 12px solid #cd853f;
+            border-bottom: 12px solid #5c3317;
+            border-right: 12px solid #8b4513;
+            box-shadow: inset 0 0 0 4px #000; /* Имитация трубы по центру */
+        }
+
+        /* Таверна (Большая красная крыша) */
+        .type-tavern {
+            background-color: #aa0000;
+            border-top: 10px solid #cc0000;
+            border-left: 10px solid #ff3333;
+            border-bottom: 10px solid #660000;
+            border-right: 10px solid #880000;
+            box-shadow: inset -10px -10px 0px rgba(0,0,0,0.5);
+        }
+
+        /* Рынок (Палатки) */
+        .type-market {
+            background-color: #e0e0e0;
+            background-image: 
+                linear-gradient(90deg, #ff0000 50%, #ffffff 50%);
+            background-size: 12px 100%;
+            border: 2px solid #444;
+        }
+
+        /* Кузница (Серый камень с раскаленной печью) */
+        .type-blacksmith {
+            background-color: #555;
+            border-top: 8px solid #777;
+            border-left: 8px solid #999;
+            border-bottom: 8px solid #333;
+            border-right: 8px solid #444;
+            /* Печь */
+            background-image: radial-gradient(circle at center, #ff8c00 10%, transparent 40%);
+        }
+
+        /* --- БОКОВАЯ ПАНЕЛЬ ИНСПЕКТОРА --- */
+        .sidebar {
+            width: 300px;
+            background: var(--ui-bg);
+            border: 2px inset #fff;
+            padding: 10px;
+        }
+
+        .sidebar h2 {
+            font-size: 16px;
+            margin-top: 0;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: bold;
+        }
+
+        /* --- ВВОД ДАННЫХ --- */
+        .json-area {
+            width: 100%;
+            height: 150px;
+            background: #fff;
+            color: #000;
+            border: 2px inset #fff;
+            padding: 5px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        button {
+            background: var(--ui-bg);
+            border-top: 2px solid var(--ui-border-light);
+            border-left: 2px solid var(--ui-border-light);
+            border-bottom: 2px solid var(--ui-border-dark);
+            border-right: 2px solid var(--ui-border-dark);
+            padding: 5px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        button:active {
+            border-top: 2px solid var(--ui-border-dark);
+            border-left: 2px solid var(--ui-border-dark);
+            border-bottom: 2px solid var(--ui-border-light);
+            border-right: 2px solid var(--ui-border-light);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window">
+        <div class="title-bar">
+            <span>CityBuilder OS - Settlement Viewer</span>
+            <span>_ □ X</span>
+        </div>
+        <div class="content">
+            <!-- Карта -->
+            <div class="map-container">
+                <div id="mapGrid" class="map-grid"></div>
+            </div>
+
+            <!-- Инспектор (Радар/Инфо) -->
+            <div class="sidebar">
+                <h2 id="infoName">Querying Zone...</h2>
+                <div id="infoDetails">
+                    <p>Кликните по тайлу на карте, чтобы получить данные от инспектора градостроительства.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ввод от нейросети -->
+    <div class="window">
+        <div class="title-bar">
+            <span>AI Neural Link (JSON Data)</span>
+        </div>
+        <div class="content" style="flex-direction: column;">
+            <textarea id="jsonInput" class="json-area"></textarea>
+            <div style="text-align: right; margin-top: 10px;">
+                <button onclick="generateFromInput()">Execute Render</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Более сложный JSON (8x8), имитирующий квартал города с дорогой
+        const initialData = {
+            "command": "generateSettlementBlueprint",
+            "args": {
+                "settlementId": "aquilon_lower_city",
+                "size": "8x8", 
+                "plots": [
+                    // Дорога идет горизонтально через центр (Y=3 и Y=4)
+                    { "x": 0, "y": 3, "type": "road", "name": "Грязный тракт" },
+                    { "x": 1, "y": 3, "type": "road", "name": "Грязный тракт" },
+                    { "x": 2, "y": 3, "type": "road", "name": "Перекресток" },
+                    { "x": 3, "y": 3, "type": "road", "name": "Перекресток" },
+                    { "x": 4, "y": 3, "type": "road", "name": "Торговая улица" },
+                    { "x": 5, "y": 3, "type": "road", "name": "Торговая улица" },
+                    { "x": 6, "y": 3, "type": "road", "name": "Торговая улица" },
+                    { "x": 7, "y": 3, "type": "road", "name": "Выход из города" },
+
+                    // Здания вдоль дороги
+                    { "id": "p_tav_1", "x": 2, "y": 2, "type": "tavern", "name": "Ржавый Якорь", "owner": "Грег", "price": 1200 },
+                    { "id": "p_mkt_1", "x": 4, "y": 2, "type": "market", "name": "Рыбный ряд", "owner": "Гильдия" },
+                    { "id": "p_mkt_2", "x": 5, "y": 2, "type": "market", "name": "Овощной ряд", "owner": "Фермеры" },
+                    { "id": "p_mkt_3", "x": 4, "y": 4, "type": "market", "name": "Оружейник", "owner": "Братья стали" },
+                    
+                    { "id": "p_bs_1", "x": 2, "y": 4, "type": "blacksmith", "name": "Горячая наковальня", "owner": "Кузнец Брок" },
+                    
+                    { "id": "p_h1", "x": 1, "y": 2, "type": "house", "name": "Дом рыбака", "owner": "НПЦ" },
+                    { "id": "p_h2", "x": 1, "y": 4, "type": "house", "name": "Лачуга", "owner": "НПЦ" },
+                    { "id": "p_h3", "x": 6, "y": 2, "type": "house", "name": "Дом торговца", "owner": "Богач" },
+                    
+                    // Немного леса/пустырей на окраинах с ценами на землю
+                    { "x": 7, "y": 0, "type": "empty", "name": "Дикий лес", "price": 150 },
+                    { "x": 7, "y": 1, "type": "empty", "name": "Участок под застройку", "price": 500 },
+                    { "x": 0, "y": 0, "type": "empty", "name": "Болото", "price": 50 }
+                ]
+            }
+        };
+
+        const typeNames = {
+            tavern: "Таверна (Коммерция)",
+            market: "Рынок (Коммерция)",
+            empty: "Пустырь (Природа)",
+            blacksmith: "Кузница (Индустрия)",
+            house: "Жилой дом (Жилая зона)",
+            road: "Дорога (Инфраструктура)"
+        };
+
+        document.getElementById('jsonInput').value = JSON.stringify(initialData, null, 2);
+        buildMap(initialData);
+
+        function generateFromInput() {
+            try {
+                const data = JSON.parse(document.getElementById('jsonInput').value);
+                buildMap(data);
+            } catch (e) {
+                alert("SYSTEM ERROR: Invalid JSON Format\n" + e.message);
+            }
+        }
+
+        function buildMap(data) {
+            const args = data.args;
+            const gridContainer = document.getElementById('mapGrid');
+            const [width, height] = args.size.split('x').map(Number);
+
+            gridContainer.style.gridTemplateColumns = `repeat(${width}, 48px)`;
+            gridContainer.style.gridTemplateRows = `repeat(${height}, 48px)`;
+            gridContainer.innerHTML = ''; 
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const plotData = args.plots.find(p => p.x === x && p.y === y);
+                    const cell = document.createElement('div');
+                    
+                    // По умолчанию всё, что не указано в JSON, заполняется пустырем/травой
+                    let typeClass = "type-empty";
+                    let tileData = { name: "Трава", type: "empty", x: x, y: y };
+
+                    if (plotData) {
+                        typeClass = `type-${plotData.type}`;
+                        tileData = plotData;
+                    }
+
+                    cell.className = `tile ${typeClass}`;
+                    cell.onclick = () => selectPlot(cell, tileData);
+                    
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+
+        let selectedElement = null;
+
+        function selectPlot(element, data) {
+            if (selectedElement) selectedElement.classList.remove('selected');
+            
+            element.classList.add('selected');
+            selectedElement = element;
+
+            document.getElementById('infoName').innerText = `[ZONE] ${data.name || "Неизвестно"}`;
+            
+            let detailsHtml = `
+                <div class="info-row"><span class="info-label">Type:</span> ${typeNames[data.type] || data.type}</div>
+                <div class="info-row"><span class="info-label">Coords:</span> X:${data.x} Y:${data.y}</div>
+            `;
+
+            if (data.owner) {
+                detailsHtml += `<div class="info-row"><span class="info-label">Owner:</span> ${data.owner}</div>`;
+            }
+            if (data.price) {
+                detailsHtml += `<div class="info-row"><span class="info-label">Land Value:</span> $${data.price}</div>`;
+            }
+            if (data.id) {
+                detailsHtml += `<div class="info-row" style="color: #666; margin-top: 15px;"><span class="info-label">ID:</span> ${data.id}</div>`;
+            }
+
+            document.getElementById('infoDetails').innerHTML = detailsHtml;
+        }
+    </script>
+</body>
+</html>

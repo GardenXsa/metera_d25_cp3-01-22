@@ -1,0 +1,534 @@
+{
+  "appName": "Chronicles of Meterea: An AI Adventure",
+  "mainMenu": {
+    "title": "Chronicles of Meterea: An AI Adventure",
+    "newGame": "New Game",
+    "loadGame": "Load Game",
+    "settings": "Settings",
+    "help": "Help",
+    "community": "Community",
+    "apiKeyStatusChecking": "API Key Status: Checking...",
+    "apiKeyStatusFound": "API Key Status: Found",
+    "apiKeyStatusMissing": "API Key Status: Missing",
+    "apiKeyStatusNotRequired": "API Key Status: Not Required"
+  },
+  "settingsMenu": {
+    "title": "Settings",
+    "languageLabel": "Language:",
+    "apiProviderLabel": "AI Provider:",
+    "gmModeLabel": "Game Master Mode:",
+    "gmModeTwoStep": "Two-Step (Accountant + Poet - More Accurate)",
+    "gmModeUnified": "Unified (Single Request - Faster)",
+    "thinkingMode": "Thinking Mode (Reasoning)",
+    "thinkingBudget": "Token Budget (Anthropic/DeepSeek):",
+    "reasoningEffort": "Effort (OpenAI o1/o3):",
+    "nsfwMode": "NSFW / Uncensored (Allow ERP & Gore)",
+    "modelIdLabel": "Model ID:",
+    "modelIdLabelFor": "Model ID for {provider}:",
+    "modelIdPlaceholder": "E.g., google/gemini-2.5-flash",
+    "geminiApiKeyLabel": "Gemini API Key:",
+    "llmostApiKeyLabel": "LLMost API Key:",
+    "openrouterApiKeyLabel": "OpenRouter API Key:",
+		"deepseekApiKeyLabel": "DeepSeek API Key:",
+    "localUrlLabel": "Local Server URL:",
+    "localModelLabel": "Model Name (ID):",
+    "ttsVoiceLabel": "TTS Voice:",
+    "ttsVoiceLoading": "Loading voices...",
+    "ttsVoiceUnavailable": "Voices unavailable",
+    "apiKeyPlaceholder": "Paste your API key here",
+    "saveButton": "Save Settings",
+    "promptCaching": "Prompt Caching (Speeds up responses and lowers cost)",
+    "promptCaching": "Prompt Caching (Speeds up responses and lowers cost)",
+    "promptCaching": "Prompt Caching (Speeds up responses and lowers cost)",
+    "promptCaching": "Prompt Caching (Speeds up responses and lowers cost)",
+    "fsaLabel": "Save Storage:",
+    "fsaSelectDirectory": "Select Save Folder",
+    "fsaChangeDirectory": "Change Folder",
+    "enableImgGen": "Enable Image Generation",
+    "enableLocalMap": "Generate Local Maps (CityGen)",
+    "enableLocalMapDesc": "Creates 2D floor plans. Disable to save API tokens.",
+    "imgProviderLabel": "Image Provider:",
+    "imgProviderPollinations": "Pollinations AI",
+    "imgProviderLLMost": "LLMost.ru",
+    "imgProviderOpenRouter": "OpenRouter / OpenAI",
+    "imgModelLabel": "Model ID (OpenAI/OpenRouter/LLMost only):",
+    "imgModelPlaceholder": "E.g., dall-e-3 or google/gemini-2.5-flash-image",
+    "imgKeyLabel": "API Key (OpenAI/OpenRouter only):",
+    "imgKeyPlaceholder": "Paste key here...",
+    "tabs": {
+      "general": "General",
+      "ai": "AI & API",
+      "audio": "Audio",
+      "data": "Data"
+    },
+    "musicVolume": "Music Volume:",
+    "sfxVolume": "SFX Volume:",
+    "backButton": "Back",
+    "apiKeySaved": "Settings saved."
+  },
+  "fsa": {
+    "checking": "Checking File System API support...",
+    "directorySelected": "Save folder: {dirName}",
+    "directoryNotSelected": "Save folder not selected. Using browser storage.",
+    "permissionGrantedPreviouslyNeedsAction": "Folder was selected. Click to re-confirm access.",
+    "permissionRequiredOperation": "Permission to access the folder is required for this operation.",
+    "permissionRevokedError": "Permission to access the folder was revoked or lost. Please select the folder again."
+  },
+  "characterCreation": {
+    "title": "Character Creation",
+    "nameLabel": "Character Name:",
+    "raceLabel": "Race:",
+    "classLabel": "Class:",
+    "eraLabel": "Starting Era:",
+    "descLabel": "Short Description:",
+    "racePlaceholder": "-- Select a race --",
+    "raceHuman": "Human",
+    "raceElf": "Elf",
+    "raceDwarf": "Dwarf",
+    "classPlaceholder": "-- Select a class --",
+    "classWarrior": "Warrior",
+    "classMage": "Mage",
+    "classRogue": "Rogue",
+    "classBard": "Bard",
+    "eraRebirth": "Era of Rebirth (Standard)",
+    "eraArchitects": "Golden Age of Architects",
+    "eraSundering": "The Great Sundering (Apocalypse)",
+    "eraSilence": "Era of Silence (Survival)",
+    "statsTitle": "Attribute Distribution",
+    "statsPointsAvailable": "Points available:",
+    "statSTR": "Strength (STR)",
+    "statDEX": "Dexterity (DEX)",
+    "statINT": "Intelligence (INT)",
+    "statCON": "Constitution (CON)",
+    "statCHA": "Charisma (CHA)",
+    "startGameButton": "Next",
+    "cancelButton": "Cancel",
+    "quickStartButton": "Quick Start",
+    "errorFillFields": "Please fill in all fields and distribute all points.",
+    "startModeLabel": "Start Mode:",
+    "startModeCalm": "Calm Start (Atmospheric)",
+    "startModeAdrenaline": "High Action (Adrenaline)",
+    "confirmPointsLeft": "You have {points} unspent points. Are you sure you want to continue?",
+    "tooltips": {
+      "name": "Enter your hero's name. For example: Aragorn, Liara T'Soni, Borg the Fearless.",
+      "desc": "Describe your character's appearance, personality, or a brief backstory."
+    },
+    "eraRebirthDesc": "The ashes of the old world have become the soil for new kingdoms. Forgotten magic awakens in ancient ruins, and on unexplored lands, brave heroes seek fame and fortune. A classic adventure awaits.",
+    "eraArchitectsDesc": "Cities of glass and light float in the sky, while arcane constructs glide through the streets. This is an era of wonders, the pinnacle of magic and technology. But behind the shining facade, conspiracies that could plunge the world into chaos are brewing.",
+    "eraSunderingDesc": "Reality is tearing at the seams. Aether storms consume the lands, distorting everything they touch. Civilization is but a handful of shelters in a dying world. There are no heroes here, only survivors. And each new day could be the last.",
+    "eraSilenceDesc": "The world has fallen silent. Great cities have turned to dust, knowledge has become legend. Among the desolate ruins wander mutated monsters and handfuls of desperate people, willing to do anything for a sip of water. Your goal is simple - to survive until dawn.",
+    "eraRebirthDescForGM": "Era of Rebirth. Classic fantasy. Civilizations are slowly recovering from an ancient cataclysm. Atmosphere of exploration, hope, and danger in the ruins of the past. Magic exists, but it is not all-powerful.",
+    "eraArchitectsDescForGM": "Golden Age of Architects. A highly developed world in a mana-punk/arcane-punk style. Flying cities, magical constructs, complex political intrigues. Technology and magic are fused. Create a sense of grandeur, but also of hidden decay.",
+    "eraSunderingDescForGM": "The Great Sundering. Cosmic horror and post-apocalypse. The world is literally falling apart. Aether storms distort reality. The main goal is survival and finding a safe haven. Atmosphere of despair, madness, and constant threat.",
+    "eraSilenceDescForGM": "Era of Silence. Grim survival in a world after the fall of civilization. Knowledge is lost, resources are extremely scarce. Danger comes not only from mutated creatures but also from other desperate survivors. Atmosphere of hopelessness with rare glimpses of hope."
+  },
+  "narratorSelection": {
+  "worldSetup": {
+    "title": "World Simulation Setup",
+    "yearsLabel": "Pre-history Years (1-20):",
+    "yearsDesc": "Determines how many years the world will develop autonomously before your arrival (wars, economy, intrigues).",
+    "agentsLabel": "Initial Population (50-200):",
+    "agentsDesc": "Number of unique NPCs with their own needs, jobs, and goals. More agents = a livelier world, but longer generation time.",
+    "startButton": "Create World and Start"
+  },
+    "title": "Select a Narrator",
+    "confirmButton": "Confirm and Begin",
+    "backButton": "Back to Character"
+  },
+  "loadGame": {
+    "title": "Load Game",
+    "manualSavesTitle": "Manual Saves (Max: {max})",
+    "autoSavesTitle": "Autosaves (Max: {max})",
+    "loading": "Loading...",
+    "noManualSaves": "No manual saves",
+    "noAutoSaves": "No autosaves",
+    "manualSlotType": "Manual Slot",
+    "autoSlotType": "Autosave",
+    "manualSlot": "Slot #{id}",
+    "autoSlot": "Auto #{id}",
+    "emptySlot": "Empty",
+    "loadButton": "Load",
+    "deleteButton": "Delete",
+    "confirmDelete": "Are you sure you want to delete the save '{slotType} #{slotId}'? This action cannot be undone.",
+    "errorLoad": "Error loading save #{slotId}: {message}",
+    "errorSaveNotFound": "Save slot #{slotId} not found.",
+    "errorStorageFull": "Failed to save the game. Browser storage might be full. Try deleting old saves.",
+    "errorSlotFull": "Failed to save to manual slot #{slotId}: All {max} slots are occupied.",
+    "errorSlotFullLS": "Failed to save to manual slot #{slotId} (localStorage): All {max} slots are occupied.",
+    "errorInvalidSlotType": "Invalid slot type for loading: {slotType}",
+    "errorSaveCorrupted": "Save data is incomplete or corrupted.",
+    "levelAbbr": "Lvl",
+    "saveInfo": "Location: {location} | Date: {date}",
+    "sourceFileSystem": "File System",
+    "sourceLocalStorage": "Browser Storage",
+    "sourceFileSystemShort": "FS",
+    "sourceLocalStorageShort": "LS"
+  },
+  "helpScreen": {
+    "title": "Game Help",
+    "backButton": "Back to Main Menu",
+    "tabs": {
+      "general": "General Advice",
+      "api": "API Setup (Step-by-Step)"
+    },
+    "general": {
+      "howToPlayTitle": "How to Play?",
+      "howToPlayDesc": "You control the hero by describing their actions in text. The Artificial Intelligence (Game Master) reacts to your words, changes the world, and throws challenges at you.",
+      "accountant": "<b>Accountant:</b> This is the AI's logical module. It ensures you can't lift 1000kg of gold or kill a dragon with one click if you're level 1.",
+      "writer": "<b>Writer:</b> This is the AI's creative module. It takes the Accountant's dry calculations and turns them into a beautiful story.",
+      "freedom": "<b>Freedom of Action:</b> You can do anything — from stealing apples at the market to founding your own empire."
+    },
+    "api": {
+      "title": "Setting up the Game's \"Brains\" (API)",
+      "desc": "For the game to work, it needs to connect to neural networks. An <b>API Key</b> is used for this — it's your personal \"password\" that allows the game to send requests.",
+      "howToGet": "How to get it (step-by-step):",
+      "geminiTitle": "1. Google Gemini (Free / Cloud)",
+      "geminiFeatures": "<b>Features:</b> Free, but Google has strict limits (only 2 requests per minute and about 50 per day).",
+      "geminiSteps": "<li>Go to the <a href=\"https://aistudio.google.com/\" target=\"_blank\">Google AI Studio</a> website.</li><li>Log in with your Google account.</li><li>Find the <b>\"Get API key\"</b> button in the left menu.</li><li>Click <b>\"Create API key in new project\"</b>.</li><li>Copy the resulting code.</li><li>In the game settings, select the <b>Gemini</b> provider and paste the key.</li>",
+      "openRouterTitle": "2. OpenRouter.ai (Recommended)",
+      "openRouterFeatures": "<b>Features:</b> An AI aggregator. Many free models, works more stably than direct Google API.",
+      "openRouterSteps": "<li>Register at <a href=\"https://openrouter.ai/\" target=\"_blank\">OpenRouter.ai</a>.</li><li>Create a new key in the <b>\"Keys\"</b> section.</li><li>In the game settings, select <b>OpenRouter</b>, paste the key.</li><li>In the <b>Model ID</b> field, paste: <code>google/gemma-2-9b-it:free</code>.</li>",
+      "llmostTitle": "3. LLMost.ru (For RU players)",
+      "llmostFeatures": "<b>Features:</b> Works without VPN, accepts Russian cards. Has a free starting balance.",
+      "llmostSteps": "<li>Register at <a href=\"https://llmost.ru/\" target=\"_blank\">LLMost.ru</a>.</li><li>Create a token in the <b>\"API\"</b> section of your account.</li><li>In the game settings, select the <b>LLMost</b> provider and paste the key.</li>",
+      "localTitle": "4. Local Launch (LM Studio)",
+      "localDesc": "If you have a powerful graphics card, download <b>LM Studio</b>. Run a model, enable \"Local Server\", and the game will work without internet or keys."
+    }
+  },
+  "gameInterface": {
+    "toggleTTSButtonTitlePlay": "Enable TTS",
+    "toggleTTSButtonTitlePause": "Disable TTS",
+    "toggleMusicButtonTitlePlay": "Play Music",
+    "toggleMusicButtonTitlePause": "Pause Music",
+    "menuButtonTitle": "Menu",
+    "saveModal": {
+      "title": "Choose a slot to save"
+    },
+    "characterPanel": {
+      "title": "Character",
+      "nameLabel": "Name:",
+      "unknownHero": "Unknown Hero",
+      "raceLabel": "Race:",
+      "raceNotSelected": "Not selected",
+      "classLabel": "Class:",
+      "classNotSelected": "Not selected",
+      "levelInfo": "Level: {level} | XP: {xp} / {xpNext} | Points: {points} | Turn: {turn}",
+      "hp": "❤️ Health:",
+      "mana": "💧 Mana:",
+      "str": "⚔️ Strength:",
+      "dex": "🤸 Dexterity:",
+      "int": "💡 Intelligence:",
+      "con": "맷 Constitution:",
+      "cha": "😊 Charisma:",
+      "gold": "💰 Gold:",
+      "reputation": "⚖️ Reputation:",
+      "res": "🛡️ Resilience:",
+      "location": "📍 Location:",
+      "locationUnknown": "Unknown",
+      "increaseStatTooltip": "Increase {statName}"
+    },
+    "equipmentPanel": {
+      "title": "Equipment",
+      "slots": {
+        "head": "Head",
+        "face": "Face",
+        "torso": "Torso",
+        "legs": "Legs",
+        "feet": "Feet",
+        "shoulders": "Shoulders",
+        "left_hand": "L. Hand",
+        "neck": "Neck",
+        "right_hand": "R. Hand"
+      }
+    },
+    "inventoryPanel": {
+      "title": "Inventory ({count})",
+      "empty": "Empty",
+      "effectsLabel": "Effects",
+      "valueLabel": "Value",
+      "tabs": {
+        "all": "All",
+        "weapon": "Weapon",
+        "armor": "Armor",
+        "potion": "Potion",
+        "quest": "Quest"
+      }
+    },
+    "statusEffectsPanel": {
+      "title": "Status Effects",
+      "empty": "No active effects",
+      "noDescription": "No detailed description.",
+      "duration": "Turns left: {turns}"
+    },
+    "log": {
+      "loading": "Loading game...",
+      "gameLoaded": "Game loaded from slot: {slotType} #{slotId}",
+      "continueAdventure": "Continue your adventure!",
+      "waitForGM": "Please wait for the Game Master to respond.",
+      "gmThinking": "The Game Master is thinking...",
+      "gameNotActive": "Game not active. Start a new game or load a save.",
+      "errorApiKeyMissing": "ERROR: API key not found. Please enter it in the settings.",
+      "errorGMBlocked": "ERROR: The Game Master's response was blocked for safety reasons. Reason: {reason}. Try rephrasing your request.",
+      "errorGMApi": "CONNECTION ERROR: Failed to get a response from the Game Master. {message}",
+      "errorGMResponseFormat": "CRITICAL ERROR: The Game Master's response is malformed (invalid JSON). Please try again or check the console (F12).",
+      "noActiveRoll": "No active dice roll request.",
+      "gmInternalAction": "The Game Master is performing internal calculations...",
+      "statIncreased": "You increased an attribute! {statName} has been raised. Points remaining: {points}.",
+      "levelUpSummary": "🎉 LEVEL UP! 🎉 You have reached level {finalLevel}!",
+      "levelUpHPSummary": "Your maximum health has increased by {totalHpGain}!",
+      "levelUpPointsSummary": "You have gained {totalStatPoints} attribute points!",
+      "exitConfirm": "Are you sure you want to exit to the main menu? All unsaved progress will be lost. The game will be autosaved before exiting.",
+      "autoSaveSuccess": "Game autosaved to slot #{slotId} ({source}).",
+      "autoSaveFailed": "Failed to autosave game to slot #{slotId}.",
+      "voiceRecognitionNoSpeech": "No speech was detected. Please try again.",
+      "voiceRecognitionNotAllowed": "Access to the microphone is blocked. Check the site permissions in your browser settings.",
+      "voiceRecognitionError": "Speech recognition error: {error}",
+      "effectModifyStat": "The '{effectName}' effect modifies your '{statName}' by {change}.",
+      "effectSetStat": "The '{effectName}' effect sets your '{statName}' to {value}.",
+      "effectRestoreStat": "The '{effectName}' effect has ended. Your '{statName}' is restored to {value}.",
+      "oocTooltip": "Click to read OOC message",
+      "retrying": "Retrying..."
+    },
+    "input": {
+      "placeholder": "What will you do?",
+      "tooltip": "Describe your action.",
+      "sendButton": "Send",
+      "voiceInputTooltipStart": "Start voice input",
+      "voiceInputTooltipStop": "Stop recording",
+      "retryButton": "Try again"
+    },
+    "questPanel": {
+      "title": "Quests",
+      "empty": "No active quests"
+    },
+    "skillsPanel": {
+      "title": "Skills",
+      "empty": "No learned skills"
+    },
+        "worldChroniclesPanel": {
+      "title": "World Chronicles",
+      "empty": "The world is quiet..."
+    },
+"nexusPanel": {
+      "title": "Constants",
+      "empty": "No data",
+      "defaultCategory": "Other",
+      "boolTrue": "Yes",
+      "boolFalse": "No"
+    },
+    "mapPanel": {
+      "title": "Map",
+      "globalTitle": "Known Regions:",
+      "customTitle": "Discovered Places:",
+      "loading": "Loading...",
+      "noCustom": "Nothing discovered yet",
+      "noGlobal": "No known regions",
+      "errorLoadingWorld": "Error loading world data.",
+      "errorLoadingWorldDataLang": "Error loading world data for '{worldId}' ({lang})"
+    },
+    "environmentPanel": {
+      "title": "Environment",
+      "empty": "No one is visible",
+      "unknownEntity": "Unknown Creature",
+      "noDescription": "No detailed description.",
+      "entityTypeNPC": "NPC",
+      "entityTypeCreature": "Creature",
+      "entityTypeEnemy": "Enemy",
+      "tooltip": {
+        "type": "Type",
+        "health": "Health"
+      }
+    },
+    "calcLogPanel": {
+
+    "echoMemoryPanel": {
+      "title": "Echo Memory",
+      "empty": "No active facts",
+      "clearButton": "Clear",
+      "confirmClear": "Clear all echo memory?"
+    },
+      "title": "GM Calculations",
+      "empty": "No calculations yet."
+
+    },
+    "echoMemoryPanel": {
+      "title": "Echo Memory",
+      "empty": "No active facts",
+      "clearButton": "Clear",
+      "confirmClear": "Clear all echo memory?"
+    
+    },
+
+    "echoMemoryPanel": {
+      "title": "Echo Memory",
+      "empty": "No active facts",
+      "clearButton": "Clear",
+      "confirmClear": "Clear all echo memory?"
+    },
+    "gmNotesPanel": {
+      "title": "GM Notes (DEBUG)",
+      "empty": "No notes yet."
+    },
+    "inGameMenu": {
+      "title": "Menu",
+      "saveButton": "Save Game",
+      "settingsButton": "Settings",
+      "exitButton": "Exit to Main Menu",
+      "closeButton": "Close"
+    },
+    "reputationModal": {
+
+      "title": "Reputation",
+      "title": "Reputation"
+    },
+    "commandFeedback": {
+      "errorPlayerMissing": "[ERROR] Player data is missing. Command cannot be executed.",
+      "errorCommandGeneric": "[ERROR] Invalid arguments for command {command}: {args}",
+      "errorUnknownCommand": "[ERROR] Unknown command from GM: {command}",
+      "goldChanged": "Gold changed by {change}. Current gold: {gold}",
+      "itemAdded": "Received item: {itemName} (x{quantity}).",
+      "itemQuantityIncreased": "Quantity of '{itemName}' increased by {quantity}.",
+      "inventoryFull": "Inventory is full. You cannot take '{itemName}'.",
+      "itemRemoved": "Item '{itemName}' (x{quantityToRemove}) removed from inventory.",
+      "notEnoughItem": "You do not have enough '{itemName}' (ID: {itemId}) to remove {quantityToRemove}.",
+      "itemNotFound": "Item with ID '{itemId}' not found in your inventory.",
+      "mapMarkerRemoved": "Marker '{markerName}' removed from the map.",
+      "mapMarkerNotFound": "Marker with ID '{markerId}' not found.",
+      "statusEffectAdded": "You are affected by: '{effectName}' (duration: {duration} turns).",
+      "statusEffectRemoved": "The effect '{effectName}' has worn off.",
+      "statusEffectNotFound": "Effect with ID '{effectId}' not found.",
+      "hpChanged": "Health changed by {change}. Current health: {hp}/{maxHp}.",
+      "reputationChanged": "Your reputation changed by {change}. Current value: {reputation}.",
+      "reputationSet": "Your reputation has been set to {value}.",
+      "xpGained": "You gained {change} experience. Current XP: {xp}/{xpNext}.",
+      "questAdded": "New quest added to your journal: '{description}'.",
+      "questAlreadyActive": "The quest '{description}' is already active.",
+      "questStatusUpdated": "Status of quest '{description}' updated to: '{status}'.",
+      "questSameStatus": "Quest '{description}' already has this status.",
+      "questNotFound": "Quest with identifier '{questId}' not found in your journal.",
+      "questRemoved": "Quest '{description}' removed from journal.",
+      "questNotFoundForRemoval": "Quest with identifier '{questId}' not found for removal.",
+      "questEdited": "Quest '{questId}' updated. Field '{field}' is now: '{newValue}'.",
+      "skillLearned": "You have learned a new skill: {skillName}!",
+      "skillAlreadyKnown": "You already know the skill '{skillName}'.",
+      "skillUpdated": "(parameters updated)",
+      "skillForgotten": "You have forgotten the skill: {skillName}.",
+      "skillNotFoundForRemoval": "Skill with ID '{skillId}' not found.",
+      "locationChanged": "Your current location is now: {location}.",
+      "mapMarkerAdded": "A new marker has been added to the map: {markerName}.",
+      "mapMarkerUpdated": "Map marker '{markerName}' has been updated.",
+      "entityAlreadyInEnv": "Creature '{name}' (ID: {id}) is already in the environment.",
+      "entityAddedToEnv": "Appeared in the environment: {name}.",
+      "entityRemovedFromEnv": "Creature '{name}' has left the environment.",
+      "entityNotFoundInEnv": "Creature with ID '{id}' not found in the environment.",
+      "entityStatUpdated": "Attribute '{stat}' of '{name}' is now {value}.",
+      "nexusDefined": "New constant defined: '{name}'.",
+      "nexusModified": "Constant '{name}' modified by {change}. New value: {newValue}.",
+      "nexusSet": "Constant '{name}' set to: {newValue}.",
+      "nexusRemoved": "Constant '{name}' removed.",
+
+      "echoMemoryAdded": "📌 Echo Memory: {text}",
+      "echoMemoryCleared": "🧹 Echo Memory cleared.",
+      "echoMemoryItemRemoved": "🗑️ Removed: {text}",
+
+      "echoMemoryAdded": "📌 Echo Memory: {text}",
+      "echoMemoryCleared": "🧹 Echo Memory cleared.",
+      "echoMemoryItemRemoved": "🗑️ Removed: {text}",
+
+      "echoMemoryAdded": "📌 Echo Memory: {text}",
+      "echoMemoryCleared": "🧹 Echo Memory cleared.",
+      "echoMemoryItemRemoved": "🗑️ Removed: {text}",
+      "slotIsEmpty": "Slot {slot} is empty.",
+      "inventoryFullOnUnequip": "Inventory is full, cannot unequip {itemName}.",
+      "itemEquipped": "Item equipped: {itemName} to ({slot}).",
+      "itemUnequipped": "Item unequipped: {itemName} from ({slot}).",
+      "itemNotEquipable": "Item \"{itemName}\" cannot be equipped.",
+      "itemNotFoundById": "Item with internal ID {itemId} not found in inventory."
+    }
+  },
+  "modal": {
+    "title": "Notification",
+    "confirmTitle": "Confirmation",
+    "okButton": "OK"
+  },
+  "loadingScreen": {
+    "generatingWorld": "Generating world..."
+  },
+  "error": {
+    "prefix": "Error:",
+    "apiKeyNeededForProvider": "To start the game, an API key for {provider} is required. Please enter it in the settings.",
+    "worldLoadFailed": "Failed to load data for the default world ({worldId}). Check the console (F12) and the lore files.",
+    "loadLoreFailed": "Error: Failed to load lore for world '{worldId}'. {error}",
+    "loadLoreFailedLang": "Error: Failed to load lore for world '{worldId}' (Language: {lang}).",
+    "skillsRefNotLoaded": "// Error: Failed to load the skills reference.",
+    "skillsRefNotLoadedLang": "// Error: Failed to load the skills reference for world '{worldId}' (Language: {lang}). {error}",
+    "envGuideNotLoadedLang": "// Error: Failed to load the environment commands guide for world '{worldId}' (Language: {lang}). {error}",
+    "apiError": "API Error ({status}): {message}",
+    "emptyResponse": "Received an empty response",
+    "gmBlockedMarker": "GM response blocked",
+    "loadPromptFailed": "Critical Error: Failed to load the initial prompt file ({filePath}). The game cannot start.",
+    "proxyOverloaded": "The server is overloaded. Please try again in a few seconds.",
+    "serverErrorGenericInitial": "A server error occurred. Failed to start the game. Please try again later.",
+    "proxyOverloadedInGame": "The server is overloaded. Please try the action again in a few seconds.",
+    "serverErrorGenericInGame": "A server error occurred. Please try the action again."
+  },
+  "tts": {
+    "enabled": "TTS enabled.",
+    "disabled": "TTS disabled.",
+    "voiceTest": "Voice test"
+  },
+  "itemDescriptions": {
+    "noDescription": "No description.",
+    "shortSword": "A simple but reliable short sword. Basic melee weapon.",
+    "woodenShield": "A round wooden shield. Provides minimal protection.",
+    "smallHealthPotion": "A small vial with a red liquid. Restores a bit of health.",
+    "simpleStaff": "A smooth wooden staff. Helps to focus magical energy.",
+    "noviceRobe": "A simple robe worn by novice mages. Offers almost no protection.",
+    "smallManaPotion": "A small vial with a blue liquid. Restores a bit of mana.",
+    "basicDagger": "A common dagger. A fast but weak weapon.",
+    "lightLeatherArmor": "Light armor made of treated leather. Provides some protection without hindering movement.",
+    "lockpicks": "A set of thin metal tools for picking locks.",
+    "simpleLute": "A simple lute. An instrument for bardic songs and spells.",
+    "colorfulClothes": "Bright and comfortable clothes, suitable for performances.",
+    "gold": "Shiny gold coins. The main currency."
+  },
+  "factions": {
+    "global": "Global"
+  },
+  "quests": {
+    "defaultTitle": "Untitled",
+    "noDescription": "No description",
+    "unknown": "Unknown",
+    "objectiveLabel": "Objective",
+    "descriptionLabel": "Description",
+    "rewardLabel": "Reward",
+    "issuerLabel": "Issuer",
+    "statusActive": "Active",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed"
+  },
+  "skills": {
+
+    "use": "Use",
+    "noDescription": "No description",
+    "damageLabel": "Damage",
+    "costLabel": "Cost",
+    "durationLabel": "Dur.",
+    "cooldownLabel": "CD",
+    "typeLabel": "Type",
+    "effectLabel": "Effect"
+  },
+  "optimization": {
+    "summarizing": "The GM is systematizing memories of recent events...",
+    "clearing": "Performing memory optimization..."
+  },
+  "warning": {
+    "languageChangedInGame": "Language has been changed. World details (lore, locations) will be fully updated upon restarting the game."
+  },
+  "geminiPrompt": {
+    "gmConfirm_v3": "CONFIRMED. I am the Game Master. Ready to describe the world, react to the player's actions, manage NPCs, quests, combat, and follow all instructions. I will respond in English."
+  },
+  "world": {
+    "generatingStartLocation": "Generating starting point..."
+  }
+}

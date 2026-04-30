@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Fantasy City Generator v2</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tiles.css">
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <span>CityBuilder OS - Core Module</span>
+            <span>_ □ X</span>
+        </div>
+        <div class="content">
+            <div class="map-container">
+                <div id="mapGrid" class="map-grid"></div>
+            </div>
+            <div class="sidebar">
+                <h2 id="infoName">Инициализация...</h2>
+                <div id="infoDetails">
+                    <p>Ожидание ввода координат.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="window">
+        <div class="title-bar">
+            <span>AI Neural Link (JSON Data)</span>
+        </div>
+        <div class="content data-panel">
+            <textarea id="jsonInput" class="json-area"></textarea>
+            <div class="button-group">
+                <button onclick="generateFromInput()">Сгенерировать карту</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/test_data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

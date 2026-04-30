@@ -1,0 +1,1453 @@
+{
+  "version": "1.0",
+  "image_path": "",
+  "tile_size": 16,
+  "spacing": 1,
+  "zoom": 4,
+  "mappings": {
+    "vertical_pattern_tile": {
+      "x": 10,
+      "y": 0
+    },
+    "cross_pattern_tile": {
+      "x": 11,
+      "y": 0
+    },
+    "top_border_tile": {
+      "x": 12,
+      "y": 0
+    },
+    "vertical_line_tile": {
+      "x": 13,
+      "y": 0
+    },
+    "right_border_tile": {
+      "x": 14,
+      "y": 0
+    },
+    "corner_tile": {
+      "x": 15,
+      "y": 0
+    },
+    "brick_pattern_tile": {
+      "x": 16,
+      "y": 0
+    },
+    "grid_pattern_tile": {
+      "x": 17,
+      "y": 0
+    },
+    "corner_wall_tile": {
+      "x": 18,
+      "y": 0
+    },
+    "horizontal_wall_tile": {
+      "x": 19,
+      "y": 0
+    },
+    "dark_purple_corner": {
+      "x": 20,
+      "y": 0
+    },
+    "ladder": {
+      "x": 21,
+      "y": 0
+    },
+    "double_candles": {
+      "x": 22,
+      "y": 0
+    },
+    "keyhole": {
+      "x": 23,
+      "y": 0
+    },
+    "armored_knight": {
+      "x": 24,
+      "y": 0
+    },
+    "robot": {
+      "x": 25,
+      "y": 0
+    },
+    "robot_with_sword": {
+      "x": 26,
+      "y": 0
+    },
+    "robot_with_shield": {
+      "x": 27,
+      "y": 0
+    },
+    "knight_with_shield": {
+      "x": 28,
+      "y": 0
+    },
+    "knight_with_sword": {
+      "x": 29,
+      "y": 0
+    },
+    "dark_purple_corner_1": {
+      "x": 9,
+      "y": 1
+    },
+    "dark_purple_edge": {
+      "x": 10,
+      "y": 1
+    },
+    "dark_purple_center": {
+      "x": 11,
+      "y": 1
+    },
+    "dark_purple_top": {
+      "x": 12,
+      "y": 1
+    },
+    "dark_purple_vertical_line": {
+      "x": 13,
+      "y": 1
+    },
+    "dark_purple_l_shape": {
+      "x": 14,
+      "y": 1
+    },
+    "dark_purple_t_shape": {
+      "x": 15,
+      "y": 1
+    },
+    "dark_purple_cross": {
+      "x": 16,
+      "y": 1
+    },
+    "dark_purple_double_vertical_line": {
+      "x": 17,
+      "y": 1
+    },
+    "dark_purple_textured": {
+      "x": 18,
+      "y": 1
+    },
+    "dark_purple_tile_center": {
+      "x": 19,
+      "y": 1
+    },
+    "dark_purple_tile_edge": {
+      "x": 20,
+      "y": 1
+    },
+    "orange_ladder": {
+      "x": 21,
+      "y": 1
+    },
+    "red_striped_wall": {
+      "x": 22,
+      "y": 1
+    },
+    "keyhole_tile": {
+      "x": 23,
+      "y": 1
+    },
+    "lion_statue": {
+      "x": 24,
+      "y": 1
+    },
+    "robot_guard": {
+      "x": 25,
+      "y": 1
+    },
+    "armored_knight_1": {
+      "x": 26,
+      "y": 1
+    },
+    "warrior_statue": {
+      "x": 27,
+      "y": 1
+    },
+    "ninja_statue": {
+      "x": 28,
+      "y": 1
+    },
+    "red_vertical_pattern": {
+      "x": 8,
+      "y": 2
+    },
+    "red_corner_pattern": {
+      "x": 9,
+      "y": 2
+    },
+    "red_vertical_pattern_1": {
+      "x": 10,
+      "y": 2
+    },
+    "red_cross_pattern": {
+      "x": 11,
+      "y": 2
+    },
+    "red_top_edge_pattern": {
+      "x": 12,
+      "y": 2
+    },
+    "dark_purple_circle_bottom": {
+      "x": 13,
+      "y": 2
+    },
+    "dark_purple_circle_vertical": {
+      "x": 14,
+      "y": 2
+    },
+    "dark_purple_circle_corner": {
+      "x": 15,
+      "y": 2
+    },
+    "dark_purple_circle_cross": {
+      "x": 16,
+      "y": 2
+    },
+    "dark_purple_circle_horizontal": {
+      "x": 17,
+      "y": 2
+    },
+    "warrior_with_sword": {
+      "x": 28,
+      "y": 2
+    },
+    "double_headed_creature": {
+      "x": 29,
+      "y": 2
+    },
+    "robot_with_arms": {
+      "x": 30,
+      "y": 2
+    },
+    "bridge_with_arches": {
+      "x": 0,
+      "y": 3
+    },
+    "castle_towers": {
+      "x": 1,
+      "y": 3
+    },
+    "double_layered_wall": {
+      "x": 2,
+      "y": 3
+    },
+    "closed_door": {
+      "x": 3,
+      "y": 3
+    },
+    "vertical_pillars": {
+      "x": 4,
+      "y": 3
+    },
+    "fence_with_posts": {
+      "x": 5,
+      "y": 3
+    },
+    "double_fence": {
+      "x": 6,
+      "y": 3
+    },
+    "robot_tile": {
+      "x": 27,
+      "y": 3
+    },
+    "crowned_robot_tile": {
+      "x": 28,
+      "y": 3
+    },
+    "queen_robot_tile": {
+      "x": 29,
+      "y": 3
+    },
+    "simple_robot_tile": {
+      "x": 30,
+      "y": 3
+    },
+    "crate_top_tile": {
+      "x": 0,
+      "y": 4
+    },
+    "crate_side_tile": {
+      "x": 1,
+      "y": 4
+    },
+    "crate_side_x_tile": {
+      "x": 2,
+      "y": 4
+    },
+    "door_tile": {
+      "x": 3,
+      "y": 4
+    },
+    "door_frame_tile": {
+      "x": 4,
+      "y": 4
+    },
+    "decorative_tile": {
+      "x": 5,
+      "y": 4
+    },
+    "ornate_gate": {
+      "x": 6,
+      "y": 4
+    },
+    "horizontal_barrier": {
+      "x": 7,
+      "y": 4
+    },
+    "vertical_waterway": {
+      "x": 8,
+      "y": 4
+    },
+    "water_corner": {
+      "x": 9,
+      "y": 4
+    },
+    "t_junction_waterway": {
+      "x": 10,
+      "y": 4
+    },
+    "crossroad_waterway": {
+      "x": 11,
+      "y": 4
+    },
+    "end_waterway": {
+      "x": 12,
+      "y": 4
+    },
+    "narrow_passage": {
+      "x": 13,
+      "y": 4
+    },
+    "parallel_lines": {
+      "x": 14,
+      "y": 4
+    },
+    "corner_path": {
+      "x": 15,
+      "y": 4
+    },
+    "robot_figure": {
+      "x": 26,
+      "y": 4
+    },
+    "robot_with_hat": {
+      "x": 27,
+      "y": 4
+    },
+    "robot_with_cane": {
+      "x": 28,
+      "y": 4
+    },
+    "robot_simple": {
+      "x": 29,
+      "y": 4
+    },
+    "robot_with_helmet": {
+      "x": 30,
+      "y": 4
+    },
+    "railroad_tracks": {
+      "x": 0,
+      "y": 5
+    },
+    "corner_tracks": {
+      "x": 1,
+      "y": 5
+    },
+    "junction_tracks": {
+      "x": 2,
+      "y": 5
+    },
+    "square_tracks": {
+      "x": 3,
+      "y": 5
+    },
+    "complex_tracks": {
+      "x": 4,
+      "y": 5
+    },
+    "ancient_ruins": {
+      "x": 15,
+      "y": 5
+    },
+    "column_structure": {
+      "x": 16,
+      "y": 5
+    },
+    "decorative_archway": {
+      "x": 17,
+      "y": 5
+    },
+    "stone_pattern": {
+      "x": 18,
+      "y": 5
+    },
+    "green_pyramid": {
+      "x": 19,
+      "y": 5
+    },
+    "green_circle": {
+      "x": 20,
+      "y": 5
+    },
+    "red_platform": {
+      "x": 21,
+      "y": 5
+    },
+    "red_platform_with_steps": {
+      "x": 22,
+      "y": 5
+    },
+    "red_platform_with_double_steps": {
+      "x": 23,
+      "y": 5
+    },
+    "robotic_structure": {
+      "x": 24,
+      "y": 5
+    },
+    "beige_crab_tile": {
+      "x": 25,
+      "y": 5
+    },
+    "beige_scorpion_tile": {
+      "x": 26,
+      "y": 5
+    },
+    "beige_spider_tile": {
+      "x": 27,
+      "y": 5
+    },
+    "beige_beetle_tile": {
+      "x": 28,
+      "y": 5
+    },
+    "beige_octopus_tile": {
+      "x": 29,
+      "y": 5
+    },
+    "beige_bug_tile": {
+      "x": 30,
+      "y": 5
+    },
+    "orange_ladder_tile": {
+      "x": 0,
+      "y": 6
+    },
+    "orange_zigzag_tile": {
+      "x": 1,
+      "y": 6
+    },
+    "orange_stairs_tile": {
+      "x": 2,
+      "y": 6
+    },
+    "orange_graph_tile": {
+      "x": 3,
+      "y": 6
+    },
+    "ladder_tile": {
+      "x": 4,
+      "y": 6
+    },
+    "factory_tile": {
+      "x": 5,
+      "y": 6
+    },
+    "archway_tile": {
+      "x": 6,
+      "y": 6
+    },
+    "circuit_tile": {
+      "x": 7,
+      "y": 6
+    },
+    "control_panel_tile": {
+      "x": 8,
+      "y": 6
+    },
+    "control_panel_variant_tile": {
+      "x": 9,
+      "y": 6
+    },
+    "grid_tile": {
+      "x": 10,
+      "y": 6
+    },
+    "wave_tile": {
+      "x": 11,
+      "y": 6
+    },
+    "zigzag_tile": {
+      "x": 12,
+      "y": 6
+    },
+    "glowing_eyes_tile": {
+      "x": 13,
+      "y": 6
+    },
+    "green_pattern_tile": {
+      "x": 14,
+      "y": 6
+    },
+    "green_circle_tile": {
+      "x": 15,
+      "y": 6
+    },
+    "green_arrow_tile": {
+      "x": 16,
+      "y": 6
+    },
+    "green_flower_tile": {
+      "x": 17,
+      "y": 6
+    },
+    "brown_tree_tile": {
+      "x": 19,
+      "y": 6
+    },
+    "brown_tower_tile": {
+      "x": 20,
+      "y": 6
+    },
+    "white_corner_tile": {
+      "x": 21,
+      "y": 6
+    },
+    "white_edge_tile": {
+      "x": 22,
+      "y": 6
+    },
+    "white_corner_tile_1": {
+      "x": 23,
+      "y": 6
+    },
+    "robotic_figure": {
+      "x": 24,
+      "y": 6
+    },
+    "robotic_figure_with_arms": {
+      "x": 25,
+      "y": 6
+    },
+    "ghostly_figure": {
+      "x": 26,
+      "y": 6
+    },
+    "ghostly_figure_with_arms": {
+      "x": 27,
+      "y": 6
+    },
+    "monster_figure": {
+      "x": 28,
+      "y": 6
+    },
+    "skeleton_figure": {
+      "x": 29,
+      "y": 6
+    },
+    "robotic_creature": {
+      "x": 30,
+      "y": 6
+    },
+    "orange_sign_with_arrows": {
+      "x": 0,
+      "y": 7
+    },
+    "orange_sign_with_lines": {
+      "x": 1,
+      "y": 7
+    },
+    "orange_console": {
+      "x": 2,
+      "y": 7
+    },
+    "dark_purple_tile": {
+      "x": 13,
+      "y": 7
+    },
+    "orange_sign_with_m": {
+      "x": 14,
+      "y": 7
+    },
+    "orange_sign_with_d": {
+      "x": 15,
+      "y": 7
+    },
+    "orange_sign_with_rectangle": {
+      "x": 16,
+      "y": 7
+    },
+    "red_sign_with_rectangle": {
+      "x": 17,
+      "y": 7
+    },
+    "blue_panda_face": {
+      "x": 18,
+      "y": 7
+    },
+    "blue_panda_face_1": {
+      "x": 19,
+      "y": 7
+    },
+    "blue_panda_face_2": {
+      "x": 20,
+      "y": 7
+    },
+    "blue_panda_face_3": {
+      "x": 21,
+      "y": 7
+    },
+    "blue_panda_face_4": {
+      "x": 22,
+      "y": 7
+    },
+    "blue_bear_on_dark_purple": {
+      "x": 23,
+      "y": 7
+    },
+    "robot_on_dark_purple": {
+      "x": 24,
+      "y": 7
+    },
+    "duck_on_dark_purple": {
+      "x": 25,
+      "y": 7
+    },
+    "chicken_on_dark_purple": {
+      "x": 26,
+      "y": 7
+    },
+    "cow_on_dark_purple": {
+      "x": 27,
+      "y": 7
+    },
+    "horse_on_dark_purple": {
+      "x": 28,
+      "y": 7
+    },
+    "cat_on_dark_purple": {
+      "x": 29,
+      "y": 7
+    },
+    "fox_on_dark_purple": {
+      "x": 30,
+      "y": 7
+    },
+    "orange_scroll_on_dark_purple": {
+      "x": 0,
+      "y": 8
+    },
+    "orange_chest_on_dark_purple": {
+      "x": 1,
+      "y": 8
+    },
+    "purple_pattern_tile": {
+      "x": 12,
+      "y": 8
+    },
+    "purple_structure_tile": {
+      "x": 13,
+      "y": 8
+    },
+    "orange_sign_tile": {
+      "x": 14,
+      "y": 8
+    },
+    "orange_door_tile": {
+      "x": 15,
+      "y": 8
+    },
+    "orange_frame_tile": {
+      "x": 16,
+      "y": 8
+    },
+    "red_flag_tile": {
+      "x": 17,
+      "y": 8
+    },
+    "yellow_creature_tile_1": {
+      "x": 18,
+      "y": 8
+    },
+    "yellow_creature_tile_2": {
+      "x": 19,
+      "y": 8
+    },
+    "yellow_creature_tile_3": {
+      "x": 20,
+      "y": 8
+    },
+    "yellow_creature_tile_4": {
+      "x": 21,
+      "y": 8
+    },
+    "yellow_creature_with_ears": {
+      "x": 22,
+      "y": 8
+    },
+    "yellow_creature_partial": {
+      "x": 23,
+      "y": 8
+    },
+    "white_symbol_on_dark": {
+      "x": 24,
+      "y": 8
+    },
+    "white_octopus": {
+      "x": 25,
+      "y": 8
+    },
+    "white_bat": {
+      "x": 26,
+      "y": 8
+    },
+    "white_face": {
+      "x": 27,
+      "y": 8
+    },
+    "white_snake": {
+      "x": 28,
+      "y": 8
+    },
+    "white_monster": {
+      "x": 29,
+      "y": 8
+    },
+    "white_bear": {
+      "x": 30,
+      "y": 8
+    },
+    "blue_door_with_cross": {
+      "x": 0,
+      "y": 9
+    },
+    "green_bug_tile": {
+      "x": 21,
+      "y": 9
+    },
+    "green_alien_tile": {
+      "x": 22,
+      "y": 9
+    },
+    "green_creature_tile": {
+      "x": 23,
+      "y": 9
+    },
+    "white_robot_tile": {
+      "x": 24,
+      "y": 9
+    },
+    "white_warrior_tile": {
+      "x": 25,
+      "y": 9
+    },
+    "white_mage_tile": {
+      "x": 26,
+      "y": 9
+    },
+    "white_alien_tile": {
+      "x": 27,
+      "y": 9
+    },
+    "white_robot_variant_tile": {
+      "x": 28,
+      "y": 9
+    },
+    "white_beast_tile": {
+      "x": 29,
+      "y": 9
+    },
+    "white_guard_tile": {
+      "x": 30,
+      "y": 9
+    },
+    "red_chest": {
+      "x": 20,
+      "y": 10
+    },
+    "red_banner": {
+      "x": 21,
+      "y": 10
+    },
+    "purple_lights": {
+      "x": 22,
+      "y": 10
+    },
+    "yellow_archway": {
+      "x": 23,
+      "y": 10
+    },
+    "stone_face_1": {
+      "x": 24,
+      "y": 10
+    },
+    "stone_face_2": {
+      "x": 25,
+      "y": 10
+    },
+    "stone_face_3": {
+      "x": 26,
+      "y": 10
+    },
+    "stone_face_4": {
+      "x": 27,
+      "y": 10
+    },
+    "stone_face_5": {
+      "x": 28,
+      "y": 10
+    },
+    "stone_face_6": {
+      "x": 29,
+      "y": 10
+    },
+    "character_face": {
+      "x": 30,
+      "y": 10
+    },
+    "blue_keyhole": {
+      "x": 0,
+      "y": 11
+    },
+    "brick_stairs": {
+      "x": 1,
+      "y": 11
+    },
+    "computer_consoles": {
+      "x": 2,
+      "y": 11
+    },
+    "wooden_table": {
+      "x": 3,
+      "y": 11
+    },
+    "blue_fence": {
+      "x": 4,
+      "y": 11
+    },
+    "red_columns": {
+      "x": 5,
+      "y": 11
+    },
+    "red_grid": {
+      "x": 6,
+      "y": 11
+    },
+    "red_shields": {
+      "x": 7,
+      "y": 11
+    },
+    "door_frame": {
+      "x": 8,
+      "y": 11
+    },
+    "metallic_door": {
+      "x": 9,
+      "y": 11
+    },
+    "closed_gate": {
+      "x": 10,
+      "y": 11
+    },
+    "barred_window": {
+      "x": 11,
+      "y": 11
+    },
+    "empty_hallway": {
+      "x": 12,
+      "y": 11
+    },
+    "ventilation_grate": {
+      "x": 13,
+      "y": 11
+    },
+    "decorative_fence": {
+      "x": 14,
+      "y": 11
+    },
+    "stacked_coins": {
+      "x": 15,
+      "y": 11
+    },
+    "angled_support": {
+      "x": 16,
+      "y": 11
+    },
+    "broken_frame": {
+      "x": 17,
+      "y": 11
+    },
+    "green_map": {
+      "x": 18,
+      "y": 11
+    },
+    "asteroid_tile": {
+      "x": 29,
+      "y": 11
+    },
+    "cross_structure": {
+      "x": 30,
+      "y": 11
+    },
+    "square_pattern": {
+      "x": 0,
+      "y": 12
+    },
+    "hexagon_structure": {
+      "x": 1,
+      "y": 12
+    },
+    "complex_pattern": {
+      "x": 2,
+      "y": 12
+    },
+    "vertical_lines": {
+      "x": 3,
+      "y": 12
+    },
+    "arrow_tile": {
+      "x": 4,
+      "y": 12
+    },
+    "red_pattern_1": {
+      "x": 5,
+      "y": 12
+    },
+    "red_pattern_2": {
+      "x": 6,
+      "y": 12
+    },
+    "red_pattern_3": {
+      "x": 7,
+      "y": 12
+    },
+    "dark_purple_tile_with_crown_pattern": {
+      "x": 17,
+      "y": 13
+    },
+    "dark_purple_corner_tile_with_pattern": {
+      "x": 18,
+      "y": 13
+    },
+    "dark_purple_tile_with_inner_corner_pattern": {
+      "x": 19,
+      "y": 13
+    },
+    "dark_purple_tile_with_double_pattern": {
+      "x": 20,
+      "y": 13
+    },
+    "dark_purple_tile_with_e_pattern": {
+      "x": 21,
+      "y": 13
+    },
+    "dark_purple_tile_with_double_horizontal_lines": {
+      "x": 22,
+      "y": 13
+    },
+    "dark_purple_tile_with_curved_e_pattern": {
+      "x": 23,
+      "y": 13
+    },
+    "dark_purple_tile_with_arrow_pattern": {
+      "x": 24,
+      "y": 13
+    },
+    "dark_purple_vertical_stripe_tile": {
+      "x": 25,
+      "y": 13
+    },
+    "dark_purple_tile_with_bottom_u_shape": {
+      "x": 26,
+      "y": 13
+    },
+    "red_control_panel": {
+      "x": 6,
+      "y": 14
+    },
+    "red_terminal": {
+      "x": 7,
+      "y": 14
+    },
+    "beige_monitor_with_graph": {
+      "x": 8,
+      "y": 14
+    },
+    "beige_monitor_with_arrows": {
+      "x": 9,
+      "y": 14
+    },
+    "beige_control_panel": {
+      "x": 10,
+      "y": 14
+    },
+    "beige_snake_path": {
+      "x": 11,
+      "y": 14
+    },
+    "beige_vertical_bars": {
+      "x": 12,
+      "y": 14
+    },
+    "beige_horizontal_bars": {
+      "x": 13,
+      "y": 14
+    },
+    "orange_double_frame": {
+      "x": 14,
+      "y": 14
+    },
+    "orange_single_frame": {
+      "x": 15,
+      "y": 14
+    },
+    "vertical_stripes_tile": {
+      "x": 16,
+      "y": 14
+    },
+    "zigzag_pattern_tile": {
+      "x": 17,
+      "y": 14
+    },
+    "vertical_stripes_reversed_tile": {
+      "x": 18,
+      "y": 14
+    },
+    "circle_with_cross_tile": {
+      "x": 19,
+      "y": 14
+    },
+    "circle_with_horizontal_lines_tile": {
+      "x": 20,
+      "y": 14
+    },
+    "circle_with_cross_and_dots_tile": {
+      "x": 21,
+      "y": 14
+    },
+    "circle_with_x_tile": {
+      "x": 22,
+      "y": 14
+    },
+    "circle_with_dots_tile": {
+      "x": 23,
+      "y": 14
+    },
+    "circle_with_dashed_lines_tile": {
+      "x": 24,
+      "y": 14
+    },
+    "center_dot_with_corners_tile": {
+      "x": 25,
+      "y": 14
+    },
+    "dark_purple_tile_with_cross_pattern": {
+      "x": 26,
+      "y": 14
+    },
+    "dark_purple_tile_with_square_pattern": {
+      "x": 27,
+      "y": 14
+    },
+    "dark_purple_tile_with_curved_lines": {
+      "x": 28,
+      "y": 14
+    },
+    "dark_purple_tile_with_corner_shapes": {
+      "x": 29,
+      "y": 14
+    },
+    "dark_purple_tile_with_cross_and_lines": {
+      "x": 30,
+      "y": 14
+    },
+    "dark_purple_tile_with_skull_and_bones": {
+      "x": 0,
+      "y": 15
+    },
+    "dark_purple_tile_with_dragon_head": {
+      "x": 1,
+      "y": 15
+    },
+    "dark_purple_tile_with_complex_pattern": {
+      "x": 2,
+      "y": 15
+    },
+    "dark_purple_tile_with_orange_tower": {
+      "x": 3,
+      "y": 15
+    },
+    "dark_purple_tile_with_yellow_tower": {
+      "x": 4,
+      "y": 15
+    },
+    "yellow_symbol_on_brown": {
+      "x": 5,
+      "y": 15
+    },
+    "red_symbols_on_brown_left": {
+      "x": 6,
+      "y": 15
+    },
+    "red_symbols_on_brown_full": {
+      "x": 7,
+      "y": 15
+    },
+    "white_stripes_on_brown_vertical": {
+      "x": 8,
+      "y": 15
+    },
+    "white_stripes_on_brown_cross": {
+      "x": 9,
+      "y": 15
+    },
+    "orange_pattern_on_brown_left": {
+      "x": 10,
+      "y": 15
+    },
+    "orange_pattern_on_brown_center": {
+      "x": 11,
+      "y": 15
+    },
+    "orange_pattern_on_brown_right": {
+      "x": 12,
+      "y": 15
+    },
+    "orange_square_pattern_on_brown": {
+      "x": 13,
+      "y": 15
+    },
+    "gray_mechanical_on_brown": {
+      "x": 14,
+      "y": 15
+    },
+    "beige_robot_face": {
+      "x": 15,
+      "y": 15
+    },
+    "beige_corner_gear": {
+      "x": 16,
+      "y": 15
+    },
+    "beige_top_gear": {
+      "x": 17,
+      "y": 15
+    },
+    "beige_corner_gear_mirror": {
+      "x": 18,
+      "y": 15
+    },
+    "beige_pipe_end": {
+      "x": 19,
+      "y": 15
+    },
+    "beige_double_pipe": {
+      "x": 20,
+      "y": 15
+    },
+    "beige_pipe_with_bolt": {
+      "x": 21,
+      "y": 15
+    },
+    "beige_pipe_with_grid": {
+      "x": 22,
+      "y": 15
+    },
+    "beige_battery_half": {
+      "x": 23,
+      "y": 15
+    },
+    "beige_battery_full": {
+      "x": 24,
+      "y": 15
+    },
+    "orange_pattern_tile": {
+      "x": 14,
+      "y": 16
+    },
+    "orange_square_tile": {
+      "x": 15,
+      "y": 16
+    },
+    "corner_tile_with_dot": {
+      "x": 16,
+      "y": 16
+    },
+    "horizontal_lines_with_dots": {
+      "x": 17,
+      "y": 16
+    },
+    "corner_tile_with_dots": {
+      "x": 18,
+      "y": 16
+    },
+    "bordered_square_tile": {
+      "x": 19,
+      "y": 16
+    },
+    "ace_of_hearts_tile": {
+      "x": 20,
+      "y": 16
+    },
+    "two_of_hearts_tile": {
+      "x": 21,
+      "y": 16
+    },
+    "three_of_hearts_tile": {
+      "x": 22,
+      "y": 16
+    },
+    "four_of_hearts_tile": {
+      "x": 23,
+      "y": 16
+    },
+    "dark_rocks": {
+      "x": 1,
+      "y": 0
+    },
+    "mosaic_pattern": {
+      "x": 2,
+      "y": 0
+    },
+    "dark_purple_tile_with_red_pattern": {
+      "x": 3,
+      "y": 0
+    },
+    "dark_purple_tile_with_red_center": {
+      "x": 4,
+      "y": 0
+    },
+    "dark_purple_tile_with_green_shapes": {
+      "x": 5,
+      "y": 0
+    },
+    "dark_purple_tile_with_green_crosses": {
+      "x": 6,
+      "y": 0
+    },
+    "dark_purple_tile_with_green_diagonals": {
+      "x": 7,
+      "y": 0
+    },
+    "dark_purple_tile_with_two_cacti": {
+      "x": 7,
+      "y": 1
+    },
+    "dark_purple_tile_with_single_cactus": {
+      "x": 6,
+      "y": 1
+    },
+    "dark_purple_tile_with_green_sign": {
+      "x": 5,
+      "y": 1
+    },
+    "dark_purple_tile_with_single_tree": {
+      "x": 4,
+      "y": 1
+    },
+    "dark_purple_tile_with_two_trees": {
+      "x": 3,
+      "y": 1
+    },
+    "green_tree_icon": {
+      "x": 2,
+      "y": 1
+    },
+    "green_pine_tree": {
+      "x": 1,
+      "y": 1
+    },
+    "green_tree": {
+      "x": 0,
+      "y": 1
+    },
+    "green_branches": {
+      "x": 0,
+      "y": 2
+    },
+    "green_coral": {
+      "x": 1,
+      "y": 2
+    },
+    "green_veins": {
+      "x": 2,
+      "y": 2
+    },
+    "green_double_trees": {
+      "x": 3,
+      "y": 2
+    },
+    "green_mushroom_tree": {
+      "x": 4,
+      "y": 2
+    },
+    "gray_stones": {
+      "x": 5,
+      "y": 2
+    },
+    "orange_coral": {
+      "x": 6,
+      "y": 2
+    },
+    "green_symbol_on_dark_tile": {
+      "x": 7,
+      "y": 2
+    },
+    "dark_red_corner_tile": {
+      "x": 9,
+      "y": 0
+    },
+    "dark_red_vertical_path": {
+      "x": 8,
+      "y": 0
+    },
+    "dark_red_dotted_path": {
+      "x": 8,
+      "y": 1
+    },
+    "dark_red_double_line_left": {
+      "x": 7,
+      "y": 3
+    },
+    "dark_red_double_line_corner": {
+      "x": 8,
+      "y": 3
+    },
+    "dark_red_tile_with_dot": {
+      "x": 9,
+      "y": 3
+    },
+    "dark_red_double_line_center": {
+      "x": 10,
+      "y": 3
+    },
+    "dark_red_double_line_u_shape": {
+      "x": 11,
+      "y": 3
+    },
+    "dark_red_double_line_with_dot": {
+      "x": 12,
+      "y": 3
+    },
+    "checkered_door": {
+      "x": 4,
+      "y": 9
+    },
+    "window_with_bars": {
+      "x": 5,
+      "y": 9
+    },
+    "empty_doorway": {
+      "x": 6,
+      "y": 9
+    },
+    "double_barred_door": {
+      "x": 8,
+      "y": 9
+    },
+    "triple_barred_door": {
+      "x": 7,
+      "y": 9
+    },
+    "empty_doorway_1": {
+      "x": 9,
+      "y": 9
+    },
+    "arched_doorway": {
+      "x": 10,
+      "y": 9
+    },
+    "round_doorway": {
+      "x": 10,
+      "y": 8
+    },
+    "brick_oven": {
+      "x": 8,
+      "y": 8
+    },
+    "horizontal_barred_door": {
+      "x": 10,
+      "y": 7
+    },
+    "dark_purple_tile_with_orange_pattern": {
+      "x": 9,
+      "y": 7
+    },
+    "dark_purple_tile_with_light_square_and_zigzag": {
+      "x": 9,
+      "y": 8
+    },
+    "dark_purple_tile_with_orange_rectangle": {
+      "x": 8,
+      "y": 7
+    },
+    "dark_purple_tile_with_orange_rectangle_and_pattern": {
+      "x": 7,
+      "y": 7
+    },
+    "dark_purple_tile_with_orange_lines_and_dots": {
+      "x": 7,
+      "y": 8
+    },
+    "dark_purple_tile_with_orange_lines_and_hook": {
+      "x": 6,
+      "y": 8
+    },
+    "dark_purple_tile_with_orange_double_lines": {
+      "x": 6,
+      "y": 7
+    },
+    "dark_purple_tile_with_orange_double_door": {
+      "x": 5,
+      "y": 7
+    },
+    "dark_purple_tile_with_orange_hook_and_dots": {
+      "x": 5,
+      "y": 8
+    },
+    "dark_purple_tile_with_light_double_circle_and_rectangle": {
+      "x": 11,
+      "y": 8
+    },
+    "green_castle": {
+      "x": 18,
+      "y": 10
+    },
+    "asteroid_field": {
+      "x": 17,
+      "y": 12
+    },
+    "mountain_range": {
+      "x": 16,
+      "y": 12
+    },
+    "shield_emblem": {
+      "x": 15,
+      "y": 12
+    },
+    "antlers_symbol": {
+      "x": 14,
+      "y": 12
+    },
+    "boombox": {
+      "x": 15,
+      "y": 13
+    },
+    "totem_pole": {
+      "x": 12,
+      "y": 13
+    },
+    "spiral_column": {
+      "x": 12,
+      "y": 12
+    },
+    "big_log": {
+      "x": 18,
+      "y": 6
+    },
+    "dark_round": {
+      "x": 0,
+      "y": 0
+    }
+  }
+}

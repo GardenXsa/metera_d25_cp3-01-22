@@ -1,0 +1,213 @@
+[
+  {
+    "id": "wooden_chair_common",
+    "name": "Деревянный стул",
+    "description": "Простой, но удивительно прочный деревянный стул. Можно сидеть, а можно и метнуть в кого-нибудь (1к3 дробящего урона).",
+    "rarity": "Обычный",
+    "itemType": "misc",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 1
+  },
+  {
+    "id": "apple_red_common",
+    "name": "Красное яблоко",
+    "description": "Сочное красное яблоко. Немного утоляет голод (восстанавливает 1 HP).",
+    "rarity": "Обычный",
+    "itemType": "food",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 2
+  },
+  {
+    "id": "potion_heal_small_common",
+    "name": "Малое зелье лечения",
+    "description": "Склянка с красной жидкостью, пахнущей травами. Восстанавливает немного здоровья (2к4 + 2 HP).",
+    "rarity": "Обычный",
+    "itemType": "potion",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 25
+  },
+  {
+    "id": "dagger_rusty_common",
+    "name": "Ржавый кинжал",
+    "description": "Старый ржавый кинжал. Лучше, чем ничего. Урон: 1к4 колющий.",
+    "rarity": "Обычный",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [],
+    "value": 5
+  },
+  {
+    "id": "sword_short_common",
+    "name": "Короткий меч",
+    "description": "Надежный короткий меч, стандартное оружие многих искателей приключений. Урон: 1к6 рубящий/колющий.",
+    "rarity": "Обычный",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "str", "change": 1 }],
+    "tags": ["Острое", "Металл"],
+    "durability": 10,
+    "value": 10
+  },
+  {
+    "id": "shield_wooden_common",
+    "name": "Деревянный щит",
+    "description": "Простой круглый щит из дерева, окованный железом по краю.",
+    "rarity": "Обычный",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "con", "change": 1 }],
+    "value": 8
+  },
+  {
+    "id": "staff_simple_common",
+    "name": "Простой посох",
+    "description": "Гладкий деревянный посох, удобен для ходьбы и как простое оружие. Урон: 1к4 дробящий.",
+    "rarity": "Обычный",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "int", "change": 1 }],
+    "value": 3
+  },
+  {
+    "id": "robe_novice_common",
+    "name": "Роба новичка",
+    "description": "Простая тканая роба, какую носят начинающие ученики магии.",
+    "rarity": "Обычный",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 2
+  },
+  {
+    "id": "mana_potion_small_common",
+    "name": "Малое зелье маны",
+    "description": "Склянка с синей мерцающей жидкостью. Восстанавливает немного маны (10 MP).",
+    "rarity": "Обычный",
+    "itemType": "potion",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 30
+  },
+  {
+    "id": "leather_armor_light_common",
+    "name": "Легкая кожаная броня",
+    "description": "Доспех из нескольких слоев прочной кожи. Обеспечивает базовую защиту, не стесняя движений.",
+    "rarity": "Обычный",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "dex", "change": 1 }],
+    "tags": ["Легкая", "Кожа"],
+    "durability": 15,
+    "value": 20
+  },
+  {
+    "id": "lockpicks_common",
+    "name": "Отмычки",
+    "description": "Набор тонких металлических инструментов для вскрытия замков.",
+    "rarity": "Обычный",
+    "itemType": "tool",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 15
+  },
+  {
+    "id": "lute_simple_common",
+    "name": "Простая лютня",
+    "description": "Скромная, но исправная лютня. Подходит для начинающего барда.",
+    "rarity": "Обычный",
+    "itemType": "tool",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 12
+  },
+  {
+    "id": "elven_longbow_uncommon",
+    "name": "Эльфийский длинный лук",
+    "description": "Изящный и мощный лук, изготовленный эльфийскими мастерами. Легкий и точный. Урон: 1к8 колющий.",
+    "rarity": "Необычный",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "dex", "change": 2 }],
+    "value": 75
+  },
+  {
+    "id": "ancient_tome_rare",
+    "name": "Древний фолиант",
+    "description": "Потрепанная книга в кожаном переплете, исписанная странными символами. Кажется, содержит давно забытые знания.",
+    "rarity": "Редкий",
+    "itemType": "book",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 200
+  },
+  {
+    "id": "dragonscale_shield_epic",
+    "name": "Щит из драконьей чешуи",
+    "description": "Массивный щит, изготовленный из прочнейшей чешуи древнего дракона. Почти неразрушим и обладает магической защитой.",
+    "rarity": "Эпический",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "con", "change": 3 }],
+    "value": 5000
+  },
+  {
+    "id": "artifact_sunblade_legendary",
+    "name": "Солнечный Клинок Аэтериуса",
+    "description": "Легендарный меч, выкованный из сердца упавшей звезды. Сияет светом, разгоняющим тьму, и несет погибель злу. Урон: 2к8 рубящий + 1к8 урона светом.",
+    "rarity": "Легендарный",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [
+      { "type": "modify_stat", "stat": "str", "change": 5 },
+      { "type": "modify_stat", "stat": "cha", "change": 2 }
+    ],
+    "value": 0
+  },
+  {
+    "id": "amulet_of_kings_legendary",
+    "name": "Амулет Королей",
+    "description": "Священный амулет, символ власти императоров Сиродила. Оберегает носителя от зла и позволяет зажигать Драконьи Огни.",
+    "rarity": "Легендарный",
+    "itemType": "amulet",
+    "restrictedSlots": ["head", "face", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "isQuestItem": true,
+    "effects": [
+      { "type": "modify_stat", "stat": "cha", "change": 4 },
+      { "type": "modify_stat", "stat": "con", "change": 2 }
+    ],
+    "value": 0
+  },
+  {
+    "id": "raw_iron_ore",
+    "name": "Железная руда",
+    "description": "Необработанный кусок железной руды. Требует переплавки в кузнице.",
+    "rarity": "Обычный",
+    "itemType": "raw_material",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 5
+  },
+  {
+    "id": "steel_ingot",
+    "name": "Стальной слиток",
+    "description": "Тяжелый слиток качественной стали. Основа для создания оружия и брони.",
+    "rarity": "Необычный",
+    "itemType": "industrial_good",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 25
+  },
+  {
+    "id": "raw_ether_dust",
+    "name": "Эфирная пыль",
+    "description": "Светящаяся пыль, собранная в зонах аномалий. Используется в алхимии и артефакторике.",
+    "rarity": "Редкий",
+    "itemType": "magical_material",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 100
+  }
+]

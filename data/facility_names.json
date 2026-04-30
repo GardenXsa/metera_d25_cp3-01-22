@@ -1,0 +1,15 @@
+{
+  "farms": { "rebirth": "Фермы", "architects": "Био-Кузни", "sundering": "Грибные ямы", "silence": "Резервуары гидропоники" },
+  "lumbermills": { "rebirth": "Лесопилки", "architects": "Хим-Синтезаторы", "sundering": "Сборщики костей", "silence": "Разборщики мусора" },
+  "mines": { "rebirth": "Шахты", "architects": "Эфирные насосы", "sundering": "Шлаковые карьеры", "silence": "Свалки" },
+  "forges": { "rebirth": "Кузницы", "architects": "Фабрики конструктов", "sundering": "Кровавые наковальни", "silence": "Верстаки" },
+  "smelters": { "rebirth": "Плавильни", "architects": "Плазменные печи", "sundering": "Кипящие котлы", "silence": "Ржавые печи" },
+  "weavers": { "rebirth": "Ткацкие", "architects": "Нано-ткацкие", "sundering": "Гнезда прядильщиков", "silence": "Швейные мастерские" },
+  "bakeries": { "rebirth": "Пекарни", "architects": "Пищевики", "sundering": "Коптильни пайков", "silence": "Полевые кухни" },
+  "smokehouses": { "rebirth": "Коптильни", "architects": "Био-стабилизаторы", "sundering": "Сушильни плоти", "silence": "Коптильни" },
+  "alchemists": { "rebirth": "Алхимики", "architects": "Ген-лаборатории", "sundering": "Ямные варщики", "silence": "Хим-палатки" },
+  "banks": { "rebirth": "Банки", "architects": "Энерго-хранилища", "sundering": "Схроны", "silence": "Склады бартера" },
+  "mills": { "rebirth": "Мельницы", "architects": "Протеиновые терки", "sundering": "Дробилки костей", "silence": "Измельчители" },
+  "tailors": { "rebirth": "Портные", "architects": "Сборщики брони", "sundering": "Сшиватели шкур", "silence": "Ремонтники снаряжения" },
+  "jewelers": { "rebirth": "Ювелиры", "architects": "Голо-дизайнеры", "sundering": "Резчики трофеев", "silence": "Мастера микросхем" }
+}

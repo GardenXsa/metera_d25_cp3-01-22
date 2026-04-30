@@ -1,0 +1,12 @@
+# requirements.txt
+# Установка: pip install -r requirements.txt
+
+# Работа с изображениями (TileMapper, split_spritesheet и т.п.)
+Pillow>=9.0.0
+
+# Работа с JSON и конфигурациями (обычно встроенные, но если нужен jsonschema)
+# jsonschema>=4.0.0
+
+# Для TTS может использоваться библиотека piper-tts, но она уже идёт в папке tts/.
+# Если потребуется обновление отдельно:
+# piper-tts>=1.2.0

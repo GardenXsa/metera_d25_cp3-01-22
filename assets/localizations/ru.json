@@ -1,0 +1,542 @@
+{
+  "appName": "Хроники Метерии: AI Приключение",
+  "mainMenu": {
+    "title": "Хроники Метерии: AI Приключение",
+    "newGame": "Новая Игра",
+    "loadGame": "Загрузить Игру",
+    "settings": "Настройки",
+    "help": "Помощь",
+    "community": "Сообщество",
+    "apiKeyStatusChecking": "Статус API ключа: Проверка...",
+    "apiKeyStatusFound": "Статус API ключа: Найден",
+    "apiKeyStatusMissing": "Статус API ключа: Отсутствует",
+    "apiKeyStatusNotRequired": "Статус API ключа: Не требуется"
+  },
+  "settingsMenu": {
+    "title": "Настройки",
+    "languageLabel": "Язык:",
+    "apiProviderLabel": "Провайдер ИИ:",
+    "gmModeLabel": "Режим Гейм-Мастера:",
+    "gmModeTwoStep": "Двухэтапный (Счетовод + Поэт - Точнее)",
+    "gmModeUnified": "Единый (Один запрос - Быстрее)",
+    "thinkingMode": "Режим размышления (Thinking / Reasoning)",
+    "thinkingBudget": "Бюджет токенов (Anthropic/DeepSeek):",
+    "reasoningEffort": "Усилие (OpenAI o1/o3):",
+    "nsfwMode": "NSFW / Без цензуры (Разрешить ERP и Жестокость)",
+    "modelIdLabel": "ID Модели:",
+    "modelIdLabelFor": "ID Модели для {provider}:",
+    "modelIdPlaceholder": "Например, google/gemini-2.5-flash",
+    "geminiApiKeyLabel": "Gemini API Key:",
+    "llmostApiKeyLabel": "LLMost API Key:",
+    "openrouterApiKeyLabel": "OpenRouter API Key:",
+		"deepseekApiKeyLabel": "DeepSeek API Key:",
+    "localUrlLabel": "URL Локального Сервера:",
+    "localModelLabel": "Имя модели (ID):",
+    "ttsVoiceLabel": "Голос озвучки:",
+    "ttsVoiceLoading": "Загрузка голосов...",
+    "ttsVoiceUnavailable": "Голоса недоступны",
+    "apiKeyPlaceholder": "Вставьте ваш API ключ",
+    "saveButton": "Сохранить настройки",
+    "promptCaching": "Prompt Caching (Ускоряет ответы и снижает цену)",
+    "promptCaching": "Prompt Caching (Ускоряет ответы и снижает цену)",
+    "promptCaching": "Prompt Caching (Ускоряет ответы и снижает цену)",
+    "promptCaching": "Prompt Caching (Ускоряет ответы и снижает цену)",
+    "fsaLabel": "Хранилище сохранений:",
+    "fsaSelectDirectory": "Выбрать папку для сохранений",
+    "fsaChangeDirectory": "Сменить папку",
+    "enableImgGen": "Включить генерацию изображений",
+    "enableLocalMap": "Генерация локальных карт (CityGen)",
+    "enableLocalMapDesc": "Создает 2D-планы помещений. Отключите для экономии токенов.",
+    "imgProviderLabel": "Провайдер изображений:",
+    "imgProviderPollinations": "Pollinations AI",
+    "imgProviderLLMost": "LLMost.ru",
+    "imgProviderOpenRouter": "OpenRouter / OpenAI",
+    "imgModelLabel": "ID Модели (Только для OpenAI/OpenRouter/LLMost):",
+    "imgModelPlaceholder": "Например, dall-e-3 или google/gemini-2.5-flash-image",
+    "imgKeyLabel": "API Key (Только для OpenAI/OpenRouter):",
+    "imgKeyPlaceholder": "Вставьте ключ...",
+    "tabs": {
+      "general": "Общие",
+      "ai": "ИИ и API",
+      "audio": "Звук",
+      "data": "Данные"
+    },
+    "musicVolume": "Громкость музыки:",
+    "sfxVolume": "Громкость эффектов:",
+    "backButton": "Назад",
+    "apiKeySaved": "Настройки сохранены."
+  },
+  "fsa": {
+    "checking": "Проверка...",
+    "directorySelected": "Папка для сохранений: {dirName}",
+    "directoryNotSelected": "Папка для сохранений не выбрана. Используется хранилище браузера.",
+    "permissionGrantedPreviouslyNeedsAction": "Папка была выбрана. Нажмите, чтобы подтвердить доступ.",
+    "permissionRequiredOperation": "Для выполнения операции требуется разрешение на доступ к папке.",
+    "permissionRevokedError": "Разрешение на доступ к папке было отозвано или утеряно. Пожалуйста, выберите папку заново."
+  },
+  "characterCreation": {
+    "title": "Создание Персонажа",
+    "nameLabel": "Имя персонажа:",
+    "raceLabel": "Раса:",
+    "classLabel": "Класс:",
+    "eraLabel": "Стартовая Эпоха:",
+    "descLabel": "Краткое описание:",
+    "racePlaceholder": "-- Выберите расу --",
+    "raceHuman": "Человек",
+    "raceElf": "Эльф",
+    "raceDwarf": "Дварф",
+    "classPlaceholder": "-- Выберите класс --",
+    "classWarrior": "Воин",
+    "classMage": "Маг",
+    "classRogue": "Разбойник",
+    "classBard": "Бард",
+    "eraRebirth": "Эпоха Возрождения (Стандарт)",
+    "eraArchitects": "Золотой Век Архитекторов",
+    "eraSundering": "Великий Разлом (Апокалипсис)",
+    "eraSilence": "Эпоха Тишины (Выживание)",
+    "statsTitle": "Распределение Характеристик",
+    "statsPointsAvailable": "Доступно очков:",
+    "statSTR": "Сила (STR)",
+    "statDEX": "Ловкость (DEX)",
+    "statINT": "Интеллект (INT)",
+    "statCON": "Выносливость (CON)",
+    "statCHA": "Харизма (CHA)",
+    "startGameButton": "Далее",
+    "cancelButton": "Отмена",
+    "quickStartButton": "Быстрый старт",
+    "errorName": "Пожалуйста, введите имя персонажа.",
+    "errorRace": "Пожалуйста, выберите расу.",
+    "errorClass": "Пожалуйста, выберите класс.",
+    "errorDesc": "Пожалуйста, напишите краткое описание.",
+    "errorFillFields": "Пожалуйста, заполните все поля и распределите все очки.",
+    "startModeLabel": "Тип начала:",
+    "startModeCalm": "Спокойный старт (Атмосфера)",
+    "startModeAdrenaline": "В гуще событий (Адреналин)",
+    "confirmPointsLeft": "У вас остались нераспределенные очки ({points}). Вы уверены, что хотите продолжить?",
+    "tooltips": {
+      "name": "Введите имя вашего героя. Например: Арагорн, Лиара Т'Сони, Борг Бесстрашный.",
+      "desc": "Опишите внешность, характер или краткую предысторию вашего персонажа."
+    },
+    "eraRebirthDesc": "Пепел старого мира стал почвой для новых королевств. Забытая магия пробуждается в древних руинах, а на неизведанных землях смелые герои ищут славу и богатство. Классическое приключение ждет вас.",
+    "eraArchitectsDesc": "В небе парят города из стекла и света, по улицам скользят арканные конструкты. Это эпоха чудес, вершина развития магии и технологий. Но за сияющим фасадом зреют заговоры, способные обрушить мир в хаос.",
+    "eraSunderingDesc": "Реальность трещит по швам. Эфирные бури пожирают земли, искажая все, к чему прикоснутся. Цивилизация — лишь горстка убежищ в умирающем мире. Здесь нет героев, есть только выжившие. И каждый новый день может стать последним.",
+    "eraSilenceDesc": "Мир затих. Великие города обратились в прах, знания стали легендами. Среди пустынных руин бродят мутировавшие чудовища и горстки отчаявшихся людей, готовых на все ради глотка воды. Ваша цель проста — дожить до рассвета.",
+    "eraRebirthDescForGM": "Эпоха Возрождения. Классическое фэнтези. Цивилизации медленно восстанавливаются после древнего катаклизма. Атмосфера исследования, надежды и опасности в руинах прошлого. Магия существует, но она не всесильна.",
+    "eraArchitectsDescForGM": "Золотой Век Архитекторов. Высокоразвитый мир в стиле мана-панк/аркан-панк. Летающие города, магические конструкты, сложные политические интриги. Технологии и магия слиты воедино. Создавай ощущение величия, но и скрытого упадка.",
+    "eraSunderingDescForGM": "Великий Разлом. Космический хоррор и постапокалипсис. Мир буквально разваливается на части. Эфирные бури искажают реальность. Главная цель - выживание и поиск безопасного места. Атмосфера отчаяния, безумия и постоянной угрозы.",
+    "eraSilenceDescForGM": "Эпоха Тишины. Мрачное выживание в мире после падения цивилизации. Знания утеряны, ресурсы крайне редки. Опасность исходит не только от мутировавших существ, но и от других отчаявшихся выживших. Атмосфера безысходности и редких проблесков надежды."
+  },
+  "narratorSelection": {
+  "worldSetup": {
+    "title": "Настройка Симуляции Мира",
+    "yearsLabel": "Годы предыстории (1-20):",
+    "yearsDesc": "Определяет, сколько лет мир будет развиваться автономно до вашего появления (войны, экономика, интриги).",
+    "agentsLabel": "Начальное население (50-200):",
+    "agentsDesc": "Количество уникальных NPC со своими потребностями, работами и целями. Больше агентов = более живой мир, но дольше генерация.",
+    "startButton": "Создать Мир и Начать"
+  },
+    "title": "Выберите Рассказчика",
+    "confirmButton": "Подтвердить и Начать",
+    "backButton": "Назад к Персонажу"
+  },
+  "loadGame": {
+    "title": "Загрузить Игру",
+    "manualSavesTitle": "Ручные сохранения (Макс: {max})",
+    "autoSavesTitle": "Автосохранения (Макс: {max})",
+    "loading": "Загрузка...",
+    "noManualSaves": "Нет ручных сохранений",
+    "noAutoSaves": "Нет автосохранений",
+    "manualSlotType": "Ручной слот",
+    "autoSlotType": "Автосохранение",
+    "manualSlot": "Слот #{id}",
+    "autoSlot": "Авто #{id}",
+    "emptySlot": "Пусто",
+    "loadButton": "Загрузить",
+    "deleteButton": "Удалить",
+    "confirmDelete": "Вы уверены, что хотите удалить сохранение '{slotType} #{slotId}'? Это действие необратимо.",
+    "errorLoad": "Ошибка загрузки сохранения #{slotId}: {message}",
+    "errorSaveNotFound": "Слот сохранения #{slotId} не найден.",
+    "errorStorageFull": "Не удалось сохранить игру. Возможно, хранилище браузера переполнено. Попробуйте удалить старые сохранения.",
+    "errorSlotFull": "Не удалось сохранить в ручной слот #{slotId}: Все {max} слотов заняты.",
+    "errorSlotFullLS": "Не удалось сохранить в ручной слот #{slotId} (localStorage): Все {max} слотов заняты.",
+    "errorInvalidSlotType": "Неверный тип слота для загрузки: {slotType}",
+    "errorSaveCorrupted": "Данные сохранения неполные или повреждены.",
+    "levelAbbr": "Ур.",
+    "saveInfo": "Локация: {location} | Дата: {date}",
+    "sourceFileSystem": "Файловая система",
+    "sourceLocalStorage": "Хранилище браузера",
+    "sourceFileSystemShort": "ФС",
+    "sourceLocalStorageShort": "LS"
+  },
+  "helpScreen": {
+    "title": "Помощь по Игре",
+    "backButton": "Назад в Главное Меню",
+    "tabs": {
+      "general": "Общие советы",
+      "api": "Настройка API (Пошагово)"
+    },
+    "general": {
+      "howToPlayTitle": "Как играть?",
+      "howToPlayDesc": "Вы управляете героем, описывая его действия текстом. Искусственный Интеллект (Гейм-мастер) реагирует на ваши слова, меняет мир и бросает вам вызовы.",
+      "accountant": "<b>Счетовод:</b> Это логический модуль ИИ. Он следит за тем, чтобы вы не могли поднять 1000 кг золота или убить дракона одним щелчком, если у вас 1 уровень.",
+      "writer": "<b>Писатель:</b> Это творческий модуль ИИ. Он берет сухие расчеты Счетовода и превращает их в красивую историю.",
+      "freedom": "<b>Свобода действий:</b> Вы можете делать что угодно — от кражи яблок на рынке до основания собственной империи."
+    },
+    "api": {
+      "title": "Настройка \"Мозгов\" Игры (API)",
+      "desc": "Чтобы игра работала, ей нужно подключаться к нейросетям. Для этого используется <b>API Ключ</b> — это ваш личный «пароль», который позволяет игре отправлять запросы.",
+      "howToGet": "Как получить (пошагово):",
+      "geminiTitle": "1. Google Gemini (Бесплатно / Облако)",
+      "geminiFeatures": "<b>Особенности:</b> Бесплатно, но Google ввел жесткие лимиты (всего 2 запроса в минуту и около 50 в день).",
+      "geminiSteps": "<li>Перейдите на сайт <a href=\"https://aistudio.google.com/\" target=\"_blank\">Google AI Studio</a>.</li><li>Войдите под своим Google-аккаунтом.</li><li>В меню слева найдите кнопку <b>\"Get API key\"</b>.</li><li>Нажмите <b>\"Create API key in new project\"</b>.</li><li>Скопируйте полученный код.</li><li>В настройках игры выберите провайдера <b>Gemini</b> и вставьте ключ.</li>",
+      "openRouterTitle": "2. OpenRouter.ai (Рекомендуемый)",
+      "openRouterFeatures": "<b>Особенности:</b> Агрегатор нейросетей. Много бесплатных моделей, работают стабильнее прямого API Google.",
+      "openRouterSteps": "<li>Зарегистрируйтесь на <a href=\"https://openrouter.ai/\" target=\"_blank\">OpenRouter.ai</a>.</li><li>В разделе <b>\"Keys\"</b> создайте новый ключ.</li><li>В настройках игры выберите <b>OpenRouter</b>, вставьте ключ.</li><li>В поле <b>ID Модели</b> вставьте: <code>google/gemma-2-9b-it:free</code>.</li>",
+      "llmostTitle": "3. LLMost.ru (Для РФ)",
+      "llmostFeatures": "<b>Особенности:</b> Работает без VPN, принимает российские карты. Есть бесплатный стартовый баланс.",
+      "llmostSteps": "<li>Зарегистрируйтесь на <a href=\"https://llmost.ru/\" target=\"_blank\">LLMost.ru</a>.</li><li>В личном кабинете создайте токен в разделе <b>\"API\"</b>.</li><li>В настройках игры выберите провайдера <b>LLMost</b> и вставьте ключ.</li>",
+      "localTitle": "4. Локальный запуск (LM Studio)",
+      "localDesc": "Если у вас мощная видеокарта, скачайте <b>LM Studio</b>. Запустите модель, включите \"Local Server\", и игра будет работать без интернета и ключей."
+    }
+  },
+  "gameInterface": {
+    "toggleTTSButtonTitlePlay": "Включить озвучку",
+    "toggleTTSButtonTitlePause": "Выключить озвучку",
+    "toggleMusicButtonTitlePlay": "Включить музыку",
+    "toggleMusicButtonTitlePause": "Пауза",
+    "menuButtonTitle": "Меню",
+    "saveModal": {
+      "title": "Выберите слот для сохранения"
+    },
+    "characterPanel": {
+      "title": "Персонаж",
+      "nameLabel": "Имя:",
+      "unknownHero": "Неизвестный Герой",
+      "raceLabel": "Раса:",
+      "raceNotSelected": "Не выбрана",
+      "classLabel": "Класс:",
+      "classNotSelected": "Не выбран",
+      "levelInfo": "Уровень: {level} | Опыт: {xp} / {xpNext} | Очки: {points} | Ход: {turn}",
+      "hp": "❤️ Здоровье:",
+      "mana": "💧 Мана:",
+      "str": "⚔️ Сила:",
+      "dex": "🤸 Ловкость:",
+      "int": "💡 Интеллект:",
+      "con": "맷 Выносливость:",
+      "cha": "😊 Харизма:",
+    "res": "🛡️ Стойкость:",
+      "gold": "💰 Золото:",
+      "reputation": "⚖️ Репутация:",
+      "location": "📍 Локация:",
+      "locationUnknown": "Неизвестно",
+      "increaseStatTooltip": "Увеличить {statName}"
+    },
+    "equipmentPanel": {
+      "title": "Экипировка",
+      "slots": {
+        "head": "Голова",
+        "face": "Лицо",
+        "torso": "Туловище",
+        "legs": "Ноги",
+        "feet": "Ступни",
+        "shoulders": "Плечи",
+        "left_hand": "Л. Рука",
+        "neck": "Шея",
+        "right_hand": "П. Рука"
+      }
+    },
+    "inventoryPanel": {
+      "title": "Инвентарь ({count})",
+      "empty": "Пусто",
+      "effectsLabel": "Эффекты",
+      "valueLabel": "Ценность",
+      "tabs": {
+        "all": "Все",
+        "weapon": "Оружие",
+        "armor": "Броня",
+        "potion": "Зелья",
+        "quest": "Квесты"
+      }
+    },
+    "statusEffectsPanel": {
+      "title": "Статус-эффекты",
+      "empty": "Нет активных эффектов",
+      "noDescription": "Нет подробного описания.",
+      "duration": "Осталось ходов: {turns}"
+    },
+    "log": {
+      "loading": "Загрузка игры...",
+      "gameLoaded": "Игра загружена из слота: {slotType} #{slotId}",
+      "continueAdventure": "Продолжайте ваше приключение!",
+      "waitForGM": "Пожалуйста, подождите, пока Мастер Игры ответит.",
+      "gmThinking": "Мастер Игры обдумывает ваш ход...",
+      "gameNotActive": "Игра не активна. Начните новую игру или загрузите сохранение.",
+      "errorApiKeyMissing": "ОШИБКА: API ключ не найден. Пожалуйста, введите его в настройках.",
+      "errorGMBlocked": "ОШИБКА: Ответ Мастера Игры был заблокирован по соображениям безопасности. Причина: {reason}. Попробуйте перефразировать свой запрос.",
+      "errorGMApi": "ОШИБКА СВЯЗИ: Не удалось получить ответ от Мастера Игры. {message}",
+      "errorGMResponseFormat": "КРИТИЧЕСКАЯ ОШИБКА: Ответ Мастера Игры поврежден (неверный формат JSON). Попробуйте повторить действие или проверьте консоль (F12).",
+      "noActiveRoll": "Нет активного запроса на бросок кубика.",
+      "gmInternalAction": "Мастер Игры выполняет внутренние расчеты...",
+      "statIncreased": "Вы увеличили характеристику! {statName} повышена. Осталось очков: {points}.",
+      "levelUpSummary": "🎉 ПОВЫШЕНИЕ УРОВНЯ! 🎉 Вы достигли уровня {finalLevel}!",
+      "levelUpHPSummary": "Ваше максимальное здоровье увеличилось на {totalHpGain}!",
+      "levelUpPointsSummary": "Вы получили {totalStatPoints} очков характеристик!",
+      "exitConfirm": "Вы уверены, что хотите выйти в главное меню? Весь несохраненный прогресс будет потерян. Игра будет автоматически сохранена перед выходом.",
+      "autoSaveSuccess": "Игра автоматически сохранена в слот #{slotId} ({source}).",
+      "autoSaveFailed": "Не удалось выполнить автосохранение в слот #{slotId}.",
+      "voiceRecognitionNoSpeech": "Речь не распознана. Попробуйте еще раз.",
+      "voiceRecognitionNotAllowed": "Доступ к микрофону заблокирован. Проверьте разрешения сайта в настройках браузера.",
+      "voiceRecognitionError": "Ошибка распознавания речи: {error}",
+      "effectModifyStat": "Эффект '{effectName}' изменяет вашу характеристику '{statName}' на {change}.",
+      "effectSetStat": "Эффект '{effectName}' устанавливает вашу характеристику '{statName}' на {value}.",
+      "effectRestoreStat": "Эффект '{effectName}' закончился. Ваша характеристика '{statName}' восстановлена до {value}.",
+      "oocTooltip": "Нажмите, чтобы прочитать OOC сообщение",
+      "retrying": "Повторная отправка..."
+    },
+    "input": {
+      "placeholder": "Что вы будете делать?",
+      "tooltip": "Опишите ваше действие.",
+      "sendButton": "Отправить",
+      "voiceInputTooltipStart": "Начать голосовой ввод",
+      "voiceInputTooltipStop": "Остановить запись",
+      "retryButton": "Попробовать снова"
+    },
+    "questPanel": {
+      "title": "Задания",
+      "empty": "Нет активных заданий"
+    },
+    "skillsPanel": {
+      "title": "Умения",
+      "empty": "Нет изученных умений"
+    },
+        "worldChroniclesPanel": {
+      "title": "Летопись Мира",
+      "empty": "Мир пока спокоен..."
+    },
+"nexusPanel": {
+      "title": "Константы",
+      "empty": "Нет данных",
+      "defaultCategory": "Прочее",
+      "boolTrue": "Да",
+      "boolFalse": "Нет"
+    },
+    "mapPanel": {
+      "title": "Карта",
+
+    "localMapPanel": {
+      "title": "Локальная зона"
+    },
+      "globalTitle": "Известные регионы:",
+      "customTitle": "Открытые места:",
+      "loading": "Загрузка...",
+      "noCustom": "Пока ничего не открыто",
+      "noGlobal": "Нет известных регионов",
+      "errorLoadingWorld": "Ошибка загрузки данных мира.",
+      "errorLoadingWorldDataLang": "Ошибка загрузки данных мира '{worldId}' ({lang})"
+    },
+    "environmentPanel": {
+      "title": "Окружение",
+      "empty": "Никого не видно",
+      "unknownEntity": "Неизвестное существо",
+      "noDescription": "Нет подробного описания.",
+      "entityTypeNPC": "НПС",
+      "entityTypeCreature": "Существо",
+      "entityTypeEnemy": "Враг",
+      "tooltip": {
+        "type": "Тип",
+        "health": "Здоровье"
+      }
+    },
+    "calcLogPanel": {
+
+    "echoMemoryPanel": {
+      "title": "Эхо-память",
+      "empty": "Нет активных фактов",
+      "clearButton": "Очистить",
+      "confirmClear": "Очистить всю эхо-память?"
+    },
+      "title": "Расчеты GM",
+      "empty": "Пока нет расчетов."
+
+    },
+    "echoMemoryPanel": {
+      "title": "Эхо-память",
+      "empty": "Нет активных фактов",
+      "clearButton": "Очистить",
+      "confirmClear": "Очистить всю эхо-память?"
+    
+    },
+
+    "echoMemoryPanel": {
+      "title": "Эхо-память",
+      "empty": "Нет активных фактов",
+      "clearButton": "Очистить",
+      "confirmClear": "Очистить всю эхо-память?"
+    },
+    "gmNotesPanel": {
+      "title": "Заметки GM (DEBUG)",
+      "empty": "Заметок пока нет."
+    },
+    "inGameMenu": {
+      "title": "Меню",
+      "saveButton": "Сохранить игру",
+      "settingsButton": "Настройки",
+      "exitButton": "Выход в главное меню",
+      "closeButton": "Закрыть"
+    },
+    "reputationModal": {
+
+      "title": "Репутация",
+      "title": "Репутация"
+    },
+    "commandFeedback": {
+      "errorPlayerMissing": "[ОШИБКА] Данные игрока отсутствуют. Команда не может быть выполнена.",
+      "errorCommandGeneric": "[ОШИБКА] Неверные аргументы для команды {command}: {args}",
+      "errorUnknownCommand": "[ОШИБКА] Неизвестная команда от GM: {command}",
+      "goldChanged": "Золото изменено на {change}. Текущее золото: {gold}",
+      "itemAdded": "Получен предмет: {itemName} (x{quantity}).",
+      "itemQuantityIncreased": "Количество предмета '{itemName}' увеличено на {quantity}.",
+      "inventoryFull": "Инвентарь полон. Вы не можете взять '{itemName}'.",
+      "itemRemoved": "Предмет '{itemName}' (x{quantityToRemove}) удален из инвентаря.",
+      "notEnoughItem": "У вас недостаточно '{itemName}' (ID: {itemId}) для удаления {quantityToRemove} шт.",
+      "itemNotFound": "Предмет с ID '{itemId}' не найден в вашем инвентаре.",
+      "mapMarkerRemoved": "Маркер '{markerName}' удален с карты.",
+      "mapMarkerNotFound": "Маркер с ID '{markerId}' не найден.",
+      "statusEffectAdded": "Вы получили эффект: '{effectName}' (длительность: {duration} ходов).",
+      "statusEffectRemoved": "Действие эффекта '{effectName}' закончилось.",
+      "statusEffectNotFound": "Эффект с ID '{effectId}' не найден.",
+      "hpChanged": "Здоровье изменено на {change}. Текущее здоровье: {hp}/{maxHp}.",
+      "reputationChanged": "Ваша репутация изменена на {change}. Текущее значение: {reputation}.",
+      "reputationSet": "Ваша репутация установлена на {value}.",
+      "xpGained": "Вы получили {change} опыта. Текущий опыт: {xp}/{xpNext}.",
+      "questAdded": "Новое задание добавлено в журнал: '{description}'.",
+      "questAlreadyActive": "Задание '{description}' уже активно.",
+      "questStatusUpdated": "Статус задания '{description}' обновлен на: '{status}'.",
+      "questSameStatus": "Задание '{description}' уже имеет этот статус.",
+      "questNotFound": "Задание с идентификатором '{questId}' не найдено в вашем журнале.",
+      "questRemoved": "Задание '{description}' удалено из журнала.",
+      "questNotFoundForRemoval": "Задание с идентификатором '{questId}' не найдено для удаления.",
+      "questEdited": "Задание '{questId}' обновлено. Поле '{field}' теперь: '{newValue}'.",
+      "skillLearned": "Вы изучили новое умение: {skillName}!",
+      "skillAlreadyKnown": "Вы уже знаете умение '{skillName}'.",
+      "skillUpdated": "(параметры обновлены)",
+      "skillForgotten": "Вы забыли умение: {skillName}.",
+      "skillNotFoundForRemoval": "Умение с ID '{skillId}' не найдено.",
+      "locationChanged": "Ваша текущая локация: {location}.",
+      "mapMarkerAdded": "На карту добавлен новый маркер: {markerName}.",
+      "mapMarkerUpdated": "Маркер на карте '{markerName}' обновлен.",
+      "entityAlreadyInEnv": "Существо '{name}' (ID: {id}) уже находится в окружении.",
+      "entityAddedToEnv": "В окружении появилось: {name}.",
+      "entityRemovedFromEnv": "Существо '{name}' покинуло окружение.",
+      "entityNotFoundInEnv": "Существо с ID '{id}' не найдено в окружении.",
+      "entityStatUpdated": "Характеристика '{stat}' у '{name}' теперь равна {value}.",
+      "nexusDefined": "Определена новая константа: '{name}'.",
+      "nexusModified": "Константа '{name}' изменена на {change}. Новое значение: {newValue}.",
+      "nexusSet": "Константа '{name}' установлена в значение: {newValue}.",
+      "nexusRemoved": "Константа '{name}' удалена.",
+
+      "echoMemoryAdded": "📌 Эхо-память: {text}",
+      "echoMemoryCleared": "🧹 Эхо-память очищена.",
+      "echoMemoryItemRemoved": "🗑️ Удалено: {text}",
+
+      "echoMemoryAdded": "📌 Эхо-память: {text}",
+      "echoMemoryCleared": "🧹 Эхо-память очищена.",
+      "echoMemoryItemRemoved": "🗑️ Удалено: {text}",
+
+      "echoMemoryAdded": "📌 Эхо-память: {text}",
+      "echoMemoryCleared": "🧹 Эхо-память очищена.",
+      "echoMemoryItemRemoved": "🗑️ Удалено: {text}",
+      "slotIsEmpty": "Слот {slot} пуст.",
+      "inventoryFullOnUnequip": "Инвентарь полон, невозможно снять {itemName}.",
+      "itemEquipped": "Предмет экипирован: {itemName} в слот ({slot}).",
+      "itemUnequipped": "Предмет снят: {itemName} из слота ({slot}).",
+      "itemNotEquipable": "Предмет \"{itemName}\" нельзя экипировать.",
+      "itemNotFoundById": "Предмет с внутренним ID {itemId} не найден в инвентаре."
+    }
+  },
+  "modal": {
+    "title": "Уведомление",
+    "confirmTitle": "Подтверждение",
+    "okButton": "OK"
+  },
+  "loadingScreen": {
+    "generatingWorld": "Генерация мира..."
+  },
+  "error": {
+    "prefix": "Ошибка:",
+    "apiKeyNeededForProvider": "Для начала игры требуется API ключ для провайдера {provider}. Пожалуйста, введите его в настройках.",
+    "worldLoadFailed": "Не удалось загрузить данные для мира по умолчанию ({worldId}). Проверьте консоль (F12) и файлы лора.",
+    "loadLoreFailed": "Ошибка: Не удалось загрузить лор для мира '{worldId}'. {error}",
+    "loadLoreFailedLang": "Ошибка: Не удалось загрузить лор для мира '{worldId}' (Язык: {lang}).",
+    "skillsRefNotLoaded": "// Ошибка: Не удалось загрузить справочник умений.",
+    "skillsRefNotLoadedLang": "// Ошибка: Не удалось загрузить справочник умений для мира '{worldId}' (Язык: {lang}). {error}",
+    "envGuideNotLoadedLang": "// Ошибка: Не удалось загрузить руководство по командам окружения для мира '{worldId}' (Язык: {lang}). {error}",
+    "apiError": "Ошибка API ({status}): {message}",
+    "emptyResponse": "Получен пустой ответ",
+    "gmBlockedMarker": "Ответ GM заблокирован",
+    "loadPromptFailed": "Критическая ошибка: Не удалось загрузить файл стартового промпта ({filePath}). Игра не может начаться.",
+    "proxyOverloaded": "Сервер перегружен. Попробуйте снова через несколько секунд.",
+    "serverErrorGenericInitial": "Произошла ошибка на сервере. Не удалось начать игру. Пожалуйста, попробуйте позже.",
+    "proxyOverloadedInGame": "Сервер перегружен. Попробуйте повторить действие через несколько секунд.",
+    "serverErrorGenericInGame": "Произошла ошибка на сервере. Пожалуйста, попробуйте повторить действие."
+  },
+  "tts": {
+    "enabled": "Озвучка включена.",
+    "disabled": "Озвучка выключена.",
+    "voiceTest": "Тест голоса"
+  },
+  "itemDescriptions": {
+    "noDescription": "Нет описания.",
+    "shortSword": "Простой, но надежный короткий меч. Базовое оружие ближнего боя.",
+    "woodenShield": "Круглый деревянный щит. Обеспечивает минимальную защиту.",
+    "smallHealthPotion": "Маленькая склянка с красной жидкостью. Восстанавливает немного здоровья.",
+    "simpleStaff": "Гладкий деревянный посох. Помогает фокусировать магическую энергию.",
+    "noviceRobe": "Простая роба, которую носят начинающие маги. Практически не защищает.",
+    "smallManaPotion": "Маленькая склянка с синей жидкостью. Восстанавливает немного маны.",
+    "basicDagger": "Обычный кинжал. Быстрое, но слабое оружие.",
+    "lightLeatherArmor": "Легкий доспех из обработанной кожи. Дает небольшую защиту, не стесняя движений.",
+    "lockpicks": "Набор тонких металлических инструментов для вскрытия замков.",
+    "simpleLute": "Простая лютня. Инструмент для бардовских песен и заклинаний.",
+    "colorfulClothes": "Яркая и удобная одежда, подходящая для выступлений.",
+    "gold": "Блестящие золотые монеты. Основная валюта."
+  },
+  "factions": {
+    "global": "Общая"
+  },
+  "quests": {
+    "defaultTitle": "Без названия",
+    "noDescription": "Нет описания",
+    "unknown": "Неизвестно",
+    "objectiveLabel": "Цель",
+    "descriptionLabel": "Описание",
+    "rewardLabel": "Награда",
+    "issuerLabel": "Выдал",
+    "statusActive": "Активно",
+    "statusCompleted": "Завершено",
+    "statusFailed": "Провалено"
+  },
+  "skills": {
+
+    "use": "Применить",
+    "noDescription": "Нет описания",
+    "damageLabel": "Урон",
+    "costLabel": "Стоимость",
+    "durationLabel": "Длит.",
+    "cooldownLabel": "Перезар.",
+    "typeLabel": "Тип",
+    "effectLabel": "Эффект"
+  },
+  "optimization": {
+    "summarizing": "GM систематизирует воспоминания о недавних событиях...",
+    "clearing": "Проводится оптимизация памяти..."
+  },
+  "warning": {
+    "languageChangedInGame": "Язык изменен. Детали мира (лор, локации) полностью обновятся при перезапуске игры."
+  },
+  "geminiPrompt": {
+    "gmConfirm_v3": "ПОДТВЕРЖДАЮ. Я — Мастер Игры. Готов описывать мир, реагировать на действия игрока, управлять NPC, квестами, боем и следовать всем инструкциям. Я буду отвечать на русском языке."
+  },
+  "world": {
+    "generatingStartLocation": "Генерация стартовой точки..."
+  }
+}

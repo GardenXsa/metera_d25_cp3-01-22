@@ -1,0 +1,9 @@
+{
+  "chest_raw_materials": { "category": "storage", "name": "Склад сырья", "health": 200, "weight": 50, "flammable": true, "is_container": true, "max_weight": 5000, "max_slots": 100 },
+  "chest_finished_goods": { "category": "storage", "name": "Склад продукции", "health": 200, "weight": 50, "flammable": true, "is_container": true, "max_weight": 5000, "max_slots": 100 },
+  "personal_storage_poor": { "category": "storage", "name": "Старый сундук", "health": 50, "weight": 15, "flammable": true, "is_container": true, "max_weight": 100, "max_slots": 20 },
+  "personal_storage_rich": { "category": "storage", "name": "Резной шкаф", "health": 100, "weight": 40, "flammable": true, "is_container": true, "max_weight": 200, "max_slots": 40 },
+  "wooden_bed": { "category": "bed", "name": "Деревянная кровать", "health": 50, "weight": 30, "flammable": true, "is_container": false, "max_weight": 0, "max_slots": 0 },
+  "stone_well": { "category": "outdoor", "name": "Каменный колодец", "health": 1000, "weight": 2000, "flammable": false, "is_container": false, "max_weight": 0, "max_slots": 0 },
+  "street_lantern": { "category": "outdoor", "name": "Уличный фонарь", "health": 30, "weight": 10, "flammable": false, "is_container": false, "max_weight": 0, "max_slots": 0 }
+}

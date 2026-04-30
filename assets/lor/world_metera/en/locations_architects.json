@@ -1,0 +1,17 @@
+{
+  "nexus_prime": { "name": "Nexus Prime (Capital)", "description": "A floating megacity, the control center of the planetary Aether Network.", "x": 0, "y": 0 },
+  "aethel_spires": { "name": "Spires of Aethel (City)", "description": "A complex of floating laboratories where new lifeforms are engineered.", "x": -150, "y": 100 },
+  "arcanum_archive": { "name": "Grand Archive of Arcanum (City)", "description": "The repository of all world knowledge, maintained by millions of constructs.", "x": -100, "y": -50 },
+  "crystal_matrix": { "name": "Crystal Matrix (Cave)", "description": "A planetary-scale underground computing center.", "x": 50, "y": -120 },
+  "sky_harbor": { "name": "Sky Harbor (City)", "description": "The main trading hub for giant transport Aerowhales.", "x": 120, "y": 80 },
+  "bio_forge": { "name": "Bio-Forge (Citadel)", "description": "A massive industrial complex for producing combat organisms.", "x": -50, "y": -150 },
+  "solar_citadel": { "name": "Solar Citadel (City)", "description": "A complex of mirrors and lenses harvesting stellar energy for shields.", "x": 200, "y": 50 },
+  "whispering_gardens": { "name": "Whispering Gardens (Forest)", "description": "A perfectly engineered biome where plants sing in unison with the Aether.", "x": 80, "y": -20 },
+  "obsidian_wall": { "name": "Obsidian Wall (Fort)", "description": "An impenetrable barrier protecting the central regions from wild zones.", "x": 150, "y": -150 },
+  "deep_sea_obs": { "name": "Deep-Sea Observatory (Settlement)", "description": "An underwater dome for studying oceanic mana currents.", "x": -35, "y": 160 },
+  "resonance_pits": { "name": "Resonance Pits (Mountains)", "description": "Mines where the purest quartz is extracted using acoustic waves.", "x": 20, "y": -100 },
+  "cloud_piercer": { "name": "Cloud-Piercer Academy (Citadel)", "description": "Training grounds for elite Reality Weavers and Synchronizers.", "x": -80, "y": 50 },
+  "silver_conduits": { "name": "Silver Conduits (Haven)", "description": "A distribution hub for liquid ether across the continent.", "x": -30, "y": 120 },
+  "void_bastion": { "name": "Void Bastion (Fort)", "description": "An outpost of the Border Guards monitoring rifts in reality.", "x": 180, "y": -180 },
+  "genesis_craters": { "name": "Genesis Craters (Plains)", "description": "Proving grounds for terraforming and testing new ecosystems.", "x": -250, "y": -100 }
+}
