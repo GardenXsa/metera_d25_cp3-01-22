@@ -12,6 +12,7 @@ enum class GoodType : uint16_t {
     MEAT,
     FISH,
     WOOD,
+    STONE,
     IRON_ORE,
     GOLD_ORE,
     COTTON,
@@ -34,6 +35,11 @@ enum class GoodType : uint16_t {
     PICKAXE,
     AXE,
     HAMMER,
+    WAGON,
+    HONEY,
+    WAX,
+    FUR,
+    MONSTER_PARTS,
     COUNT
 };
 
@@ -50,6 +56,7 @@ const GoodNames GOOD_NAMES[] = {
     { "Сырое мясо", "Синтезированный белок", "Мясо мутантов", "Брикеты плоти" }, // meat
     { "Рыба", "Питательная паста", "Глубинные черви", "Консервы Предтеч" }, // fish
     { "Древесина", "Силикатный полимер", "Окаменелая кость", "Утильсырье" }, // wood
+    { "Камень", "Базальт", "Мертвый камень", "Бетон" }, // stone
     { "Железная руда", "Сырой Эфир", "Радиоактивный шлак", "Детали машин" }, // iron_ore
     { "Золотая руда", "Кристаллы Памяти", "Осколки Разлома", "Рабочие микрочипы" }, // gold_ore
     { "Хлопок", "Нано-волокно", "Паутина Бездны", "Старые провода" }, // cotton
@@ -71,7 +78,12 @@ const GoodNames GOOD_NAMES[] = {
     { "Серп", "Био-резак", "Костяной серп", "Ржавый серп" }, // sickle
     { "Кирка", "Плазменный бур", "Шлаковая кирка", "Шахтерская кирка" }, // pickaxe
     { "Топор", "Лазерный резак", "Топор из челюсти", "Пожарный топор" }, // axe
-    { "Молот", "Грави-пресс", "Каменный молот", "Кувалда" } // hammer
+    { "Молот", "Грави-пресс", "Каменный молот", "Кувалда" }, // hammer
+    { "Торговая повозка", "Грави-платформа", "Костяной возок", "Ржавая фура" }, // wagon
+    { "Мёд", "Синтез-нектар", "Сладкая гниль", "Дикий мёд" }, // honey
+    { "Воск", "Био-герметик", "Трупный жир", "Парафин" }, // wax
+    { "Меха", "Термо-ткань", "Шкуры мутантов", "Грязный мех" }, // fur
+    { "Части чудовищ", "Био-трофеи", "Эфирные останки", "Мутагенные железы" }, // monster_parts
 };
 
 const int BASE_PRICES[] = {
@@ -79,6 +91,7 @@ const int BASE_PRICES[] = {
     2, // meat
     2, // fish
     2, // wood
+    3, // stone
     3, // iron_ore
     20, // gold_ore
     2, // cotton
@@ -100,7 +113,12 @@ const int BASE_PRICES[] = {
     15, // sickle
     20, // pickaxe
     15, // axe
-    20 // hammer
+    20, // hammer
+    500, // wagon
+    8, // honey
+    4, // wax
+    12, // fur
+    500, // monster_parts
 };
 
 enum class GoodCategory : uint8_t {
@@ -108,15 +126,16 @@ enum class GoodCategory : uint8_t {
     BUILDING,
     CLOTH,
     CONSUMABLE,
+    DOCUMENT,
     LUXURY,
     MAGIC_RAW,
     METAL_INGOT,
     PROCESSED_FOOD,
     RAW_FOOD,
     RAW_MATERIAL,
-    WEAPON,
-    DOCUMENT,
     TOOL,
+    VEHICLE,
+    WEAPON,
     COUNT
 };
 
@@ -125,6 +144,7 @@ const GoodCategory GOOD_CATEGORIES[] = {
     GoodCategory::RAW_FOOD, // meat
     GoodCategory::RAW_FOOD, // fish
     GoodCategory::RAW_MATERIAL, // wood
+    GoodCategory::RAW_MATERIAL, // stone
     GoodCategory::RAW_MATERIAL, // iron_ore
     GoodCategory::RAW_MATERIAL, // gold_ore
     GoodCategory::RAW_MATERIAL, // cotton
@@ -147,6 +167,11 @@ const GoodCategory GOOD_CATEGORIES[] = {
     GoodCategory::TOOL, // pickaxe
     GoodCategory::TOOL, // axe
     GoodCategory::TOOL, // hammer
+    GoodCategory::VEHICLE, // wagon
+    GoodCategory::RAW_FOOD, // honey
+    GoodCategory::RAW_MATERIAL, // wax
+    GoodCategory::RAW_MATERIAL, // fur
+    GoodCategory::MAGIC_RAW, // monster_parts
 };
 
 struct Recipe {
@@ -255,51 +280,60 @@ const std::vector<Recipe> RECIPES = {
             {GoodType::POTIONS, 1}
         }
     },
-            {
-            "jewelers",
-            {
-                {GoodType::GOLD_INGOT, 1}
-            },
-            {
-                {GoodType::JEWELRY, 1}
-            }
+    {
+        "jewelers",
+        {
+            {GoodType::GOLD_INGOT, 1}
         },
         {
-            "forges",
-            {
-                {GoodType::IRON_INGOT, 1}, {GoodType::WOOD, 1}
-            },
-            {
-                {GoodType::SICKLE, 2}
-            }
+            {GoodType::JEWELRY, 1}
+        }
+    },
+    {
+        "forges",
+        {
+            {GoodType::IRON_INGOT, 1}, {GoodType::WOOD, 1}
         },
         {
-            "forges",
-            {
-                {GoodType::IRON_INGOT, 2}, {GoodType::WOOD, 1}
-            },
-            {
-                {GoodType::PICKAXE, 2}
-            }
+            {GoodType::SICKLE, 2}
+        }
+    },
+    {
+        "forges",
+        {
+            {GoodType::IRON_INGOT, 2}, {GoodType::WOOD, 1}
         },
         {
-            "forges",
-            {
-                {GoodType::IRON_INGOT, 1}, {GoodType::WOOD, 1}
-            },
-            {
-                {GoodType::AXE, 2}
-            }
+            {GoodType::PICKAXE, 2}
+        }
+    },
+    {
+        "forges",
+        {
+            {GoodType::IRON_INGOT, 1}, {GoodType::WOOD, 1}
         },
         {
-            "forges",
-            {
-                {GoodType::IRON_INGOT, 2}, {GoodType::WOOD, 1}
-            },
-            {
-                {GoodType::HAMMER, 2}
-            }
+            {GoodType::AXE, 2}
+        }
+    },
+    {
+        "forges",
+        {
+            {GoodType::IRON_INGOT, 2}, {GoodType::WOOD, 1}
         },
+        {
+            {GoodType::HAMMER, 2}
+        }
+    },
+    {
+        "lumbermills",
+        {
+            {GoodType::WOOD, 10}, {GoodType::IRON_INGOT, 2}
+        },
+        {
+            {GoodType::WAGON, 1}
+        }
+    },
 };
 
 inline const char* getFacilityName(const std::string& id) {
@@ -317,6 +351,12 @@ inline const char* getFacilityName(const std::string& id) {
         {"mills", "mills"},
         {"tailors", "tailors"},
         {"jewelers", "jewelers"},
+        {"warehouses", "warehouses"},
+        {"apiaries", "apiaries"},
+        {"hunting_lodges", "hunting_lodges"},
+        {"observatories", "observatories"},
+        {"shipyards", "shipyards"},
+        {"fisheries", "fisheries"},
     };
     auto it = names.find(id);
     return it != names.end() ? it->second : id.c_str();
@@ -328,6 +368,7 @@ inline GoodType stringToGoodType(const std::string& name) {
         {"meat", GoodType::MEAT},
         {"fish", GoodType::FISH},
         {"wood", GoodType::WOOD},
+        {"stone", GoodType::STONE},
         {"iron_ore", GoodType::IRON_ORE},
         {"gold_ore", GoodType::GOLD_ORE},
         {"cotton", GoodType::COTTON},
@@ -350,9 +391,57 @@ inline GoodType stringToGoodType(const std::string& name) {
         {"pickaxe", GoodType::PICKAXE},
         {"axe", GoodType::AXE},
         {"hammer", GoodType::HAMMER},
+        {"wagon", GoodType::WAGON},
+        {"honey", GoodType::HONEY},
+        {"wax", GoodType::WAX},
+        {"fur", GoodType::FUR},
+        {"monster_parts", GoodType::MONSTER_PARTS},
     };
     auto it = mapping.find(name);
     return it != mapping.end() ? it->second : GoodType::COUNT;
+}
+
+struct MaterialTemplate {
+    std::string id;
+    int health = 100;
+    bool flammable = false;
+    double insulation = 0.0;
+};
+
+inline const std::unordered_map<std::string, MaterialTemplate>& getMaterialCatalog() {
+    static std::unordered_map<std::string, MaterialTemplate> catalog = {
+        {"wood", {"wood", 200, true, 0.5}},
+        {"stone", {"stone", 500, false, 0.8}},
+        {"brick", {"brick", 400, false, 0.7}},
+        {"dirt", {"dirt", 100, false, 0.2}},
+        {"cobble", {"cobble", 300, false, 0.4}},
+    };
+    return catalog;
+}
+
+struct FurnitureTemplate {
+    std::string id;
+    std::string category;
+    std::string name;
+    int health = 100;
+    int weight = 10;
+    bool flammable = true;
+    bool is_container = false;
+    int max_weight = 0;
+    int max_slots = 0;
+};
+
+inline const std::unordered_map<std::string, FurnitureTemplate>& getFurnitureCatalog() {
+    static std::unordered_map<std::string, FurnitureTemplate> catalog = {
+        {"chest_raw_materials", {"chest_raw_materials", "storage", "Склад сырья", 200, 50, true, true, 5000, 100}},
+        {"chest_finished_goods", {"chest_finished_goods", "storage", "Склад продукции", 200, 50, true, true, 5000, 100}},
+        {"personal_storage_poor", {"personal_storage_poor", "storage", "Старый сундук", 50, 15, true, true, 100, 20}},
+        {"personal_storage_rich", {"personal_storage_rich", "storage", "Резной шкаф", 100, 40, true, true, 200, 40}},
+        {"wooden_bed", {"wooden_bed", "bed", "Деревянная кровать", 50, 30, true, false, 0, 0}},
+        {"stone_well", {"stone_well", "outdoor", "Каменный колодец", 1000, 2000, false, false, 0, 0}},
+        {"street_lantern", {"street_lantern", "outdoor", "Уличный фонарь", 30, 10, false, false, 0, 0}},
+    };
+    return catalog;
 }
 
 inline const std::string& goodTypeToString(GoodType type) {
@@ -361,6 +450,7 @@ inline const std::string& goodTypeToString(GoodType type) {
         "meat",
         "fish",
         "wood",
+        "stone",
         "iron_ore",
         "gold_ore",
         "cotton",
@@ -383,6 +473,11 @@ inline const std::string& goodTypeToString(GoodType type) {
         "pickaxe",
         "axe",
         "hammer",
+        "wagon",
+        "honey",
+        "wax",
+        "fur",
+        "monster_parts",
     };
     if (static_cast<size_t>(type) < names.size()) return names[static_cast<size_t>(type)];
     static std::string unknown = "unknown";

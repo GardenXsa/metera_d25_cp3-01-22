@@ -105,15 +105,10 @@
 									<option value="openrouter">OpenRouter</option>
 									<option value="deepseek">DeepSeek</option>
 									<option value="local">LM Studio / Local</option>
+									<option value="dummy">Заглушка (Тест UI/Движка)</option>
 								</select>
 							</div>
-							<div class="form-group" style="flex: 1; margin-bottom: 0;">
-								<label for="gm-mode-select" data-i18n="settingsMenu.gmModeLabel">Режим ГМ:</label>
-								<select id="gm-mode-select" style="padding: 8px 12px;">
-									<option value="two_step">Двухэтапный (Точнее)</option>
-									<option value="unified">Единый (Быстрее)</option>
-								</select>
-							</div>
+
 						</div>
 
 						<!-- Строка 2: Модель и Ключ -->
@@ -464,8 +459,8 @@
                     <label for="world-years-slider" data-i18n="worldSetup.yearsLabel" style="color: #aeb6bf; margin-bottom: 10px; display: block;">Годы предыстории (1-20):</label>
                     <div class="slider-container">
                         <i class="fas fa-hourglass-half"></i>
-                        <input type="range" id="world-years-slider" min="1" max="20" value="20">
-                        <span id="world-years-value">20</span>
+                        <input type="range" id="world-years-slider" min="1" max="20" value="1">
+                        <span id="world-years-value">1</span>
                     </div>
                     <p style="font-size: 0.8em; color: #7f8c8d; margin-top: 5px;" data-i18n="worldSetup.yearsDesc">Определяет, сколько лет мир будет развиваться автономно до вашего появления (войны, экономика, интриги).</p>
                 </div>
@@ -484,23 +479,7 @@
                 <button class="back-button" data-target="narrator-selection-screen" data-i18n="settingsMenu.backButton">Назад</button>
             </div>
         </div>
-        <div id="narrator-selection-screen" class="menu-screen" style="display: none;">
-            <h1 data-i18n="narratorSelection.title">Выберите Рассказчика</h1>
-            <div class="narrator-selector">
-                <button id="narrator-prev" class="arrow-button">◀</button>
-                <div id="narrator-card" class="narrator-card">
-                    <div class="narrator-text-content">
-                        <h2 id="narrator-name">Имя Рассказчика</h2>
-                        <p id="narrator-desc">Описание...</p>
-                    </div>
-                </div>
-                <button id="narrator-next" class="arrow-button">▶</button>
-            </div>
-            <div class="narrator-buttons">
-                <button id="confirm-narrator-button" data-i18n="narratorSelection.confirmButton">Подтвердить и Начать</button>
-                <button class="back-button" data-target="character-creation-screen" data-i18n="narratorSelection.backButton">Назад</button>
-            </div>
-        </div>
+<!-- narrator-selection-screen REMOVED BY T3 -->
 
         <!-- Экран Загрузки Игры -->
         <div id="load-game-screen" class="menu-screen" style="display: none;">
@@ -621,15 +600,7 @@
                                     </div>
                                 </div>
                                 <p class="stat-line" id="location-stat-line"><span data-i18n="gameInterface.characterPanel.location">📍 Локация:</span> <span id="stat-location">...</span></p>
-                                <div id="journey-container" style="display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid #f39c12; box-shadow: inset 0 0 10px rgba(243, 156, 18, 0.1);">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.9em; color: #f39c12; margin-bottom: 5px; font-weight: bold;">
-                                        <span id="journey-dest">В пути...</span>
-                                        <span id="journey-progress-text">0/3</span>
-                                    </div>
-                                    <div style="width: 100%; height: 8px; background: #1a2530; border-radius: 4px; overflow: hidden; border: 1px solid rgba(243, 156, 18, 0.3);">
-                                        <div id="journey-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #e67e22, #f1c40f); transition: width 0.4s ease-in-out; box-shadow: 0 0 5px #f1c40f;"></div>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -714,6 +685,10 @@
                         <h2 class="panel-toggle"><span data-i18n="gameInterface.nexusPanel.title">Константы</span> <span class="toggle-icon">▶</span></h2>
                         <div class="panel-content"><ul id="nexus-list"></ul></div>
                     </div>
+                     <div id="port-panel" class="panel port-panel collapsible-panel" style="display: none;">
+                         <h2 class="panel-toggle"><span data-i18n="gameInterface.portPanel.title">Порт</span> <span class="toggle-icon">▼</span></h2>
+                         <div class="panel-content" id="port-panel-content"></div>
+                     </div>
                      <div id="trade-journal-panel" class="panel trade-journal-panel collapsible-panel" style="display: none;">
                          <h2 class="panel-toggle"><span data-i18n="gameInterface.tradeJournalPanel.title">Торговый Журнал</span> <span class="toggle-icon">▶</span></h2>
                          <div class="panel-content">
@@ -734,6 +709,13 @@
                      <div class="panel map-panel collapsible-panel">
                          <h2 class="panel-toggle"><span data-i18n="gameInterface.mapPanel.title">Карта</span> <span class="toggle-icon">▶</span></h2>
                          <div class="panel-content">
+                                                        <div class="map-controls-bar">
+                                <button class="map-filter-btn active" data-filter="none" title="Обычный вид"><i class="fas fa-globe"></i></button>
+                                <button class="map-filter-btn" data-filter="political" title="Политическая карта"><i class="fas fa-flag"></i></button>
+                                <button class="map-filter-btn" data-filter="economic" title="Экономика"><i class="fas fa-coins"></i></button>
+                                <button class="map-filter-btn" data-filter="threat" title="Уровень угрозы"><i class="fas fa-skull"></i></button>
+                                <button class="map-filter-btn" id="center-map-btn" title="Центрировать на герое"><i class="fas fa-crosshairs"></i></button>
+                            </div>
                             <canvas id="visual-map" width="320" height="250"></canvas>
                              <h3 data-i18n="gameInterface.mapPanel.globalTitle">Известные регионы:</h3>
                              <ul id="global-locations-list"></ul>
@@ -778,6 +760,30 @@
         </div>
 
     </div> <!-- Конец content-wrapper -->
+
+    <!-- ПЛАВАЮЩЕЕ ОКНО ПУТЕШЕСТВИЯ -->
+    <div id="journey-container" class="journey-modal" style="display: none;">
+        <div class="journey-modal-header">
+            <span id="journey-dest">В пути...</span>
+            <span id="journey-progress-text">0/0 ч.</span>
+        </div>
+        <div class="journey-progress-wrapper">
+            <div id="journey-progress-bar"></div>
+        </div>
+        <div id="journey-loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Прокладываем путь...
+        </div>
+        <div id="journey-event-area" style="display: none;">
+            <div id="journey-event-text"></div>
+            <div id="journey-event-actions"></div>
+        </div>
+        <div id="travel-controls" class="travel-controls">
+            <button id="travel-fast-forward-btn" class="travel-btn" title="Ускорить (промотать до конца)"><i class="fas fa-forward"></i></button>
+            <button id="travel-pause-btn" class="travel-btn" title="Остановиться (Пауза)"><i class="fas fa-pause"></i></button>
+            <button id="travel-cancel-btn" class="travel-btn btn-danger" title="Отменить путешествие"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
 
     <!-- Модальные окна и оверлеи -->
     <div id="custom-alert-modal" class="custom-alert-overlay">
@@ -835,6 +841,16 @@
         <h4>Репутация</h4>
         <div id="reputation-modal-content"></div>
     </div>
+
+    <div id="business-modal" class="custom-alert-overlay">
+        <div class="custom-alert-box" style="max-width: 600px; width: 90%; text-align: left; padding: 20px;">
+            <h3 id="business-modal-title" style="color: #f1c40f; border-bottom: 1px solid #f1c40f; padding-bottom: 10px; margin-top: 0;">Управление бизнесом</h3>
+            <div id="business-modal-content" style="max-height: 60vh; overflow-y: auto; padding-right: 10px; color: #ecf0f1;">
+                <!-- Dynamic content -->
+            </div>
+            <button id="close-business-modal-btn" class="back-button" style="width: 100%; margin-top: 15px;">Закрыть</button>
+        </div>
+    </div>
     <!-- Админ Меню (F4) -->
     <div id="admin-menu-overlay" class="custom-alert-overlay">
         <div class="custom-alert-box" style="max-width: 750px; width: 95%; text-align: left; padding: 20px;">
@@ -880,6 +896,7 @@
     <script src="js/saves/StorageProvider.js"></script>
     <script src="js/saves/SaveManager.js"></script>
     <script src="js/saves/SaveUI.js"></script>
-    <script src="script.js"></script>
+        <script src="js/cartographer/globalMap.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

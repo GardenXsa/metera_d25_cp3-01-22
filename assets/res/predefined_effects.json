@@ -1414,5 +1414,11 @@
     "name": "Настойка ясной мысли",
     "description": "Ваш разум кристально чист. Иммунитет к замешательству и ментальным атакам, бонус к интеллекту.",
     "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "instant_healing_minor",
+    "name": "Малое мгновенное исцеление",
+    "description": "Раны затягиваются магическим образом.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":15}}]"
   }
 ]

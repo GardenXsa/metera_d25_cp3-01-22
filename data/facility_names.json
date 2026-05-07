@@ -11,5 +11,11 @@
   "banks": { "rebirth": "Банки", "architects": "Энерго-хранилища", "sundering": "Схроны", "silence": "Склады бартера" },
   "mills": { "rebirth": "Мельницы", "architects": "Протеиновые терки", "sundering": "Дробилки костей", "silence": "Измельчители" },
   "tailors": { "rebirth": "Портные", "architects": "Сборщики брони", "sundering": "Сшиватели шкур", "silence": "Ремонтники снаряжения" },
-  "jewelers": { "rebirth": "Ювелиры", "architects": "Голо-дизайнеры", "sundering": "Резчики трофеев", "silence": "Мастера микросхем" }
+  "jewelers": { "rebirth": "Ювелиры", "architects": "Голо-дизайнеры", "sundering": "Резчики трофеев", "silence": "Мастера микросхем" },
+  "warehouses": { "rebirth": "Склады", "architects": "Логистические хабы", "sundering": "Схроны", "silence": "Тайники" },
+  "apiaries": { "rebirth": "Пасеки", "architects": "Нектарные фермы", "sundering": "Ульи трупоедов", "silence": "Дикие ульи" },
+  "hunting_lodges": { "rebirth": "Охотничьи угодья", "architects": "Зоны отбраковки", "sundering": "Лагеря ловчих", "silence": "Шалаши охотников" },
+  "observatories": { "rebirth": "Обсерватории", "architects": "Эфирные шпили", "sundering": "Башни безумия", "silence": "Посты звездочетов" },
+  "shipyards": { "rebirth": "Верфи", "architects": "Аэро-доки", "sundering": "Сборщики остовов", "silence": "Ржавые доки" },
+  "fisheries": { "rebirth": "Рыбные промыслы", "architects": "Синтезаторы белка", "sundering": "Ловцы мутантов", "silence": "Токсичные фермы" }
 }

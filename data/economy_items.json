@@ -3,6 +3,7 @@
   "meat": { "names": { "rebirth": "Сырое мясо", "architects": "Синтезированный белок", "sundering": "Мясо мутантов", "silence": "Брикеты плоти" }, "basePrice": 2, "category": "raw_food" },
   "fish": { "names": { "rebirth": "Рыба", "architects": "Питательная паста", "sundering": "Глубинные черви", "silence": "Консервы Предтеч" }, "basePrice": 2, "category": "raw_food" },
   "wood": { "names": { "rebirth": "Древесина", "architects": "Силикатный полимер", "sundering": "Окаменелая кость", "silence": "Утильсырье" }, "basePrice": 2, "category": "raw_material" },
+  "stone": { "names": { "rebirth": "Камень", "architects": "Базальт", "sundering": "Мертвый камень", "silence": "Бетон" }, "basePrice": 3, "category": "raw_material" },
   "iron_ore": { "names": { "rebirth": "Железная руда", "architects": "Сырой Эфир", "sundering": "Радиоактивный шлак", "silence": "Детали машин" }, "basePrice": 3, "category": "raw_material" },
   "gold_ore": { "names": { "rebirth": "Золотая руда", "architects": "Кристаллы Памяти", "sundering": "Осколки Разлома", "silence": "Рабочие микрочипы" }, "basePrice": 20, "category": "raw_material" },
   "cotton": { "names": { "rebirth": "Хлопок", "architects": "Нано-волокно", "sundering": "Паутина Бездны", "silence": "Старые провода" }, "basePrice": 2, "category": "raw_material" },
@@ -25,5 +26,9 @@
   "pickaxe": { "names": { "rebirth": "Кирка", "architects": "Плазменный бур", "sundering": "Шлаковая кирка", "silence": "Шахтерская кирка" }, "basePrice": 20, "category": "tool" },
   "axe": { "names": { "rebirth": "Топор", "architects": "Лазерный резак", "sundering": "Топор из челюсти", "silence": "Пожарный топор" }, "basePrice": 15, "category": "tool" },
   "hammer": { "names": { "rebirth": "Молот", "architects": "Грави-пресс", "sundering": "Каменный молот", "silence": "Кувалда" }, "basePrice": 20, "category": "tool" },
-  "wagon": { "names": { "rebirth": "Торговая повозка", "architects": "Грави-платформа", "sundering": "Костяной возок", "silence": "Ржавая фура" }, "basePrice": 500, "category": "vehicle" }
+  "wagon": { "names": { "rebirth": "Торговая повозка", "architects": "Грави-платформа", "sundering": "Костяной возок", "silence": "Ржавая фура" }, "basePrice": 500, "category": "vehicle" },
+  "honey": { "names": { "rebirth": "Мёд", "architects": "Синтез-нектар", "sundering": "Сладкая гниль", "silence": "Дикий мёд" }, "basePrice": 8, "category": "raw_food" },
+  "wax": { "names": { "rebirth": "Воск", "architects": "Био-герметик", "sundering": "Трупный жир", "silence": "Парафин" }, "basePrice": 4, "category": "raw_material" },
+  "fur": { "names": { "rebirth": "Меха", "architects": "Термо-ткань", "sundering": "Шкуры мутантов", "silence": "Грязный мех" }, "basePrice": 12, "category": "raw_material" },
+  "monster_parts": { "names": { "rebirth": "Части чудовищ", "architects": "Био-трофеи", "sundering": "Эфирные останки", "silence": "Мутагенные железы" }, "basePrice": 500, "category": "magic_raw" }
 }

@@ -88,8 +88,22 @@ function startEngine() {
 
         engineProcess.on('close', (code) => {
             console.log(`[Nexus] Движок завершен с кодом ${code}`);
+            if (code !== 0 && code !== null) {
+                console.error(`[Nexus CRITICAL] Процесс упал. Если это произошло на ПК без среды разработки, убедитесь, что бинарник собран с флагом -static.`);
+            }
             engineProcess = null;
             engineReady = false;
+            
+            // Отклоняем текущую команду если она была
+            if (currentResolve) {
+                currentResolve({ status: 'error', message: `Engine connection lost (code ${code})` });
+                currentResolve = null;
+            }
+            // Очищаем очередь, чтобы не блокировать UI
+            while (commandQueue.length > 0) {
+                const task = commandQueue.shift();
+                task.resolve({ status: 'error', message: `Engine crashed before execution (code ${code})` });
+            }
         });
 
         engineProcess.on('error', (err) => {
@@ -140,8 +154,12 @@ async function initEngine() {
     return await sendCommand('init');
 }
 
-async function buildWorld(playerId, era, initialAgents, globalLocations) {
-    return await sendCommand('buildWorld', { player_id: playerId, era: era, initial_agents: initialAgents, global_locations: globalLocations });
+async function buildWorld(playerId, era, initialAgents, globalLocations, startDay) {
+    return await sendCommand('buildWorld', { player_id: playerId, era: era, initial_agents: initialAgents, global_locations: globalLocations, start_day: startDay });
+}
+
+async function bootstrapWorld(days, startDay) {
+    return await sendCommand('bootstrapWorld', { days: days, start_day: startDay });
 }
 
 async function simulateTicks(world, ticks) {
@@ -164,6 +182,16 @@ async function gmIntervention(commandObj) {
     return await sendCommand('gmIntervention', commandObj);
 }
 
+async function startTrek(startId, destinationId) {
+    return await sendCommand('startTrek', { start_id: startId, destination_id: destinationId });
+}
+async function pauseTrek() { return await sendCommand('pauseTrek'); }
+async function resumeTrek() { return await sendCommand('resumeTrek'); }
+async function cancelTrek() { return await sendCommand('cancelTrek'); }
+async function interactTrekObject(objType, simId) {
+    return await sendCommand('interactWithObject', { object_type: objType, sim_object_id: simId });
+}
+
 // ============================================================================
 // IPC HANDLERS FOR NEXUS ENGINE
 // ============================================================================
@@ -172,12 +200,18 @@ ipcMain.handle('nexus-init', async () => {
     return await initEngine();
 });
 
-ipcMain.handle('nexus-build-world', async (event, playerId, era, initialAgents, globalLocations) => {
-    return await buildWorld(playerId, era, initialAgents, globalLocations);
+ipcMain.handle('nexus-build-world', async (event, playerId, era, initialAgents, globalLocations, startDay) => {
+    return await buildWorld(playerId, era, initialAgents, globalLocations, startDay);
+});
+
+ipcMain.handle('nexus-bootstrap', async (event, days, startDay) => {
+    return await bootstrapWorld(days, startDay);
 });
 
 ipcMain.handle('nexus-simulate', async (event, world, ticks) => {
-    return await simulateTicks(world, ticks);
+    // ВАЖНО: Мы больше не пересылаем тяжелый объект world в C++ движок,
+    // так как движок сам хранит свое состояние. Это убирает лаги IPC.
+    return await sendCommand('simulateTicks', { ticks: ticks });
 });
 
 ipcMain.handle('nexus-presimulate', async (event, world, ticks) => {
@@ -192,8 +226,22 @@ ipcMain.handle('nexus-get-full-state', async () => {
     return await getFullState();
 });
 
+ipcMain.handle('nexus-get-world-map', async () => {
+    return await sendCommand('getWorldMap', {});
+});
+
 ipcMain.handle('nexus-gm-intervention', async (event, commandObj) => {
     return await gmIntervention(commandObj);
+});
+
+ipcMain.handle('nexus-start-trek', async (event, startId, destId) => await startTrek(startId, destId));
+ipcMain.handle('nexus-pause-trek', async () => await pauseTrek());
+ipcMain.handle('nexus-resume-trek', async () => await resumeTrek());
+ipcMain.handle('nexus-cancel-trek', async () => await cancelTrek());
+ipcMain.handle('nexus-interact-trek-object', async (event, type, id) => await interactTrekObject(type, id));
+
+ipcMain.handle('nexus-manage-business', async (event, params) => {
+    return await sendCommand('playerManageBusiness', params);
 });
 
 // ============================================================================

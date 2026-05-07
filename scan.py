@@ -1,4 +1,6 @@
 import os
+import json
+import platform
 import threading
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
@@ -13,38 +15,108 @@ class ProjectScannerApp(ctk.CTk):
 
         # Настройка главного окна
         self.title("Project Scanner Pro")
-        self.geometry("650x700")
-        self.minsize(600, 650)
+        self.geometry("750x700")
+        self.minsize(700, 650)
 
-        # --- Переменные состояния ---
-        self.project_path = ctk.StringVar(value=os.getcwd())
-        self.output_file = ctk.StringVar(value=os.path.join(os.getcwd(), "project_scan.txt"))
+        # --- Инициализация конфигурации ---
+        self.app_name = "ProjectScannerPro"
+        self.config_file = os.path.join(self.get_appdata_dir(), "config.json")
         
-        # Режим сканирования: 1 - полный, 0 - только структура
-        self.full_scan_mode = ctk.BooleanVar(value=True) 
-        
-        # Настройки
-        self.skip_hidden = ctk.BooleanVar(value=True)
-        self.skip_large_files = ctk.BooleanVar(value=True)
-        self.max_file_size_mb = ctk.StringVar(value="1.0")
+        # Базовые настройки (по умолчанию)
+        self.config_data = {
+            "project_path": os.getcwd(),
+            "output_file": os.path.join(os.getcwd(), "project_scan.txt"),
+            "full_scan_mode": True,
+            "skip_hidden": True,
+            "skip_large_files": True,
+            "max_file_size_mb": "1.0",
+            "ignored_dirs": [
+                '.git', '.idea', '.vscode', '__pycache__', '.godot', 
+                'node_modules', 'venv', '.import', 'dist', 'build', 'bin', 'obj', 'sound', '.ai_backups'
+            ],
+            "ignored_exts": [
+                '.png', '.jpg', '.jpeg', '.gif', '.ico', '.bmp', '.tga', '.svg',
+                '.wav', '.mp3', '.ogg', '.flac',
+                '.exe', '.dll', '.so', '.pck', '.zip', '.rar', '.pdf', '.docx', 
+                '.ttr', '.ttf', '.otf', '.pyc',
+                '.obj', '.gltf', '.glb', '.fbx', '.dae', '.stl', '.ply', 
+                '.blend', '.blend1', '.3ds', '.max', '.ma', '.mb'
+            ],
+            "ignored_files": [
+                'package-lock.json', 'yarn.lock', 'poetry.lock', '.env', '.DS_Store'
+            ]
+        }
 
-        # Базовые списки исключений
-        self.default_ignored_dirs = [
-            '.git', '.idea', '.vscode', '__pycache__', '.godot', 
-            'node_modules', 'venv', '.import', 'dist', 'build', 'bin', 'obj', 'sound', '.ai_backups'
-        ]
-        
-        self.default_ignored_exts = [
-            '.png', '.jpg', '.jpeg', '.gif', '.ico', '.bmp', '.tga', '.svg',
-            '.wav', '.mp3', '.ogg', '.flac',
-            '.exe', '.dll', '.so', '.pck', '.zip', '.rar', '.pdf', '.docx', 
-            '.ttr', '.ttf', '.otf', '.pyc',
-            '.obj', '.gltf', '.glb', '.fbx', '.dae', '.stl', '.ply', 
-            '.blend', '.blend1', '.3ds', '.max', '.ma', '.mb'
-        ]
+        # Загружаем настройки из AppData (если есть)
+        self.load_config()
+
+        # --- Переменные состояния (привязываем к загруженным данным) ---
+        self.project_path = ctk.StringVar(value=self.config_data["project_path"])
+        self.output_file = ctk.StringVar(value=self.config_data["output_file"])
+        self.full_scan_mode = ctk.BooleanVar(value=self.config_data["full_scan_mode"]) 
+        self.skip_hidden = ctk.BooleanVar(value=self.config_data["skip_hidden"])
+        self.skip_large_files = ctk.BooleanVar(value=self.config_data["skip_large_files"])
+        self.max_file_size_mb = ctk.StringVar(value=self.config_data["max_file_size_mb"])
 
         self.create_widgets()
 
+        # Обработка закрытия окна (для сохранения настроек)
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    # --- ЛОГИКА СОХРАНЕНИЯ В APPDATA ---
+    def get_appdata_dir(self):
+        """Определяет путь к папке данных приложения в зависимости от ОС"""
+        system = platform.system()
+        if system == "Windows":
+            base_dir = os.environ.get("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
+        elif system == "Darwin": # macOS
+            base_dir = os.path.expanduser("~/Library/Application Support")
+        else: # Linux
+            base_dir = os.path.expanduser("~/.config")
+        
+        app_dir = os.path.join(base_dir, self.app_name)
+        os.makedirs(app_dir, exist_ok=True) # Создаем папку, если её нет
+        return app_dir
+
+    def load_config(self):
+        """Загружает настройки из файла JSON"""
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, 'r', encoding='utf-8') as f:
+                    saved_data = json.load(f)
+                    # Обновляем базовые настройки сохраненными
+                    for key, value in saved_data.items():
+                        self.config_data[key] = value
+            except Exception as e:
+                print(f"Ошибка загрузки конфигурации: {e}")
+
+    def save_config(self):
+        """Сохраняет текущие настройки в файл JSON"""
+        # Собираем актуальные данные из интерфейса
+        self.config_data["project_path"] = self.project_path.get()
+        self.config_data["output_file"] = self.output_file.get()
+        self.config_data["full_scan_mode"] = self.full_scan_mode.get()
+        self.config_data["skip_hidden"] = self.skip_hidden.get()
+        self.config_data["skip_large_files"] = self.skip_large_files.get()
+        self.config_data["max_file_size_mb"] = self.max_file_size_mb.get()
+        
+        # Собираем списки из текстовых полей
+        self.config_data["ignored_dirs"] = [line.strip() for line in self.txt_ignore_dirs.get("0.0", "end").splitlines() if line.strip()]
+        self.config_data["ignored_exts"] = [line.strip() for line in self.txt_ignore_exts.get("0.0", "end").splitlines() if line.strip()]
+        self.config_data["ignored_files"] = [line.strip() for line in self.txt_ignore_files.get("0.0", "end").splitlines() if line.strip()]
+
+        try:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(self.config_data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            print(f"Ошибка сохранения конфигурации: {e}")
+
+    def on_closing(self):
+        """Вызывается при закрытии окна крестиком"""
+        self.save_config()
+        self.destroy()
+
+    # --- СОЗДАНИЕ ИНТЕРФЕЙСА ---
     def create_widgets(self):
         # === Вкладки (Tabs) ===
         self.tabview = ctk.CTkTabview(self)
@@ -104,22 +176,31 @@ class ProjectScannerApp(ctk.CTk):
     def setup_ignore_tab(self):
         self.tab_ignore.grid_columnconfigure(0, weight=1)
         self.tab_ignore.grid_columnconfigure(1, weight=1)
+        self.tab_ignore.grid_columnconfigure(2, weight=1)
 
-        # Папки
+        # 1. Папки
         lbl_dirs = ctk.CTkLabel(self.tab_ignore, text="Исключить папки:", font=("Arial", 12, "bold"))
         lbl_dirs.grid(row=0, column=0, padx=10, pady=5, sticky="w")
         
         self.txt_ignore_dirs = ctk.CTkTextbox(self.tab_ignore, height=350)
         self.txt_ignore_dirs.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
-        self.txt_ignore_dirs.insert("0.0", "\n".join(self.default_ignored_dirs))
+        self.txt_ignore_dirs.insert("0.0", "\n".join(self.config_data["ignored_dirs"]))
 
-        # Форматы (Расширения)
+        # 2. Форматы (Расширения)
         lbl_exts = ctk.CTkLabel(self.tab_ignore, text="Исключить расширения:", font=("Arial", 12, "bold"))
         lbl_exts.grid(row=0, column=1, padx=10, pady=5, sticky="w")
         
         self.txt_ignore_exts = ctk.CTkTextbox(self.tab_ignore, height=350)
         self.txt_ignore_exts.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="nsew")
-        self.txt_ignore_exts.insert("0.0", "\n".join(self.default_ignored_exts))
+        self.txt_ignore_exts.insert("0.0", "\n".join(self.config_data["ignored_exts"]))
+
+        # 3. Конкретные файлы
+        lbl_files = ctk.CTkLabel(self.tab_ignore, text="Исключить файлы:", font=("Arial", 12, "bold"))
+        lbl_files.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        
+        self.txt_ignore_files = ctk.CTkTextbox(self.tab_ignore, height=350)
+        self.txt_ignore_files.grid(row=1, column=2, padx=10, pady=(0, 10), sticky="nsew")
+        self.txt_ignore_files.insert("0.0", "\n".join(self.config_data["ignored_files"]))
 
     def setup_settings_tab(self):
         # Скрытые файлы
@@ -135,7 +216,7 @@ class ProjectScannerApp(ctk.CTk):
         entry_size = ctk.CTkEntry(size_frame, textvariable=self.max_file_size_mb, width=60)
         entry_size.pack(side="left")
 
-    # --- ЛОГИКА ИНТЕРФЕЙСА ---
+    # --- ЛОГИКА СКАНИРОВАНИЯ ---
     def select_directory(self):
         path = filedialog.askdirectory()
         if path:
@@ -147,11 +228,14 @@ class ProjectScannerApp(ctk.CTk):
             self.output_file.set(path)
 
     def start_scan_thread(self):
+        # Перед стартом сохраняем текущие настройки
+        self.save_config()
+
         self.btn_start.configure(state="disabled", text="СКАНИРОВАНИЕ...")
         self.progress_bar.start()
         self.status_label.configure(text="Подготовка...", text_color=ctk.ThemeManager.theme["CTkLabel"]["text_color"])
         
-        # Собираем настройки
+        # Собираем настройки для потока
         config = {
             "project_path": self.project_path.get(),
             "output_file": self.output_file.get(),
@@ -168,9 +252,10 @@ class ProjectScannerApp(ctk.CTk):
             config["max_mb"] = 1.0
             self.max_file_size_mb.set("1.0")
         
-        # Сбор игнорируемых данных (сразу приводим к нижнему регистру для расширений)
+        # Сбор игнорируемых данных
         config["ignore_dirs"] = {line.strip() for line in self.txt_ignore_dirs.get("0.0", "end").splitlines() if line.strip()}
         config["ignore_exts"] = {line.strip().lower() for line in self.txt_ignore_exts.get("0.0", "end").splitlines() if line.strip()}
+        config["ignore_files"] = {line.strip() for line in self.txt_ignore_files.get("0.0", "end").splitlines() if line.strip()}
 
         # Запуск потока
         thread = threading.Thread(target=self.run_scan, args=(config,))
@@ -206,6 +291,10 @@ class ProjectScannerApp(ctk.CTk):
                     for file_name in files:
                         if config["skip_hidden"] and file_name.startswith('.'):
                             continue
+                        
+                        if file_name in config["ignore_files"]:
+                            continue
+
                         if os.path.abspath(os.path.join(root, file_name)) != abs_output_file:
                             f.write(f"{sub_indent}{file_name}\n")
 
@@ -228,13 +317,14 @@ class ProjectScannerApp(ctk.CTk):
                         if config["skip_hidden"] and file_name.startswith('.'):
                             continue
 
+                        if file_name in config["ignore_files"]:
+                            continue
+
                         file_path = os.path.join(root, file_name)
                         
-                        # Пропускаем сам файл отчета
                         if os.path.abspath(file_path) == abs_output_file:
                             continue
                         
-                        # Проверка расширения
                         _, ext = os.path.splitext(file_name)
                         if ext.lower() in config["ignore_exts"]:
                             continue
@@ -258,7 +348,7 @@ class ProjectScannerApp(ctk.CTk):
                                 f.write(content)
                                 f.write("\n\n")
                         except Exception:
-                            # Игнорируем бинарные файлы, которые попытались открыться как текст, или файлы без прав
+                            # Игнорируем бинарные файлы
                             pass
 
             self.finish_scan(True, config["output_file"])
@@ -267,7 +357,6 @@ class ProjectScannerApp(ctk.CTk):
             self.finish_scan(False, str(e))
 
     def update_status(self, text):
-        # Обрезаем длинный текст для статуса
         if len(text) > 50:
             text = text[:47] + "..."
         self.status_label.configure(text=text)

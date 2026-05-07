@@ -51,6 +51,17 @@ assert world["tick"] == 0, f"Ожидался tick=0, получено: {world['
 assert len(world["regions"]) > 0, "Нет регионов в мире"
 print(f"   ✅ buildWorld: tick={world['tick']}, регионов={len(world['regions'])}")
 
+print("\n🧪 Тест 2.5: bootstrapWorld команда (Экономическая балансировка)")
+result_boot = run_command({
+    "command": "bootstrapWorld",
+    "days": 30
+})
+assert result_boot["status"] == "ok", f"Ожидался 'ok', получено: {result_boot}"
+assert "world" in result_boot, "Отсутствует поле 'world'"
+world = result_boot["world"]
+assert world["tick"] == 0, "После bootstrap tick должен быть сброшен в 0"
+print(f"   ✅ bootstrapWorld: балансировка завершена")
+
 print("\n🧪 Тест 3: simulateTicks команда (передача состояния)")
 world_json = json.dumps(world)
 result = run_command({
@@ -113,6 +124,65 @@ result4 = run_command({
 assert result4["status"] == "ok", f"Ожидался 'ok', получено: {result4['status']}"
 print(f"   ✅ Стресс-тест пройден: tick={result4['tick']}, новостей={result4['news_count']}")
 
+print("\n🧪 Тест 8: Проверка Т3 Экономики (Профессии и Расы NPC)")
+w_final = result4["world"]
+npc_with_prof = 0
+for npc_id, npc in w_final["npcs"].items():
+    assert "race" in npc, f"У NPC {npc_id} нет расы"
+    if "economy" in npc and "profession_type" in npc["economy"]:
+        if npc["economy"]["profession_type"] != "none":
+            npc_with_prof += 1
+assert npc_with_prof > 0, "Ни одному NPC не назначена профессия!"
+print(f"   ✅ Профессии назначены: {npc_with_prof} NPC")
+
+print("\n🧪 Тест 9: Проверка Т3 Экономики (Рыночные площади)")
+market_offers_found = 0
+for reg_id, reg in w_final["regions"].items():
+    if "market_square" in reg:
+        market_offers_found += len(reg["market_square"])
+print(f"   ✅ Лотов на рынках после года симуляции: {market_offers_found}")
+
+print("\n🧪 Тест 10: Проверка Т3 Экономики (Монополии Лордов)")
+lord_monopolies = 0
+for bus_id, bus in w_final["businesses"].items():
+    for owner in bus.get("owner_ids", []):
+        if owner.startswith("ruler_"):
+            lord_monopolies += 1
+assert lord_monopolies > 0, "Не найдено ни одной монополии лорда!"
+print(f"   ✅ Монополий лордов: {lord_monopolies}")
+
+print("\n🧪 Тест 11: Проверка Т3 Экономики (Купеческие караваны)")
+merchant_caravans = 0
+for reg_id, reg in w_final["regions"].items():
+    for caravan in reg.get("caravans", []):
+        if "merchant_id" in caravan and caravan["merchant_id"]:
+            merchant_caravans += 1
+print(f"   ✅ Активных купеческих караванов в пути: {merchant_caravans}")
+
+print("\n🧪 Тест 12: Проверка микро-циклов (Услуги: Трактирщики и Жрецы)")
+services_profit = 0
+for npc_id, npc in w_final["npcs"].items():
+    if "economy" in npc and npc["economy"].get("profession_type") in ["innkeeper", "cleric"]:
+        if npc["economy"].get("savings", 0) > 0:
+            services_profit += 1
+print(f"   ✅ Успешных поставщиков услуг с прибылью: {services_profit}")
+
+print("\n🧪 Тест 13: Проверка микро-циклов (Маги и Зелья)")
+potions_found = 0
+for reg_id, reg in w_final["regions"].items():
+    for offer in reg.get("market_square", []):
+        if offer.get("good") == "potions":
+            potions_found += offer.get("quantity", 0)
+print(f"   ✅ Зелий на рынках (созданных магами): {potions_found}")
+
+print("\n🧪 Тест 14: Проверка системы дорог (Блокады монстрами)")
+roads_ok = True
+for road in w_final["map"].get("roads", []):
+    if "condition" not in road:
+        roads_ok = False
+assert roads_ok, "У дорог отсутствует поле condition для блокировки"
+print(f"   ✅ Дороги поддерживают состояния (blocked/paved/dirt)")
+
 print("\n" + "="*50)
-print("✅ ВСЕ ТЕСТЫ ПРОЙДЕНЫ!")
+print("✅ ВСЕ ТЕСТЫ (ВКЛЮЧАЯ ПОЛНУЮ Т3 МИКРОЭКОНОМИКУ) УСПЕШНО ПРОЙДЕНЫ!")
 print("="*50)

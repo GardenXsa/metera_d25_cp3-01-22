@@ -36,6 +36,10 @@
     "asarUnpack": [
       "assets/tts/**/*"
     ],
+    "extraResources": [
+      "engine/meterea_engine.exe",
+      "engine/meterea_engine"
+    ],
     "directories": {
       "output": "dist"
     }

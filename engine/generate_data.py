@@ -37,14 +37,6 @@ def main():
         "dirt": {"health": 100, "flammable": False, "insulation": 0.2},
         "cobble": {"health": 300, "flammable": False, "insulation": 0.4}
     }
-
-    materials = load_json(DATA_DIR / "materials.json") if (DATA_DIR / "materials.json").exists() else {
-        "wood": {"health": 200, "flammable": True, "insulation": 0.5},
-        "stone": {"health": 500, "flammable": False, "insulation": 0.8},
-        "brick": {"health": 400, "flammable": False, "insulation": 0.7},
-        "dirt": {"health": 100, "flammable": False, "insulation": 0.2},
-        "cobble": {"health": 300, "flammable": False, "insulation": 0.4}
-    }
     
     lines = []
     lines.append("// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY")
@@ -179,6 +171,26 @@ def main():
     lines.append("}")
     lines.append("")
 
+    # === Materials Catalog ===
+    lines.append("struct MaterialTemplate {")
+    lines.append("    std::string id;")
+    lines.append("    int health = 100;")
+    lines.append("    bool flammable = false;")
+    lines.append("    double insulation = 0.0;")
+    lines.append("};")
+    lines.append("")
+    lines.append("inline const std::unordered_map<std::string, MaterialTemplate>& getMaterialCatalog() {")
+    lines.append("    static std::unordered_map<std::string, MaterialTemplate> catalog = {")
+    for m_id, m_data in materials.items():
+        hp = m_data.get("health", 100)
+        flam = "true" if m_data.get("flammable", False) else "false"
+        ins = m_data.get("insulation", 0.0)
+        lines.append(f'        {{"{m_id}", {{"{m_id}", {hp}, {flam}, {ins}}}}},')
+    lines.append("    };")
+    lines.append("    return catalog;")
+    lines.append("}")
+    lines.append("")
+
     # === Furniture Catalog ===
     lines.append("struct FurnitureTemplate {")
     lines.append("    std::string id;")
@@ -192,46 +204,6 @@ def main():
     lines.append("    int max_slots = 0;")
     lines.append("};")
     lines.append("")
-    lines.append("struct MaterialTemplate {")
-    lines.append("    std::string id;")
-    lines.append("    int health = 100;")
-    lines.append("    bool flammable = false;")
-    lines.append("    double insulation = 0.0;")
-    lines.append("};")
-    lines.append("")
-    lines.append("inline const std::unordered_map<std::string, MaterialTemplate>& getMaterialCatalog() {")
-    lines.append("    static std::unordered_map<std::string, MaterialTemplate> catalog = {")
-    for m_id, m_data in materials.items():
-        hp = m_data.get("health", 100)
-        flam = "true" if m_data.get("flammable", False) else "false"
-        ins = m_data.get("insulation", 0.0)
-        lines.append(f'        {{"{m_id}", {{"{m_id}", {hp}, {flam}, {ins}}}}},')
-    lines.append("    };")
-    lines.append("    return catalog;")
-    lines.append("}")
-    lines.append("")
-
-
-    lines.append("struct MaterialTemplate {")
-    lines.append("    std::string id;")
-    lines.append("    int health = 100;")
-    lines.append("    bool flammable = false;")
-    lines.append("    double insulation = 0.0;")
-    lines.append("};")
-    lines.append("")
-    lines.append("inline const std::unordered_map<std::string, MaterialTemplate>& getMaterialCatalog() {")
-    lines.append("    static std::unordered_map<std::string, MaterialTemplate> catalog = {")
-    for m_id, m_data in materials.items():
-        hp = m_data.get("health", 100)
-        flam = "true" if m_data.get("flammable", False) else "false"
-        ins = m_data.get("insulation", 0.0)
-        lines.append(f'        {{"{m_id}", {{"{m_id}", {hp}, {flam}, {ins}}}}},')
-    lines.append("    };")
-    lines.append("    return catalog;")
-    lines.append("}")
-    lines.append("")
-
-
     lines.append("inline const std::unordered_map<std::string, FurnitureTemplate>& getFurnitureCatalog() {")
     lines.append("    static std::unordered_map<std::string, FurnitureTemplate> catalog = {")
     

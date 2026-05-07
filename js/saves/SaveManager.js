@@ -28,11 +28,16 @@ async function saveGame(slotType, slotId) {
         if (isElectron && window.electronAPI.nexusGetFullState) {
             updateLoadingText('Синхронизация с ядром симуляции...');
             await yieldThread();
+            
+            // 1. Сначала отправляем актуальные JS-реестры в С++, чтобы ядро знало о предметах игрока
+            await window.electronAPI.nexusSyncState(World, Array.from(ItemRegistry.entries()), Array.from(ContainerRegistry.entries()));
+            
+            // 2. Забираем актуальный мир (время, гомеостаз и т.д.)
             const fullState = await window.electronAPI.nexusGetFullState();
             if (fullState && fullState.status === 'ok') {
                 if (fullState.world) World = fullState.world;
-                if (fullState.items) { ItemRegistry.clear(); fullState.items.forEach(([k, v]) => ItemRegistry.set(k, v)); }
-                if (fullState.containers) { ContainerRegistry.clear(); fullState.containers.forEach(([k, v]) => ContainerRegistry.set(k, v)); }
+                // ВАЖНО: Мы БОЛЬШЕ НЕ ЗАТИРАЕМ JS-реестры (ItemRegistry.clear()), 
+                // так как JS является главным источником правды для инвентаря игрока.
             }
         }
 
@@ -48,12 +53,18 @@ async function saveGame(slotType, slotId) {
         await addBlock("Реестр контейнеров", "container_registry", Array.from(ContainerRegistry.entries()));
 
         if (typeof World !== 'undefined' && World) {
-            await addBlock("Время и гомеостаз", "world_base", { time: World.time, homeostasis: World.homeostasis, lastDirectInjectionDay: World.lastDirectInjectionDay, needsGlobalEvent: World.needsGlobalEvent });
+            await addBlock("Время и гомеостаз", "world_base", { tick: World.tick, era: World.era, time: World.time, homeostasis: World.homeostasis, lastDirectInjectionDay: World.lastDirectInjectionDay, needsGlobalEvent: World.needsGlobalEvent });
             await addBlock("Регионы мира", "world_regions", World.regions);
             await addBlock("Фракции", "world_factions", World.factions);
             await addBlock("Население (NPC)", "world_npcs", World.npcs);
             await addBlock("Правители и Интриги", "world_rulers", { rulers: World.rulers, intrigues: World.intrigues });
-            await addBlock("Летопись и Погода", "world_misc", { news: World.news, weather: World.weather, animals: World.animals, gmInterventionHistory: World.gmInterventionHistory });
+            await addBlock("Предприятия", "world_businesses", World.businesses);
+            await addBlock("Корабли и Порты", "world_ships", { ships: World.ships, fleets: World.fleets, ports: World.port_facilities });
+            await addBlock("Монстры", "world_monsters", World.monsters);
+            await addBlock("Подлокации", "world_sublocations", World.subLocations);
+            await addBlock("Глобальная карта", "world_map", World.map);
+            await addBlock("Путешествие", "world_trek", World.player_trek);
+            await addBlock("Летопись и Прочее", "world_misc", { news: World.news, gmInterventionHistory: World.gmInterventionHistory });
         }
 
         const allSaves = getAllSavesFromLocalStorage();
@@ -83,11 +94,16 @@ async function saveGame(slotType, slotId) {
 }
 
 async function loadGame(slotType, slotId) {
-    showLoadingScreen('loadingScreen.loading', 'Открытие потока данных...');
+    showLoadingScreen('loadingScreen.loading', 'Подготовка данных...');
     await yieldThread();
 
     const fileName = getSaveFileName(slotType, slotId);
     const isElectron = window.electronAPI && window.electronAPI.isElectron;
+    
+    // 1. Атомарная очистка реестров перед началом чтения
+    ItemRegistry.clear();
+    ContainerRegistry.clear();
+
     let rawPlayer = null, rawHistory = [], rawWorld = {};
     let loadedSuccessfully = false;
 
@@ -101,7 +117,7 @@ async function loadGame(slotType, slotId) {
                 let blockCount = 1;
 
                 let firstChunk = await window.electronAPI.readSaveChunk(fileName, 0, 1024);
-                if (!firstChunk.startsWith('{"block":')) {
+                if (!firstChunk.includes('{"block":')) {
                     throw new Error("LEGACY_SAVE");
                 }
 
@@ -133,6 +149,12 @@ async function loadGame(slotType, slotId) {
                             case 'world_factions': rawWorld.factions = parsed.data; break;
                             case 'world_npcs': rawWorld.npcs = parsed.data; break;
                             case 'world_rulers': rawWorld.rulers = parsed.data.rulers; rawWorld.intrigues = parsed.data.intrigues; break;
+                            case 'world_businesses': rawWorld.businesses = parsed.data; break;
+                            case 'world_ships': rawWorld.ships = parsed.data.ships; rawWorld.fleets = parsed.data.fleets; rawWorld.port_facilities = parsed.data.ports; break;
+                            case 'world_monsters': rawWorld.monsters = parsed.data; break;
+                            case 'world_sublocations': rawWorld.subLocations = parsed.data; break;
+                            case 'world_map': rawWorld.map = parsed.data; break;
+                            case 'world_trek': rawWorld.player_trek = parsed.data; break;
                             case 'world_misc': Object.assign(rawWorld, parsed.data); break;
                         }
                     }
@@ -142,13 +164,19 @@ async function loadGame(slotType, slotId) {
                     switch(parsed.block) {
                         case 'player': rawPlayer = parsed.data; break;
                         case 'history': rawHistory = parsed.data; break;
-                            case 'item_registry': ItemRegistry.clear(); parsed.data.forEach(([k, v]) => ItemRegistry.set(k, v)); break;
-                            case 'container_registry': ContainerRegistry.clear(); parsed.data.forEach(([k, v]) => ContainerRegistry.set(k, v)); break;
+                        case 'item_registry': ItemRegistry.clear(); parsed.data.forEach(([k, v]) => ItemRegistry.set(k, v)); break;
+                        case 'container_registry': ContainerRegistry.clear(); parsed.data.forEach(([k, v]) => ContainerRegistry.set(k, v)); break;
                         case 'world_base': Object.assign(rawWorld, parsed.data); break;
                         case 'world_regions': rawWorld.regions = parsed.data; break;
                         case 'world_factions': rawWorld.factions = parsed.data; break;
                         case 'world_npcs': rawWorld.npcs = parsed.data; break;
                         case 'world_rulers': rawWorld.rulers = parsed.data.rulers; rawWorld.intrigues = parsed.data.intrigues; break;
+                        case 'world_businesses': rawWorld.businesses = parsed.data; break;
+                        case 'world_ships': rawWorld.ships = parsed.data.ships; rawWorld.fleets = parsed.data.fleets; rawWorld.port_facilities = parsed.data.ports; break;
+                        case 'world_monsters': rawWorld.monsters = parsed.data; break;
+                        case 'world_sublocations': rawWorld.subLocations = parsed.data; break;
+                        case 'world_map': rawWorld.map = parsed.data; break;
+                        case 'world_trek': rawWorld.player_trek = parsed.data; break;
                         case 'world_misc': Object.assign(rawWorld, parsed.data); break;
                     }
                 }
@@ -166,13 +194,19 @@ async function loadGame(slotType, slotId) {
                     switch(parsed.block) {
                         case 'player': rawPlayer = parsed.data; break;
                         case 'history': rawHistory = parsed.data; break;
-                            case 'item_registry': ItemRegistry.clear(); parsed.data.forEach(([k, v]) => ItemRegistry.set(k, v)); break;
-                            case 'container_registry': ContainerRegistry.clear(); parsed.data.forEach(([k, v]) => ContainerRegistry.set(k, v)); break;
+                        case 'item_registry': ItemRegistry.clear(); parsed.data.forEach(([k, v]) => ItemRegistry.set(k, v)); break;
+                        case 'container_registry': ContainerRegistry.clear(); parsed.data.forEach(([k, v]) => ContainerRegistry.set(k, v)); break;
                         case 'world_base': Object.assign(rawWorld, parsed.data); break;
                         case 'world_regions': rawWorld.regions = parsed.data; break;
                         case 'world_factions': rawWorld.factions = parsed.data; break;
                         case 'world_npcs': rawWorld.npcs = parsed.data; break;
                         case 'world_rulers': rawWorld.rulers = parsed.data.rulers; rawWorld.intrigues = parsed.data.intrigues; break;
+                        case 'world_businesses': rawWorld.businesses = parsed.data; break;
+                        case 'world_ships': rawWorld.ships = parsed.data.ships; rawWorld.fleets = parsed.data.fleets; rawWorld.port_facilities = parsed.data.ports; break;
+                        case 'world_monsters': rawWorld.monsters = parsed.data; break;
+                        case 'world_sublocations': rawWorld.subLocations = parsed.data; break;
+                        case 'world_map': rawWorld.map = parsed.data; break;
+                        case 'world_trek': rawWorld.player_trek = parsed.data; break;
                         case 'world_misc': Object.assign(rawWorld, parsed.data); break;
                     }
                 }
@@ -214,7 +248,17 @@ async function loadGame(slotType, slotId) {
     try {
         player = structuredClone(rawPlayer);
 
-        // T3 Migration
+        updateLoadingText('Инициализация симуляции мира...');
+        await yieldThread();
+        
+        // КЛЮЧЕВОЙ ФИКС: Передаем true (isLoadMode), чтобы initWorldSimulator не стирал ItemRegistry
+        await initWorldSimulator(100, 0, true);
+        
+        if (rawWorld && Object.keys(rawWorld).length > 0) { 
+            World = structuredClone(rawWorld); 
+        }
+
+        // T3 Migration (Выполняется ПОСЛЕ initWorldSimulator, чтобы не затереть предметы)
         if (!player.container_backpack) {
             player.container_backpack = CoreInventorySystem.createContainer("player_backpack", "player", 100, 30);
             for (let key in player.inventory) {
@@ -234,19 +278,13 @@ async function loadGame(slotType, slotId) {
         }
 
         // Устранение утечки памяти (T3)
-        delete player.inventory;
-        delete player.equipment;
+        if (player.inventory) delete player.inventory;
+        if (player.equipment) delete player.equipment;
 
-        updateLoadingText('Инициализация симуляции мира...');
-        await yieldThread();
-        if (rawWorld && Object.keys(rawWorld).length > 0) { 
-            World = structuredClone(rawWorld); 
-            worldWorker.postMessage({ action: 'init', ECONOMY_ITEMS, CRAFTING_RECIPES, FACILITY_NAMES });
-            if (window.electronAPI && window.electronAPI.nexusSyncState) {
-                await window.electronAPI.nexusSyncState(World, Array.from(ItemRegistry.entries()), Array.from(ContainerRegistry.entries()));
-            }
-        } else { 
-            World = await initWorldSimulator(); 
+        // Синхронизация состояния с C++ ядром
+        if (window.electronAPI && window.electronAPI.nexusSyncState) {
+            console.log("[SaveManager] Синхронизация загруженных предметов с ядром...");
+            await window.electronAPI.nexusSyncState(World, Array.from(ItemRegistry.entries()), Array.from(ContainerRegistry.entries()));
         }
 
         updateLoadingText('Чтение лора и истории...');
@@ -289,7 +327,7 @@ async function loadGame(slotType, slotId) {
         }
 
         currentSaveSlot = { type: slotType, id: slotId };
-        isMapInitialized = false;
+        if (window.Cartographer) Cartographer.isMapInitialized = false;
 
         stopMenuMusic();
         initializeGameInterface();

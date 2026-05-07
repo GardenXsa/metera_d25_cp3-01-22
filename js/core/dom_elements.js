@@ -81,7 +81,6 @@ const creationError = document.getElementById('creation-error');
 
 // Загрузка Игры
 let lastUserMessageForRetry = null;
-let cachedLogicState = null; // Кэш расчетов Счетовода для повтора Поэта
 const manualSaveSlotsList = document.getElementById('manual-save-slots');
 const autoSaveSlotsList = document.getElementById('auto-save-slots');
 const maxManualSavesDisplay = document.getElementById('max-manual-saves');
@@ -128,6 +127,14 @@ const journeyContainer = document.getElementById('journey-container');
 const journeyDest = document.getElementById('journey-dest');
 const journeyProgressText = document.getElementById('journey-progress-text');
 const journeyProgressBar = document.getElementById('journey-progress-bar');
+const journeyLoading = document.getElementById('journey-loading');
+const journeyEventArea = document.getElementById('journey-event-area');
+const journeyEventText = document.getElementById('journey-event-text');
+const journeyEventActions = document.getElementById('journey-event-actions');
+const travelControls = document.getElementById('travel-controls');
+const travelFastForwardBtn = document.getElementById('travel-fast-forward-btn');
+const travelPauseBtn = document.getElementById('travel-pause-btn');
+const travelCancelBtn = document.getElementById('travel-cancel-btn');
 const journeyContinueBtn = document.getElementById('journey-continue-btn');
 const inventoryList = document.getElementById('inventory-list');
 const inventoryCount = document.getElementById('inventory-count');

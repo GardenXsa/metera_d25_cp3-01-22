@@ -140,6 +140,37 @@ class GameBuilderApp(ctk.CTk):
         else:
             print("[Builder] ПРЕДУПРЕЖДЕНИЕ: Не удалось найти строку 'const DEBUG_MODE' в script.js")
 
+    def compile_engine(self):
+        """Компилирует C++ ядро с флагом -static перед сборкой игры"""
+        engine_dir = os.path.join(self.project_path, "engine")
+        source_file = os.path.join(engine_dir, "meterea_engine.cpp")
+        
+        if not os.path.exists(source_file):
+            raise Exception(f"Исходный код движка не найден: {source_file}")
+            
+        exe_name = "meterea_engine.exe" if os.name == 'nt' else "meterea_engine"
+        output_file = os.path.join(engine_dir, exe_name)
+        
+        compile_cmd = [
+            "g++", 
+            "-std=c++17", 
+            "-O2", 
+            "-static", 
+            "-o", output_file, 
+            source_file
+        ]
+        
+        try:
+            print(f"[Builder] Запуск компиляции: {' '.join(compile_cmd)}")
+            result = subprocess.run(compile_cmd, capture_output=True, text=True, check=True)
+            print(f"[Builder] Движок успешно скомпилирован: {output_file}")
+        except FileNotFoundError:
+            raise Exception("Компилятор g++ не найден! Убедитесь, что MinGW/GCC установлен и добавлен в PATH.")
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Ошибка компиляции C++ движка!\nКод: {e.returncode}\nВывод:\n{e.stderr}"
+            print(error_msg)
+            raise Exception(error_msg)
+
     def start_build(self):
         version = self.entry_version.get().strip()
         icon = self.icon_path.get()
@@ -166,9 +197,14 @@ class GameBuilderApp(ctk.CTk):
             self.update_package_json(version)
 
             self.status_label.configure(text="⚙️ Настройка DEBUG_MODE...", text_color="white")
-            self.progress_bar.set(0.4)
+            self.progress_bar.set(0.3)
             self.update()
             self.update_script_debug_mode(self.debug_var.get())
+
+            self.status_label.configure(text="🔨 Компиляция C++ ядра (Nexus Engine)...", text_color="#3498db")
+            self.progress_bar.set(0.4)
+            self.update()
+            self.compile_engine()
 
             self.status_label.configure(text="🏗️ Сборка пошла (может занять 2-5 минут)...", text_color="#f1c40f")
             self.progress_bar.set(0.6)

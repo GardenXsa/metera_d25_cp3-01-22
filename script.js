@@ -847,9 +847,11 @@ const TradeSystem = {
 
         if (World?.news) {
             World.news.push({
-                type: 'trade_completed',
-                text: `Trade completed between ${trade.initiator} and ${trade.target} for ${trade.final_price || 0} gold.`,
-                daysOld: 0
+                category: 'trade',
+                text: `Игрок успешно завершил сделку с ${trade.target} на сумму ${trade.final_price || 0} золота.`,
+                day: Math.floor((World.tick || 0) / 24),
+                location: trade.region_id || "global",
+                importance: 1
             });
         }
         if (player?.worldEvents) {
@@ -935,12 +937,316 @@ const TradeSystem = {
 
 
 // ======================================================================
+// ======================================================================
+// --- TREK SYSTEM (GLOBAL TRAVEL ENGINE) --- 
+// ======================================================================
+function getCaravanContents(chestId) {
+    if (!chestId || !ContainerRegistry.has(chestId)) return "Пусто";
+    const cont = ContainerRegistry.get(chestId);
+    if (!cont.items || cont.items.length === 0) return "Пусто";
+    let contents = [];
+    cont.items.forEach(itemId => {
+        const item = ItemRegistry.get(itemId);
+        if (item) {
+            let name = item.custom_props?.name || item.prototype_id;
+            contents.push(`${name} (x${item.stack_size})`);
+        }
+    });
+    return contents.join(", ");
+}
+
+function formatTrekObjectData(objType, data) {
+    if (!data) return "Нет данных";
+    if (objType === 'caravan') {
+        let goods = getCaravanContents(data.chest_id);
+        return `Караван (ID: ${data.id}). Маршрут: ${data.origin} -> ${data.destination}. Охрана: ${data.guards} наемников. Груз (chest_id: ${data.chest_id}): ${goods}.`;
+    } else if (objType === 'army') {
+        return `Армия (ID: ${data.id}). Фракция: ${data.faction_name || 'Неизвестно'}. Численность: ${data.size}. Мораль: ${data.morale}. Направляется в: ${data.destination}. Фаза: ${data.current_phase}. Сундук снабжения: ${data.supply_chest_id || 'Нет'}.`;
+    }
+    return JSON.stringify(data);
+}
+
+
+const LivingRoads = {
+    timer: null,
+    isProcessing: false,
+    isGeneratingHour: false,
+
+    calculateDistance: function(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    },
+
+    start: async function(destinationId) {
+        if (!player) return { success: false, error: "Игрок не найден" };
+        
+        let dest = globalLocations[destinationId] || (player.mapMarkers && player.mapMarkers[destinationId]);
+        const allPoints = [
+            ...Object.keys(globalLocations || {}).map(k => ({ ...globalLocations[k], id: k })),
+            ...Object.values(player.mapMarkers || {})
+        ];
+
+        if (!dest) {
+            const searchName = String(destinationId).toLowerCase().trim();
+            
+            // 1. Поиск по имени
+            dest = allPoints.find(p => p.name && p.name.toLowerCase().trim().includes(searchName));
+            
+            // 2. Поиск по частям ID (устойчивость к перестановке слов, напр. aquilon_capital)
+            if (!dest) {
+                const searchParts = searchName.split(/[_ \-]+/);
+                dest = allPoints.find(p => {
+                    if (!p.id) return false;
+                    const idLower = p.id.toLowerCase();
+                    const validParts = searchParts.filter(part => part.length > 2);
+                    if (validParts.length === 0) return false;
+                    return validParts.every(part => idLower.includes(part));
+                });
+            }
+            
+            // 3. Поиск по частям имени
+            if (!dest) {
+                const searchParts = searchName.split(/[_ \-]+/);
+                dest = allPoints.find(p => {
+                    if (!p.name) return false;
+                    const nameLower = p.name.toLowerCase();
+                    const validParts = searchParts.filter(part => part.length > 2);
+                    if (validParts.length === 0) return false;
+                    return validParts.some(part => nameLower.includes(part));
+                });
+            }
+        }
+
+        let startLocId = null;
+        for (let key in globalLocations) {
+            if (globalLocations[key].name === player.location) {
+                startLocId = key; break;
+            }
+        }
+        if (!startLocId && player.currentSublocation) {
+            let sub = player.subLocations[player.currentSublocation] || (World && World.subLocations && World.subLocations[player.currentSublocation]);
+            if (sub && sub.parentId) startLocId = sub.parentId;
+        }
+        if (!startLocId) startLocId = Object.keys(globalLocations)[0];
+
+        if (!dest) {
+            const newName = String(destinationId).replace(/_/g, ' ');
+            const capitalizedName = newName.charAt(0).toUpperCase() + newName.slice(1);
+            addLogMessage(`[ВНИМАНИЕ] Локация '${destinationId}' не найдена в атласе. Маршрут проложен наугад, локация добавлена на карту.`, "system-message");
+            
+            let startX = 128, startY = 128;
+            if (globalLocations[startLocId]) { startX = globalLocations[startLocId].x; startY = globalLocations[startLocId].y; }
+            
+            executeCommand('addMapMarker', {
+                id: destinationId,
+                name: capitalizedName,
+                description: "Неизведанное место, упомянутое в пути.",
+                x: startX + (Math.random() * 20 - 10),
+                y: startY + (Math.random() * 20 - 10)
+            });
+            
+            dest = player.mapMarkers[destinationId];
+        }
+
+        if (window.electronAPI && window.electronAPI.nexusStartTrek) {
+            const res = await window.electronAPI.nexusStartTrek(startLocId, dest.id || destinationId);
+            if (res.status === 'ok') {
+                player.travel = {
+                    active: true, destinationId: dest.id || destinationId, destinationName: dest.name,
+                    totalHours: res.total_hours, elapsedHours: 0,
+                    paused: false, pauseReason: null
+                };
+                if (window.Cartographer) window.Cartographer.mapState.isFollowingPlayer = true;
+                updateCharacterSheet();
+                addLogMessage(`[СИСТЕМА] Путешествие в ${dest.name} начато. Расчетное время: ${res.total_hours} ч.`, "system-message");
+            }
+        }
+        this.resume();
+        return { success: true };
+    },
+
+        tick: async function() {
+        if (!player || !player.travel || !player.travel.active || player.travel.paused || this.isProcessing) return;
+        this.isProcessing = true;
+        this.isGeneratingHour = true;
+        updateCharacterSheet(); // Показываем загрузку
+
+        try {
+            // Ждем ответа от движка, чтобы не спамить запросами
+            await new Promise(resolve => {
+                const prev = window.isSimulatingTime;
+                window.isSimulatingTime = true; // Подавляем блокировку ввода на время тика
+                
+                window.electronAPI.nexusSimulate(null, 1).then(res => {
+                    this.isGeneratingHour = false;
+                    if (res.status === 'ok') {
+                        if (res.world) World = res.world;
+                        if (res.items) res.items.forEach(([k, v]) => ItemRegistry.set(k, v));
+                        if (res.containers) res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
+                        if (res.deleted_items) res.deleted_items.forEach(id => ItemRegistry.delete(id));
+                        if (res.deleted_containers) res.deleted_containers.forEach(id => ContainerRegistry.delete(id));
+                    processMonsterQuests();
+                        
+                        // Синхронизация прогресса пути из C++
+                        if (res.world && res.world.player_trek) {
+                            player.travel.active = res.world.player_trek.active;
+                            // Защита от рассинхрона: если игрок нажал паузу, не перезаписываем старым стейтом
+                            if (!player.travel.paused || res.world.player_trek.paused) {
+                                player.travel.paused = res.world.player_trek.paused;
+                            }
+                            player.travel.elapsedHours = res.world.player_trek.elapsed_hours;
+                            player.travel.totalHours = res.world.player_trek.total_hours;
+                            player.travel.currentX = res.world.player_trek.current_x;
+                            player.travel.currentY = res.world.player_trek.current_y;
+                        }
+                        
+                        // Двигаем часы UI
+                        if (player.gameTime) {
+                            player.gameTime.totalPulses += 12;
+                            player.gameTime.hour += 1;
+                            if (player.gameTime.hour >= 24) {
+                                player.gameTime.hour = 0;
+                                player.gameTime.day += 1;
+                            }
+                        }
+
+                        if (res.trek_events && res.trek_events.length > 0) {
+                            LivingRoads.handleEvents(res.trek_events);
+                        }
+                        
+                        updateTimeDisplay();
+                    }
+                    window.isSimulatingTime = prev;
+                    updateCharacterSheet(); // Обновляем UI после получения данных
+                    resolve();
+                }).catch(err => {
+                    console.error("Ошибка тика пути:", err);
+                    this.isGeneratingHour = false;
+                    window.isSimulatingTime = prev;
+                    updateCharacterSheet();
+                    resolve();
+                });
+            });
+        } finally {
+            this.isProcessing = false;
+        }
+    },
+
+    pause: async function(reason = "manual") {
+        if (!player || !player.travel || !player.travel.active) return;
+        player.travel.paused = true;
+        player.travel.pauseReason = reason;
+        player.travel.isFastForwarding = false;
+        if (this.timer) clearInterval(this.timer);
+        if (window.electronAPI && window.electronAPI.nexusPauseTrek) await window.electronAPI.nexusPauseTrek();
+        updateCharacterSheet();
+        addLogMessage(`[СИСТЕМА] Путешествие приостановлено. Причина: ${reason}`, "system-message");
+    },
+
+        resume: async function() {
+        if (!player || !player.travel || !player.travel.active) return;
+        player.travel.paused = false;
+        player.travel.pauseReason = null;
+        player.travel.currentEvents = null; // Очищаем события при продолжении пути
+        player.travel.isFastForwarding = false;
+        if (window.electronAPI && window.electronAPI.nexusResumeTrek) await window.electronAPI.nexusResumeTrek();
+        if (this.timer) clearInterval(this.timer);
+        const interval = typeof TREK_CONFIG !== 'undefined' ? (TREK_CONFIG.tick_interval_ms || 1000) : 1000;
+        this.timer = setInterval(() => this.tick(), interval);
+        updateCharacterSheet();
+        addLogMessage(`[СИСТЕМА] Путешествие возобновлено.`, "system-message");
+    },
+
+    cancel: async function() {
+        if (!player || !player.travel || !player.travel.active) return;
+        player.travel.active = false;
+        player.travel.isFastForwarding = false;
+        if (this.timer) clearInterval(this.timer);
+        if (window.electronAPI && window.electronAPI.nexusCancelTrek) await window.electronAPI.nexusCancelTrek();
+        addLogMessage(`[СИСТЕМА] Путешествие отменено. Вы остались в дикой местности.`, "system-message");
+        updateCharacterSheet();
+    },
+
+    fastForward: async function() {
+        if (!player || !player.travel || !player.travel.active) return;
+        player.travel.paused = false;
+        player.travel.pauseReason = null;
+        player.travel.currentEvents = null;
+        player.travel.isFastForwarding = true;
+        if (window.electronAPI && window.electronAPI.nexusResumeTrek) await window.electronAPI.nexusResumeTrek();
+        if (this.timer) clearInterval(this.timer);
+        // Ускоряем до 50мс
+        this.timer = setInterval(() => this.tick(), 50);
+        addLogMessage(`[СИСТЕМА] Путешествие ускорено.`, "system-message");
+        updateCharacterSheet();
+    },
+
+        handleEvents: function(events) {
+        if (!events || events.length === 0) return;
+        
+        let arrivalEvent = events.find(ev => ev.object_type === 'arrival');
+        let otherEvents = events.filter(ev => ev.object_type !== 'arrival');
+
+        if (otherEvents.length > 0) {
+            // Сохраняем события для отображения в UI
+            player.travel.currentEvents = otherEvents;
+            player.travel.paused = true;
+            player.travel.pauseReason = "event";
+            player.travel.isFastForwarding = false;
+            if (this.timer) clearInterval(this.timer);
+            
+            // Дублируем в лог для истории
+            otherEvents.forEach(ev => {
+                addLogMessage(`<div style="border-left: 3px solid #f39c12; padding-left: 10px; margin: 5px 0;"><strong style="color:#f39c12;">[СОБЫТИЕ В ПУТИ]</strong> ${ev.description}</div>`, "system-message");
+            });
+        }
+
+        if (arrivalEvent) {
+            this.finish();
+        }
+    },
+
+        interact: async function(objType, simId, description) {
+        let formattedData = "";
+        if (simId && simId !== "undefined" && simId !== "null" && window.electronAPI && window.electronAPI.nexusInteractTrekObject) {
+            const res = await window.electronAPI.nexusInteractTrekObject(objType, simId);
+            if (res.status === 'ok') {
+                formattedData = formatTrekObjectData(objType, res.object_data);
+            }
+        }
+
+        if (player && player.travel) {
+            player.travel.currentEvents = null;
+            player.travel.interactTarget = { type: objType, data: formattedData ? { id: simId } : null };
+        }
+        updateCharacterSheet();
+        
+        let prompt = `[SYSTEM: ПУТЕШЕСТВИЕ ПРИОСТАНОВЛЕНО]\nСобытие в пути: ${description || objType}\n`;
+        if (formattedData) {
+            prompt += `Данные объекта от движка: ${formattedData}\n`;
+        }
+        prompt += `Опиши сцену (как это выглядит, звуки, запахи) и спроси игрока, что он будет делать. Жди ответа игрока.`;
+                sendApiRequest(prompt, false, false, [], false);
+    },
+
+    finish: function() {
+        if (this.timer) clearInterval(this.timer);
+        executeCommand('setLocation', { locationName: player.travel.destinationName });
+        addLogMessage(`[СИСТЕМА] Путешествие завершено. Вы прибыли в: ${player.travel.destinationName}.`, "system-message");
+        player.travel.active = false;
+        updateCharacterSheet();
+        updateMapDisplay();
+        const prompt = `[SYSTEM: ПУТЕШЕСТВИЕ ЗАВЕРШЕНО] Игрок успешно прибыл в ${player.travel.destinationName}. Опиши прибытие и обстановку вокруг.`;
+        sendApiRequest(prompt, false, false, [], false);
+    }
+};
+
 // --- ИНТЕГРАЦИЯ WEB WORKER ДЛЯ СИМУЛЯЦИИ МИРА ---
 // ======================================================================
 let ECONOMY_ITEMS = {};
 let CRAFTING_RECIPES = [];
 
 let FACILITY_NAMES = {};
+let TREK_CONFIG = { base_travel_speed: 5, tick_interval_ms: 1000 };
 function getItemName(itemId, eraId) {
     if (!eraId) eraId = 'rebirth';
     return (ECONOMY_ITEMS[itemId] && ECONOMY_ITEMS[itemId].names) ? (ECONOMY_ITEMS[itemId].names[eraId] || ECONOMY_ITEMS[itemId].names['rebirth']) : (ECONOMY_ITEMS[itemId]?.name || itemId);
@@ -951,87 +1257,37 @@ function getFacilityName(facId, eraId) {
 }
 let World = null;
 
-const worldWorker = new Worker('world_worker.js');
+// worldWorker удален, используется нативный C++ Nexus Engine
 
-worldWorker.onmessage = function(e) {
-    const data = e.data;
-    
-    if (data.items) {
-        data.items.forEach(([k, v]) => ItemRegistry.set(k, v));
-    }
-    if (data.containers) {
-        data.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
-    }
-    if (player) {
-        syncPlayerContainerBindings();
-        syncPlayerGoldFromInventory();
-    }
-
-    if (data.type === 'LOG') {
-        console.log("[Worker]", data.message);
-    } 
-    else if (data.type === 'WORLD_BUILT') {
-        World = data.World;
-        document.dispatchEvent(new Event('WorldBuilt'));
-    }
-    else if (data.type === 'PROGRESS') {
-        const loadingText = document.getElementById('loading-text');
-        if (loadingText) loadingText.textContent = data.message;
-    }
-    else if (data.type === 'PRE_SIMULATE_DONE') {
-        World = data.World;
-        if (data.playerUpdates) player.visibleEntities = data.playerUpdates.visibleEntities;
-        IS_PRE_SIMULATING = false;
-        
-        const loadingText = document.getElementById('loading-text');
-        if (loadingText) loadingText.textContent = 'Генерация мира завершена...';
-        
-        updateWorldChroniclesDisplay();
-        updateTradeJournalDisplay();
-        document.dispatchEvent(new Event('PreSimulateComplete'));
-    }
-    else if (data.type === 'WORLD_UPDATED') {
-        World = data.World;
-        if (data.playerUpdates) player.visibleEntities = data.playerUpdates.visibleEntities;
-        updateEnvironmentPanel();
-
-        if (window.isSimulatingTime) {
-            hideLoadingScreen();
-            window.isSimulatingTime = false;
-        }
-
-        if (World.needsGlobalEvent) {
-            World.needsGlobalEvent = false;
-            runWorldSimulationTick();
-        } else if (!isWaitingForAI && !window.isSimulatingTime) {
-            if (userInput) userInput.disabled = false;
-            if (sendButton) sendButton.disabled = false;
-        }
-    }
-};;
-
-async function initWorldSimulator(initialAgents = 100) {
+async function initWorldSimulator(initialAgents = 100, startDay = 0, isLoadMode = false) {
     if (window.electronAPI && window.electronAPI.nexusInit) {
         console.log("[Nexus] Запуск нативного движка...");
         await window.electronAPI.nexusInit();
-        const res = await window.electronAPI.nexusBuildWorld(player ? player.id : "player", player ? player.era : "rebirth", initialAgents, globalLocations);
+        
+        // Если мы загружаем игру, нам не нужно пересобирать мир в C++, 
+        // мы просто инициализируем движок, а данные зальем через syncState позже.
+        if (isLoadMode) return null;
+
+        const res = await window.electronAPI.nexusBuildWorld(player ? player.id : "player", player ? player.era : "rebirth", initialAgents, globalLocations, startDay);
         if (res.status === 'ok') {
             World = res.world;
+            ItemRegistry.clear();
+            ContainerRegistry.clear();
             if (res.items) res.items.forEach(([k, v]) => ItemRegistry.set(k, v));
             if (res.containers) res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
             document.dispatchEvent(new Event('WorldBuilt'));
             return World;
+        } else {
+            const errInfo = JSON.stringify(res, null, 2);
+            console.error("[Nexus] Ошибка генерации мира:", errInfo);
+            alert("Критическая ошибка Nexus Engine:\n" + (res.message || "Неизвестный сбой"));
+            throw new Error("Nexus Engine failed to build world: " + errInfo);
         }
+    } else {
+        console.error("[Nexus] Нативный движок недоступен! Игра требует Electron и C++ ядро.");
+        alert("Критическая ошибка: Нативный движок симуляции (Nexus Engine) не найден.");
+        throw new Error("Nexus Engine not available.");
     }
-    
-    worldWorker.postMessage({ action: 'init', ECONOMY_ITEMS, CRAFTING_RECIPES, FACILITY_NAMES });
-    worldWorker.postMessage({ action: 'buildWorld', player: player, globalLocations: globalLocations, initialAgents: initialAgents });
-    
-    return new Promise((resolve) => {
-        document.addEventListener('WorldBuilt', () => {
-            resolve(World);
-        }, { once: true });
-    });
 }
 
 async function preSimulateWorldHistory(yearsToSimulate) {
@@ -1039,7 +1295,7 @@ async function preSimulateWorldHistory(yearsToSimulate) {
     
     if (window.electronAPI && window.electronAPI.nexusPreSimulate) {
         const totalTicks = yearsToSimulate * 360 * 24;
-                const titleEl = document.getElementById('loading-title');
+        const titleEl = document.getElementById('loading-title');
         if (titleEl) titleEl.textContent = 'Летопись Мира';
         const loadingText = document.getElementById('loading-text');
         if (loadingText) loadingText.textContent = `Синтез истории за ${yearsToSimulate} лет (вычисляется в Nexus Engine)...`;
@@ -1052,24 +1308,86 @@ async function preSimulateWorldHistory(yearsToSimulate) {
             if (res.containers) res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
             if (res.deleted_items) res.deleted_items.forEach(id => ItemRegistry.delete(id));
             if (res.deleted_containers) res.deleted_containers.forEach(id => ContainerRegistry.delete(id));
+                    processMonsterQuests();
             
             IS_PRE_SIMULATING = false;
             if (loadingText) loadingText.textContent = 'Генерация мира завершена...';
             updateWorldChroniclesDisplay();
             updateTradeJournalDisplay();
+    updatePortPanel();
             document.dispatchEvent(new Event('PreSimulateComplete'));
             return;
+        } else {
+            console.error("[Nexus] Ошибка пре-симуляции:", res);
         }
+    } else {
+        console.error("[Nexus] Нативный движок недоступен для пре-симуляции!");
     }
     
-    return new Promise((resolve) => {
-        worldWorker.postMessage({ 
-            action: 'preSimulate', years: yearsToSimulate, World, player, globalLocations,
-            items: Array.from(ItemRegistry.entries()),
-            containers: Array.from(ContainerRegistry.entries())
-        });
-        document.addEventListener('PreSimulateComplete', () => resolve(), { once: true });
+    IS_PRE_SIMULATING = false;
+    document.dispatchEvent(new Event('PreSimulateComplete'));
+}
+
+function processMonsterQuests() {
+    if (!World || !World.monsters || !player || !player.quests) return;
+
+    let playerRegionId = null;
+    if (player.location) {
+        const locLower = player.location.toLowerCase().trim();
+        for (let rId in World.regions) {
+            if (locLower.includes(World.regions[rId].name.toLowerCase().trim())) {
+                playerRegionId = rId;
+                break;
+            }
+        }
+    }
+
+    let questsUpdated = false;
+
+    World.monsters.forEach(m => {
+        if (m.health > 0 && m.state === "ACTIVE") {
+            // Выдаем квест ТОЛЬКО если монстр находится в текущем регионе игрока
+            if (m.region_id === playerRegionId) {
+                const questId = "hunt_" + m.id;
+                if (!player.quests[questId]) {
+                    player.quests[questId] = {
+                        id: questId,
+                        aiIdentifier: questId,
+                        title: "Великая Охота: " + m.name,
+                        objective: "Уничтожить чудовище в регионе " + (World.regions[m.region_id] ? World.regions[m.region_id].name : m.region_id),
+                        description: "Местные жители в ужасе. Эпическое чудовище терроризирует эти земли. Награда за его голову будет щедрой.",
+                        reward: "Сокровища логова, Слава",
+                        issuer: "Местные слухи",
+                        status: 'active'
+                    };
+                    // Блокируем спам в лог во время пре-симуляции и фоновых расчетов
+                    if (!IS_PRE_SIMULATING && !window.isSimulatingTime) {
+                        addLogMessage(`[АВТО-КВЕСТ] Добавлено местное задание: Великая Охота на ${m.name}!`, "system-message");
+                        questsUpdated = true;
+                    }
+                }
+            }
+        }
     });
+
+    Object.keys(player.quests).forEach(qId => {
+        if (qId.startsWith("hunt_") && player.quests[qId].status === 'active') {
+            const mId = qId.replace("hunt_", "");
+            const monster = World.monsters.find(m => m.id === mId);
+            // Если монстр мертв ИЛИ вообще исчез из массива (убит армией)
+            if (!monster || monster.health <= 0) {
+                player.quests[qId].status = 'completed';
+                if (!IS_PRE_SIMULATING && !window.isSimulatingTime) {
+                    addLogMessage(`[АВТО-КВЕСТ] Задание выполнено: ${player.quests[qId].title}!`, "level-up");
+                    questsUpdated = true;
+                }
+            }
+        }
+    });
+
+    if (questsUpdated && !IS_PRE_SIMULATING && !window.isSimulatingTime) {
+        updateQuestList();
+    }
 }
 
 function updateWorldSimulation(pulses) {
@@ -1089,6 +1407,20 @@ function updateWorldSimulation(pulses) {
                     if (res.containers) res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
                     if (res.deleted_items) res.deleted_items.forEach(id => ItemRegistry.delete(id));
                     if (res.deleted_containers) res.deleted_containers.forEach(id => ContainerRegistry.delete(id));
+                    processMonsterQuests();
+                    
+                    if (res.world && res.world.player_trek) {
+                        if (!player.travel) player.travel = {};
+                        player.travel.active = res.world.player_trek.active;
+                        player.travel.paused = res.world.player_trek.paused;
+                        player.travel.elapsedHours = res.world.player_trek.elapsed_hours;
+                        player.travel.totalHours = res.world.player_trek.total_hours;
+                        player.travel.currentX = res.world.player_trek.current_x;
+                        player.travel.currentY = res.world.player_trek.current_y;
+                    }
+                    if (res.trek_events && res.trek_events.length > 0) {
+                        LivingRoads.handleEvents(res.trek_events);
+                    }
                     
                     if (typeof updateEnvironmentPanel === 'function') updateEnvironmentPanel();
                     if (window.isSimulatingTime) {
@@ -1102,17 +1434,24 @@ function updateWorldSimulation(pulses) {
                         if (userInput) userInput.disabled = false;
                         if (sendButton) sendButton.disabled = false;
                     }
+                } else {
+                    console.error("[Nexus] Ошибка симуляции:", res);
+                }
+            }).catch(err => {
+                console.error("[Nexus] Ошибка вызова nexusSimulate:", err);
+                if (window.isSimulatingTime) {
+                    hideLoadingScreen();
+                    window.isSimulatingTime = false;
+                }
+                if (!isWaitingForAI) {
+                    if (userInput) userInput.disabled = false;
+                    if (sendButton) sendButton.disabled = false;
                 }
             });
         }
-        return;
+    } else {
+        console.error("[Nexus] Нативный движок недоступен для симуляции времени!");
     }
-    
-    worldWorker.postMessage({ 
-        action: 'updateTime', pulses, World, player, globalLocations,
-        items: Array.from(ItemRegistry.entries()),
-        containers: Array.from(ContainerRegistry.entries())
-    });
 }
 
 async function runWorldSimulationTick() {
@@ -1142,34 +1481,46 @@ async function runWorldSimulationTick() {
     }
 
     try {
-        let daysPassed = World.time.daysSinceLastEvent || 1;
-        World.time.daysSinceLastEvent = 0;
+        const currentDay = Math.floor((World.tick || 0) / 24);
+        let daysPassed = currentDay - (player.lastWorldSimDay || 0);
+        if (daysPassed <= 0) daysPassed = 1;
+        player.lastWorldSimDay = currentDay;
 
         let worldSummary = "=== ТЕКУЩЕЕ СОСТОЯНИЕ МИРА (СЫРЫЕ ДАННЫЕ) ===\n";
         for (let rId in World.regions) {
             let r = World.regions[rId];
-            let ownerName = World.factions[r.owner] ? World.factions[r.owner].name : "Нет владельца";
+            let ownerName = World.factions[r.factionId] ? World.factions[r.factionId].name : "Нет владельца";
             
             let resArr = [];
-            for(let k in r.resources) {
-                if(r.resources[k].amount > 0) {
-                    let name = ECONOMY_ITEMS[k] ? ECONOMY_ITEMS[k].name : k;
-                    resArr.push(`${name}: ${Math.floor(r.resources[k].amount)}`);
+            if (r.vault_id && ContainerRegistry.has(r.vault_id)) {
+                let vault = ContainerRegistry.get(r.vault_id);
+                let counts = {};
+                vault.items.forEach(itemId => {
+                    let item = ItemRegistry.get(itemId);
+                    if (item) {
+                        counts[item.prototype_id] = (counts[item.prototype_id] || 0) + item.stack_size;
+                    }
+                });
+                for (let k in counts) {
+                    if (counts[k] > 0) {
+                        let name = getItemName(k, player ? player.era : 'rebirth');
+                        resArr.push(`${name}: ${counts[k]}`);
+                    }
                 }
             }
-            let resStr = resArr.slice(0, 6).join(', ');
+            let resStr = resArr.length > 0 ? resArr.slice(0, 6).join(', ') : "Пусто";
 
-            worldSummary += `Регион: ${r.name} (Владелец: ${ownerName}). Население: ${r.population}. Погода: ${World.weather[rId]}. Ресурсы: ${resStr}.\n`;
+            worldSummary += `Регион: ${r.name} (Владелец: ${ownerName}). Население: ${r.population}. Погода: ${r.weather || "Нормальная"}. Ресурсы: ${resStr}.\n`;
         }
         
         let activeWars = [];
         for (let fId in World.factions) {
             let f = World.factions[fId];
             // Золото считаем из физических запасов столичного региона
-            const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].owner === fId);
+            const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].factionId === fId);
             let gold = 0;
             if (capitalRegionId && World.regions[capitalRegionId]?.vault_id) {
-                gold = countRealItems(World.regions[capitalRegionId].vault_id, 'gold');
+                gold = countRealItems(World.regions[capitalRegionId].vault_id, 'gold_ingot');
             }
             const manpower = availableManpower(f);
             worldSummary += `Фракция: ${f.name}. Доступная живая сила: ${manpower}. Золото в столице: ${gold}. Армий в походе СЕЙЧАС: ${f.armies.length}.\n`;
@@ -1179,7 +1530,11 @@ async function runWorldSimulationTick() {
         }
         if (activeWars.length > 0) worldSummary += `\nВойны: ${[...new Set(activeWars)].join(", ")}\n`;
 
-        let recentNews = World.news.filter(n => n.daysOld <= daysPassed).map(n => `[${n.daysOld} дн. назад]: ${n.text}`).join("\n");
+        let recentNews = World.news
+            .map(n => ({ ...n, daysOld: Math.max(0, currentDay - (n.day || 0)) }))
+            .filter(n => n.daysOld <= daysPassed)
+            .map(n => `[${n.daysOld} дн. назад]: ${n.text}`)
+            .join("\n");
         worldSummary += `\nХронология системных событий за этот период:\n${recentNews || "Нет свежих данных"}\n`;
 
         const fantasyMonths = ["Утренней Звезды", "Ледолома", "Ветровея", "Цветеня", "Солнцеворота", "Знойника", "Жатвеня", "Листопада", "Хладника", "Мертвой Луны", "Темного Рубежа", "Конца Года"];
@@ -1229,6 +1584,7 @@ async function runWorldSimulationTick() {
         if (sendButton) sendButton.disabled = false;
         updateWorldChroniclesDisplay();
         updateTradeJournalDisplay();
+    updatePortPanel();
     }
 }
 // ======================================================================
@@ -1251,7 +1607,7 @@ function getSpriteCoords(type) {
 
 async function loadTileSet() {
     try {
-        const response = await fetch('assets/assets/1bitpack_kenney/Tilemap/tileset.json?t=' + Date.now());
+        const response = await fetch('assets/assets/kenny1bit-tagger/tile_tags.json?t=' + Date.now());
         if (response.ok) {
             const data = await response.json();
             if (data.mappings) {
@@ -1278,7 +1634,7 @@ async function loadTileSet() {
             USE_SPRITE_RENDERER = false;
             resolve(false);
         };
-        img.src = 'assets/assets/1bitpack_kenney/Tilesheet/colored-transparent.png';
+        img.src = 'assets/assets/kenny1bit-tagger/Tilesheet/colored-transparent.png';
     });
 }
 
@@ -1304,21 +1660,7 @@ function toggleMapRenderer(useSprite) {
 
 
 
-// --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ИНТЕРАКТИВНОЙ КАРТЫ ---
-const mapCanvas = document.getElementById('visual-map');
-const mapTooltipElement = document.getElementById('map-tooltip'); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
-let mapContext = mapCanvas ? mapCanvas.getContext('2d') : null;
-let mapState = {
-    zoom: 1.2, // Увеличен базовый зум, чтобы локации не слипались
-    offsetX: 0,
-    offsetY: 0,
-    isDragging: false,
-    lastMouseX: 0,
-    lastMouseY: 0
-};
-let isMapInitialized = false;
-let hoveredMapPoint = null;
-let mapControlsInitialized = false; // <-- ДОБАВЬТЕ ЭТУ СТРОКУ
+// --- ПЕРЕМЕННЫЕ КАРТЫ ПЕРЕНЕСЕНЫ В Nexus Cartographer ---
 
 // Глобальные переменные для новой системы экипировки
 const bodySlots = [
@@ -1338,7 +1680,8 @@ const tileTypeDictionary = {
     n_grass: "Зеленая трава", n_grass_tall: "Высокая трава", n_sand: "Песок", n_snow_ground: "Снег", n_ice_floor: "Лед", n_water_shallow: "Мелководье", n_tree_oak: "Дуб", n_tree_birch: "Береза", n_stump: "Пень", n_bush: "Куст", n_bush_berry: "Ягодный куст", n_flower_red: "Красный цветок", n_flower_blue: "Синий цветок", n_mushroom_brown: "Коричневый гриб", n_mushroom_glow: "Светящийся гриб", n_rock_small: "Камень", n_rock_large: "Валун", n_log: "Поваленное бревно", n_vines: "Лианы", n_nest: "Птичье гнездо",
     h_wall_obsidian: "Обсидиановая стена", h_wall_flesh: "Стена из плоти", h_wall_bone: "Костяная стена", h_floor_ash: "Пепел", h_floor_lava: "Лава", h_floor_blood: "Озеро крови", h_door_demon: "Демонические врата", h_altar: "Алтарь жертвоприношений", h_pentagram: "Пентаграмма", h_fire_blue: "Адское пламя", h_cages: "Подвешенные клетки", h_spikes_bone: "Костяные шипы", h_statue_gargoyle: "Статуя горгульи", h_eye: "Глаз Бездны", h_rune_red: "Красная руна", h_rune_purple: "Пурпурная руна", h_portal: "Портал в пустоту", h_crystal_dark: "Темный кристалл", h_tentacle: "Щупальце", h_maw: "Зубастая пасть",
     s_wall_ice: "Ледяная стена", s_wall_snow: "Снежный вал", s_door_frozen: "Смерзшаяся дверь", s_tree_pine: "Заснеженная сосна", s_snowman: "Снеговик", s_crystal_ice: "Ледяной кристалл", s_campfire_dead: "Потухший костер", s_frozen_body: "Замерзший труп", m_wall_void: "Стена Пустоты", m_wall_runic: "Руническая стена", m_floor_stars: "Звездный пол", m_floor_energy: "Энергетическая сетка", m_portal_blue: "Синий портал", m_crystal_blue: "Магический кристалл", m_altar_arcane: "Мистический алтарь", m_book: "Книга заклинаний", m_orb: "Светящаяся сфера", m_pillar_float: "Парящая колонна",
-    void: "Неизведанная тьма", dirt: "Сырая земля", grass_dead: "Мертвая трава", mud: "Вязкая грязь", water_deep: "Глубокая темная вода", tree_dead: "Мертвое дерево", tree_pine_dark: "Мрачная сосна", bush_dry: "Колючий кустарник", stone_floor: "Каменный пол", wood_floor: "Сгнившие доски", wall_stone: "Каменная кладка", wall_cave: "Стена пещеры", wall_wood: "Деревянный частокол", door_wood: "Тяжелая дверь", campfire: "Костер", torch: "Настенный факел", chest: "Сундук", table: "Стол", bones: "Останки", blood: "Кровь", road: "Дорога", house: "Дом", tavern: "Таверна", market: "Рынок", blacksmith: "Кузница"
+    void: "Неизведанная тьма", dirt: "Сырая земля", grass_dead: "Мертвая трава", mud: "Вязкая грязь", water_deep: "Глубокая темная вода", tree_dead: "Мертвое дерево", tree_pine_dark: "Мрачная сосна", bush_dry: "Колючий кустарник", stone_floor: "Каменный пол", wood_floor: "Сгнившие доски", wall_stone: "Каменная кладка", wall_cave: "Стена пещеры", wall_wood: "Деревянный частокол", door_wood: "Тяжелая дверь", campfire: "Костер", torch: "Настенный факел", chest: "Сундук", table: "Стол", bones: "Останки", blood: "Кровь", road: "Дорога", house: "Дом", tavern: "Таверна", market: "Рынок", blacksmith: "Кузница",
+    temple: "Храм", office: "Лавка", farms: "Фермы", lumbermills: "Лесопилка", mines: "Шахта", forges: "Кузница", smelters: "Плавильня", weavers: "Ткацкая", bakeries: "Пекарня", smokehouses: "Коптильня", alchemists: "Алхимик", banks: "Банк", mills: "Мельница", tailors: "Портной", jewelers: "Ювелир"
 };
 let selectedLocalTile = null;
 
@@ -1945,9 +2288,17 @@ function buildFullPlayerSnapshot() {
 
     const inHands = player.equipment.right_hand ? player.equipment.right_hand.name : 'Ничего';
     
-    let worldContextString = "";
-    if (World) {
-        worldContextString = "\n=== СИМУЛЯЦИЯ МИРА (ГЛОБАЛЬНЫЕ ДАННЫЕ ДВИЖКА) ===\n";
+            let worldContextString = "";
+        
+        const allMapPoints = [
+            ...Object.keys(globalLocations || {}).map(k => ({ ...globalLocations[k], id: k })),
+            ...Object.values(player.mapMarkers || {})
+        ].filter(p => p && p.name);
+        const mapCoordsString = allMapPoints.map(p => `${p.name} [ID: ${p.id}]`).join('; ');
+        worldContextString += `\n=== КАРТА МИРА (ДОСТУПНЫЕ ЛОКАЦИИ И ИХ ID) ===\n${mapCoordsString}\n==================================================\n`;
+
+            if (World) {
+        worldContextString = "\n=== СИМУЛЯЦИЯ МИРА (ЛОКАЛЬНЫЕ ДАННЫЕ) ===\n";
         let playerRegion = null;
         for (let rId in World.regions) {
             if (player.location.toLowerCase().includes(World.regions[rId].name.toLowerCase())) {
@@ -1956,12 +2307,99 @@ function buildFullPlayerSnapshot() {
         }
         if (playerRegion) {
             let r = World.regions[playerRegion];
-            let ownerFaction = World.factions[r.owner];
+            let ownerFaction = World.factions[r.factionId];
             let ownerName = ownerFaction ? ownerFaction.name : "Ничья земля";
-            worldContextString += `[ВАША ЛОКАЦИЯ] Регион: ${r.name} (Владелец: ${ownerName}). Погода: ${World.weather[playerRegion] || "Нормальная"}\n`;
-            worldContextString += `Рынок (Цены): Еда(${r.markets.bread}), Дерево(${r.markets.wood}), Руда(${r.markets.iron_ore}), Оружие(${r.markets.weapons})\n\n`;
+            let seasonName = r.current_season === 'spring' ? 'Весна' : (r.current_season === 'summer' ? 'Лето' : (r.current_season === 'autumn' ? 'Осень' : 'Зима'));
+            worldContextString += `[ВАША ЛОКАЦИЯ] Регион: ${r.name} (Владелец: ${ownerName}). Сезон: ${seasonName}. Погода: ${r.weather || "Нормальная"}\n`;
+            worldContextString += `!!! ВНИМАНИЕ ГМ: СЕЙЧАС СЕЗОН "${seasonName.toUpperCase()}" И ПОГОДА "${(r.weather || "Нормальная").toUpperCase()}". ТЫ КАТЕГОРИЧЕСКИ ОБЯЗАН ОПИСЫВАТЬ ИМЕННО ЭТУ ПОГОДУ И СЕЗОН В СВОЕМ ОТВЕТЕ! ЗАПРЕЩЕНО ВЫДУМЫВАТЬ ДРУГОЕ ВРЕМЯ ГОДА ИЛИ ИГНОРИРОВАТЬ ЭТОТ ФАКТ! !!!\n`;
+            worldContextString += `Рынок (Цены): Еда(${r.markets.bread || 5}), Дерево(${r.markets.wood || 2}), Руда(${r.markets.iron_ore || 3}), Оружие(${r.markets.weapons || 40})\n`;
+            
+            if (r.cityLayout && r.cityLayout.length > 0) {
+                worldContextString += `\n=== ЗАСТРОЙКА ГОРОДА (текущая локация: ${r.name}) ===\n`;
+                r.cityLayout.forEach(block => {
+                    if (block.type !== 'empty' && block.type !== 'road') {
+                        worldContextString += `• ${block.name} [ID: ${block.sublocation_id}] (тип: ${block.type})\n`;
+                    }
+                });
+                worldContextString += `\n`;
+            }
         }
+
+        // --- НОВАЯ ГЛОБАЛЬНАЯ СВОДКА ---
+        worldContextString += "=== ГЛОБАЛЬНАЯ СВОДКА (СОСТОЯНИЕ МИРА) ===\nФракции:\n";
+        for (let fId in World.factions) {
+            let f = World.factions[fId];
+            let capitalId = (f.regions && f.regions.length > 0) ? f.regions[0] : null;
+            let gold = 0, weapons = 0;
+            if (capitalId && World.regions[capitalId] && World.regions[capitalId].vault_id) {
+                gold = countRealItems(World.regions[capitalId].vault_id, 'gold_ingot');
+                weapons = countRealItems(World.regions[capitalId].vault_id, 'weapons');
+            }
+            let enemies = [];
+            for (let target in f.diplomacy) {
+                if (f.diplomacy[target] === 'war') enemies.push(World.factions[target] ? World.factions[target].name : target);
+            }
+            let enemiesStr = enemies.length > 0 ? enemies.join(", ") : "Нет";
+            let manpower = availableManpower(f);
+            worldContextString += `- ${f.name}: Золото(${gold}), Оружие(${weapons}), Рекруты(${manpower}). Воюет с: ${enemiesStr}\n`;
+        }
+
+        let goodsStats = {};
+        for (let rId in World.regions) {
+            let r = World.regions[rId];
+            if (!r.vault_id) continue;
+            let pop = r.population || 0;
+            for (let good in ECONOMY_ITEMS) {
+                if (!goodsStats[good]) goodsStats[good] = { stock: 0, demand: 0 };
+                goodsStats[good].stock += countRealItems(r.vault_id, good);
+                goodsStats[good].demand += pop * 0.01;
+            }
+        }
+        let deficitArray = [];
+        for (let good in goodsStats) {
+            let ratio = goodsStats[good].demand / (goodsStats[good].stock + 1);
+            deficitArray.push({ good: good, ratio: ratio });
+        }
+        deficitArray.sort((a, b) => b.ratio - a.ratio);
+        let top3 = deficitArray.slice(0, 3).map(item => {
+            let name = getItemName(item.good, player ? player.era : 'rebirth');
+            return `${name} (x${item.ratio.toFixed(1)} дефицит)`;
+        });
+        worldContextString += `\nДефицитные товары: ${top3.length > 0 ? top3.join(", ") : "Нет данных"}\n`;
+
+        let activeMonsters = (World.monsters || []).filter(m => m.health > 0);
+        let monstersStr = activeMonsters.length > 0 ? activeMonsters.map(m => `${m.name} (Регион: ${m.region_id}, Ур.${m.level})`).join(", ") : "Нет активных";
+        worldContextString += `Эпические монстры: ${monstersStr}\n`;
+
+        let activeDisasters = (World.map && World.map.disasters) ? World.map.disasters.filter(d => d.days_active > 0) : [];
+        let disastersStr = activeDisasters.length > 0 ? activeDisasters.map(d => `${d.type} (Затронуто: ${d.affected_regions.join(", ")})`).join(", ") : "Нет активных";
+        worldContextString += `Бедствия: ${disastersStr}\n`;
+
+        let recentNewsStr = "Нет свежих новостей.";
+        if (typeof World !== 'undefined' && World && World.news && World.news.length > 0) {
+            let currentDay = Math.floor((World.tick || 0) / 24);
+            let recentNews = World.news
+                .map(n => ({ ...n, daysOld: Math.max(0, currentDay - (n.day || 0)) }))
+                .sort((a, b) => a.daysOld - b.daysOld)
+                .slice(0, 7);
+            if (recentNews.length > 0) {
+                recentNewsStr = recentNews.map(n => `[${n.daysOld} дн. назад, Локация: ${n.location}] ${n.text}`).join("\n");
+            }
+        }
+        worldContextString += `\nПоследние мировые события (Слухи):\n${recentNewsStr}\n`;
+
+
         worldContextString += "==================================================\n";
+    }
+
+    if (typeof World !== 'undefined' && World && World.monsters && World.monsters.length > 0) {
+        worldContextString += "\n=== ЭПИЧЕСКИЕ ЧУДОВИЩА В МИРЕ (ГЛОБАЛЬНАЯ УГРОЗА) ===\n";
+        World.monsters.forEach(m => {
+            if (m.health > 0) {
+                worldContextString += `• ${m.name} (Тип: ${m.type}, Ур: ${m.level}, HP: ${m.health}/${m.maxHealth}, Атака: ${m.attack}, Защита: ${m.defense}). Локация: ${m.region_id}. Логово: контейнер ${m.treasure_chest_id}.\n`;
+            }
+        });
+        worldContextString += "ГМ ИНСТРУКЦИЯ: Если игрок вступает в бой с чудовищем, используй команду `addEnvironment` с этими статами. При его смерти ОБЯЗАТЕЛЬНО вызови команду `killMonster` с аргументом `monsterId`, чтобы удалить его с глобальной карты.\n==================================================\n";
     }
 
     const playerPhysicalLocation = resolveActorLocation('player');
@@ -1999,7 +2437,8 @@ function buildFullPlayerSnapshot() {
             id: npc.aiIdentifier,
             name: npc.name,
             inventory_id: wNpc?.inventory_id || null,
-            gold: wNpc?.inventory_id ? getGoldAmountInContainer(wNpc.inventory_id) : (wNpc?.inventory?.gold || 0)
+            gold: wNpc?.inventory_id ? getGoldAmountInContainer(wNpc.inventory_id) : (wNpc?.inventory?.gold || 0),
+            wounds: wNpc?.wounds || []
         };
     });
 
@@ -2010,7 +2449,7 @@ function buildFullPlayerSnapshot() {
     "location": "${player.location}", "hp": ${player.stats.hp}, "maxHp": ${player.stats.maxHp}, "gold": ${player.stats.gold},
     "backpack_id": "${player.container_backpack}", "equipment_id": "${player.container_equipment}"
   },
-  "inventory": ${JSON.stringify(player.container_backpack ? ContainerRegistry.get(player.container_backpack).items.map(id => { let it = ItemRegistry.get(id); return it ? { instance_id: it.id, prototype_id: it.prototype_id, name: it.custom_props?.name || it.name || it.prototype_id, quantity: it.stack_size, container_id: it.container_id, slot_index: it.slot_index, flags: it.flags } : null; }).filter(Boolean) : [])},
+  "inventory_CARRYING_NOW": ${JSON.stringify(player.container_backpack ? ContainerRegistry.get(player.container_backpack).items.map(id => { let it = ItemRegistry.get(id); return it ? { instance_id: it.id, prototype_id: it.prototype_id, name: it.custom_props?.name || it.name || it.prototype_id, quantity: it.stack_size, container_id: it.container_id, slot_index: it.slot_index, flags: it.flags } : null; }).filter(Boolean) : [])},
   "equipment": ${JSON.stringify(player.container_equipment ? ContainerRegistry.get(player.container_equipment).items.map(id => { let it = ItemRegistry.get(id); return it ? { slot: it.slot_index, instance_id: it.id, prototype_id: it.prototype_id, name: it.custom_props?.name || it.name || it.prototype_id } : null; }).filter(Boolean) : [])},
   "nearby_containers": ${JSON.stringify(nearbyContainers)},
   "nearby_npcs": ${JSON.stringify(nearbyNpcs)},
@@ -2603,7 +3042,7 @@ function updateApiKeyStatus() {
     let statusClass;
     let keyIsMissing = false;
 
-    if (currentApiProvider === 'local') {
+    if (currentApiProvider === 'local' || currentApiProvider === 'dummy') {
         statusKey = 'mainMenu.apiKeyStatusNotRequired';
         statusClass = 'status-ok';
     } else if (isUsingBuiltInKey) {
@@ -3257,6 +3696,10 @@ function updateDynamicUIText() {
     if (tradeJournalPanelTitle) {
         tradeJournalPanelTitle.textContent = t('gameInterface.tradeJournalPanel.title', null, 'Торговый Журнал');
     }
+    const portPanelTitle = document.querySelector('.port-panel .panel-toggle > span:first-child');
+    if (portPanelTitle) {
+        portPanelTitle.textContent = t('gameInterface.portPanel.title', null, 'Порт');
+    }
     const clearEchoBtn = document.getElementById('clear-echo-memory-btn');
     if (clearEchoBtn) {
         clearEchoBtn.textContent = t('gameInterface.echoMemoryPanel.clearButton');
@@ -3374,7 +3817,6 @@ async function initializeApp() {
     console.log("Инициализация приложения...");
 
     currentApiProvider = localStorage.getItem('apiProvider') || 'gemini';
-    currentGmMode = localStorage.getItem('gmMode') || 'two_step';
     usePromptCaching = localStorage.getItem('usePromptCaching') !== 'false';
     useThinkingMode = localStorage.getItem('useThinkingMode') === 'true';
     thinkingBudget = parseInt(localStorage.getItem('thinkingBudget')) || 2048;
@@ -3423,7 +3865,8 @@ const results = await Promise.allSettled([
 ,
         fetch('data/economy_items.json?t=' + Date.now()).then(r => r.json()).then(d => ECONOMY_ITEMS = d),
         fetch('data/economy_recipes.json?t=' + Date.now()).then(r => r.json()).then(d => CRAFTING_RECIPES = d),
-        fetch('data/facility_names.json?t=' + Date.now()).then(r => r.json()).then(d => FACILITY_NAMES = d)
+        fetch('data/facility_names.json?t=' + Date.now()).then(r => r.json()).then(d => FACILITY_NAMES = d),
+        fetch('data/trek_config.json?t=' + Date.now()).then(r => r.json()).then(d => TREK_CONFIG = d).catch(e => console.warn("Trek config missing, using defaults"))
     ]);
 
     const failedLoads = results.filter(result => result.status === 'rejected');
@@ -3477,7 +3920,6 @@ const results = await Promise.allSettled([
 // --- УПРАВЛЕНИЕ UI НАСТРОЕК ---
 function initSettingsUI() {
     const providerSelect = document.getElementById('api-provider-select');
-    const gmModeSelect = document.getElementById('gm-mode-select');
     const modelIdInput = document.getElementById('model-id-input');
 
     // Находим все группы настроек
@@ -3519,6 +3961,7 @@ function initSettingsUI() {
             case 'openrouter': modelId = openrouterModelId; break;
             case 'deepseek': modelId = deepseekModelId; break;
             case 'local': modelId = localModelId; break; // Для LM Studio это тоже ID
+            case 'dummy': modelId = 'dummy-test-model'; break;
         }
         if (modelIdInput) modelIdInput.value = modelId;
 
@@ -3529,7 +3972,6 @@ function initSettingsUI() {
 
     // Устанавливаем начальные значения из глобальных переменных
     if (providerSelect) providerSelect.value = currentApiProvider;
-    if (gmModeSelect) gmModeSelect.value = currentGmMode;
     const cachingCheckbox = document.getElementById('prompt-caching-checkbox');
     if (cachingCheckbox) cachingCheckbox.checked = usePromptCaching;
 
@@ -3658,9 +4100,6 @@ const musicSlider = document.getElementById('music-volume-slider');
 // Замени старую функцию saveApiKey на эту (или обнови слушатель события)
 function saveSettings() {
     const provider = document.getElementById('api-provider-select')?.value || 'gemini';
-    const gmMode = document.getElementById('gm-mode-select')?.value || 'two_step';
-    currentGmMode = gmMode;
-    localStorage.setItem('gmMode', currentGmMode);
     const cachingCheckbox = document.getElementById('prompt-caching-checkbox');
     if (cachingCheckbox) {
         usePromptCaching = cachingCheckbox.checked;
@@ -4017,6 +4456,15 @@ function setupEventListeners() {
             if (window.advanceJourney) window.advanceJourney();
         });
     }
+    if (travelFastForwardBtn) travelFastForwardBtn.addEventListener('click', () => LivingRoads.fastForward());
+        if (travelPauseBtn) travelPauseBtn.addEventListener('click', () => {
+        if (player && player.travel && player.travel.active) {
+            if (player.travel.paused) LivingRoads.resume();
+            else LivingRoads.pause("manual");
+        }
+    });
+
+    if (travelCancelBtn) travelCancelBtn.addEventListener('click', () => LivingRoads.cancel());
 
     if (sendButton) sendButton.addEventListener('click', handleUserInput);
     const repeatBtn = document.getElementById('repeat-button');
@@ -4190,12 +4638,15 @@ function handleDragLeave(event) {
 
 // --- Логика Старта Новой Игры ---
 function startNewGameSetup() {
+
+    clearPromptCache(); // Сбрасываем кэш промпта при новой игре
+
     // --- [ИСПРАВЛЕНИЕ] Универсальная проверка API ключа ---
     let keyIsMissing = false;
     let requiredKey = '';
 
-    // Проверяем ключ только если провайдер не 'local'
-    if (currentApiProvider !== 'local') {
+    // Проверяем ключ только если провайдер не 'local' и не 'dummy'
+    if (currentApiProvider !== 'local' && currentApiProvider !== 'dummy') {
         switch (currentApiProvider) {
             case 'gemini':
                 requiredKey = geminiApiKey || (geminiApiKeys.length > 0 ? geminiApiKeys[0] : '');
@@ -4242,6 +4693,10 @@ function startNewGameSetup() {
     nextInternalEntityId = 1;
     nextInternalSkillId = 1;
     nextInternalMapMarkerId = 1;
+    
+    // Очистка реестров от предыдущих сессий (Fix Memory Leak)
+    ItemRegistry.clear();
+    ContainerRegistry.clear();
 
     resetCharacterCreation();
     setActiveScreen('character-creation-screen');
@@ -4476,10 +4931,10 @@ async function finalizeCharacterCreation() {
             equipment: {},
             holdings: {},
             bankAccount: { deposit: 0, loan: 0, loanDays: 0 },
-            inventory: {}, // Legacy
-            container_backpack: CoreInventorySystem.createContainer("player_backpack", "player", 100, 30),
-            container_equipment: CoreInventorySystem.createContainer("player_equipment", "player", 50, 10),
-                        echoMemory: { items: [], maxItems: ECHO_MEMORY_MAX_ITEMS, version: 1 },
+                        inventory: {}, // Legacy
+            container_backpack: null, // ИСПРАВЛЕНИЕ: Будет создано после генерации мира C++ ядром
+            container_equipment: null, // ИСПРАВЛЕНИЕ: Будет создано после генерации мира C++ ядром
+            echoMemory: { items: [], maxItems: ECHO_MEMORY_MAX_ITEMS, version: 1 },
 gmNotes: { "Main_Plot": "Начало пути. Игрок появляется в стартовой локации." },
             memoryArchives: {},
             archiveSummaries: {},
@@ -4515,11 +4970,8 @@ gmNotes: { "Main_Plot": "Начало пути. Игрок появляется 
 
         console.log("Персонаж временно создан для эпохи '" + selectedEra + "', переход к выбору рассказчика:", tempPlayer);
 
-        if (narrators.length === 0) {
-            await loadNarrators();
-        }
-        showNarrator(0);
-        setActiveScreen('narrator-selection-screen');
+        // Т3 ФИКС: Удаляем выбор рассказчиков. Идем сразу к настройке мира.
+        setActiveScreen('world-setup-screen');
         if (document.activeElement) document.activeElement.blur();
     };
 
@@ -4588,7 +5040,25 @@ async function finalizeWorldSetupAndStart() {
     setActiveScreen('game-interface');
     showLoadingScreen('loadingScreen.generatingWorld', 'Генерация мира...');
 
-    World = await initWorldSimulator(initialAgents);
+    const absoluteStartDay = player.gameTime.year * 360 + (player.gameTime.month - 1) * 30 + (player.gameTime.day - 1);
+    World = await initWorldSimulator(initialAgents, absoluteStartDay);
+
+    // --- BOOTSTRAP PHASE ---
+    if (window.electronAPI && window.electronAPI.nexusBootstrap) {
+        const totalPop = Object.values(World.regions).reduce((sum, r) => sum + r.population, 0);
+        const bootstrapDays = Math.max(90, 90 + Math.floor(totalPop / 5000));
+        
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.textContent = `Экономическая балансировка (${bootstrapDays} дн.)...`;
+        console.log(`[Nexus] Запуск Bootstrap на ${bootstrapDays} дней...`);
+        
+        const res = await window.electronAPI.nexusBootstrap(bootstrapDays, absoluteStartDay);
+        if (res.status === 'ok') {
+            World = res.world;
+            if (res.items) { ItemRegistry.clear(); res.items.forEach(([k, v]) => ItemRegistry.set(k, v)); }
+            if (res.containers) { ContainerRegistry.clear(); res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v)); }
+        }
+    }
 
     if (enableWorldSim) {
         await preSimulateWorldHistory(yearsToSimulate);
@@ -4596,18 +5066,46 @@ async function finalizeWorldSetupAndStart() {
         if (loadingText) loadingText.textContent = t('loadingScreen.finalizing', null, 'Завершение...');
     }
 
-    const selectedNarrator = narrators[currentNarratorIndex];
-    let narratorStyleGuide = "Стиль повествования - нейтральный и сбалансированный.";
-    try {
-        const response = await fetch(selectedNarrator.promptFile);
-        if (response.ok) {
-            narratorStyleGuide = await response.text();
-        } else {
-            console.warn(`Не удалось загрузить файл стиля рассказчика: ${selectedNarrator.promptFile}`);
+    // --- ВЫБОР СТАРТОВОЙ ЛОКАЦИИ ДО ГЕНЕРАЦИИ СНАПШОТА ---
+    let startRegionId = null;
+    const factionKeys = Object.keys(World.factions);
+    if (factionKeys.length > 0) {
+        const validFactions = factionKeys.filter(k => World.factions[k].regions && World.factions[k].regions.length > 0);
+        if (validFactions.length > 0) {
+            const randomFactionId = validFactions[Math.floor(Math.random() * validFactions.length)];
+            startRegionId = World.factions[randomFactionId].regions[0];
         }
-    } catch (e) {
-        console.error(`Ошибка загрузки файла стиля рассказчика:`, e);
     }
+    if (!startRegionId) {
+        const regionIds = Object.keys(World.regions);
+        if (regionIds.length > 0) startRegionId = regionIds[Math.floor(Math.random() * regionIds.length)];
+    }
+    if (startRegionId && World.regions[startRegionId]) {
+        player.location = World.regions[startRegionId].name;
+    } else {
+        player.location = "Неизвестность";
+    }
+
+
+    // --- ИСПРАВЛЕНИЕ: Создаем инвентарь игрока ПОСЛЕ того, как С++ движок сгенерировал мир и очистил реестры ---
+    player.container_backpack = CoreInventorySystem.createContainer("player_backpack", "player", 100, 30);
+    player.container_equipment = CoreInventorySystem.createContainer("player_equipment", "player", 50, 10);
+    syncPlayerContainerBindings(); // Привязываем координаты контейнеров к текущей локации игрока
+
+    // Синхронизируем обновленные реестры обратно в С++ ядро, чтобы оно знало о рюкзаке игрока
+    if (window.electronAPI && window.electronAPI.nexusSyncState) {
+        await window.electronAPI.nexusSyncState(World, Array.from(ItemRegistry.entries()), Array.from(ContainerRegistry.entries()));
+    }
+
+    // Т3 ФИКС: Протокол ПРИЗМА (Многогранный ГМ)
+    const narratorStyleGuide = `
+    ### ТВОЙ СТИЛЬ: THE PRISM MASTER
+    - Ты — харизматичный, непредсказуемый и глубокий рассказчик. 
+    - Твоя база: Гай Ричи + Хаяо Миядзаки + Ганнибал Лектер. 
+    - КОНТРАСТ: Умей быть милым и няшным в один момент, и превращать сцену в кровавый кошмар в следующий.
+    - ПЕРСОНАЖИ: Давай им душу. Твои NPC должны запоминаться странностями, шутками, матами или пугающим спокойствием.
+    - НИКАКОЙ СКУКИ: Если игрок просто идет по дороге — заставь его почувствовать либо невероятную красоту природы, либо паранойю, что за ним следят.
+    - Используй мат и жаргон для акцентов, не делай из этого самоцель, но и не стесняйся.`;
 
     if (enableDeepSetup) {
         await runDeepSetupPipeline(narratorStyleGuide);
@@ -4662,26 +5160,24 @@ async function finalizeWorldSetupAndStart() {
         ? "СПОКОЙНЫЙ СТАРТ: Начни игру максимально мирно. Игрок в безопасности (дом, таверна, привал). Дай время осмотреться и поговорить. Никакой немедленной угрозы."
         : "АДРЕНАЛИНОВЫЙ СТАРТ: Начни в самой гуще событий! Критическая ситуация: погоня, засада, дуэль или катастрофа. Требуй немедленных действий.";
 
-    let imgExample = enableImageGeneration ? '"image_prompt": "Cinematic shot, highly detailed, dark fantasy anime style, dramatic lighting, masterpiece",' : '';
+    let imgExample = enableImageGeneration ? '"image_prompt": "Ado music video aesthetic, monochrome with red accent, dark gothic anime, creepy vibe, masterpiece",' : '';
     const startPrompt = initialPromptTemplate.replace(/{start_mode_instruction}/g, startModeInstruction)
         .replace(/{image_prompt_example}/g, imgExample)
         .replace(/{worldId}/g, DEFAULT_WORLD_ID)
+        .replace(/{worldId_upper}/g, DEFAULT_WORLD_ID.toUpperCase())
+        .replace(/{era_description}/g, player.era)
         .replace(/{name}/g, player.name)
         .replace(/{race}/g, t(`characterCreation.race${player.race.charAt(0).toUpperCase() + player.race.slice(1)}`, null, player.race))
         .replace(/{class}/g, t(`characterCreation.class${player.class.charAt(0).toUpperCase() + player.class.slice(1)}`, null, player.class))
         .replace(/{level}/g, player.stats.level)
         .replace(/{description}/g, player.description)
-        .replace(/{str}/g, player.stats.str)
-        .replace(/{dex}/g, player.stats.dex)
-        .replace(/{int}/g, player.stats.int)
-        .replace(/{con}/g, player.stats.con)
-        .replace(/{cha}/g, player.stats.cha)
-        .replace(/{inventory}/g, inventoryString)
         .replace(/{lore}/g, currentWorldLore)
+        .replace(/{globalLocationsList}/g, mapCoordsString)
+        .replace(/{map_coordinates_list}/g, mapCoordsString)
         .replace(/{itemsReference}/g, itemsRefStringInitial)
         .replace(/{language}/g, currentLanguage === 'ru' ? 'Russian' : 'English')
-        .replace(/{map_coordinates_list}/g, mapCoordsString)
-        .replace(/{narrator_style_guide}/g, narratorStyleGuide);
+        .replace(/{narrator_style_guide}/g, narratorStyleGuide)
+        .replace(/{dynamic_context}/g, ""); // Контекст будет добавлен в sendApiRequest, избегаем дублирования
 
     sendApiRequest(startPrompt, true);
 
@@ -5183,42 +5679,28 @@ function initializeGameInterface() {
     updateMapDisplay(); // Эта функция вызовет renderVisualMap
     updateWorldChroniclesDisplay();
     updateTradeJournalDisplay();
+    updatePortPanel();
 
-        // Восстановление локальной карты
+    // Локальная карта (CityGen) отключена согласно ТЗ Nexus Cartographer
     const localMapPanel = document.getElementById('local-map-panel');
     if (localMapPanel) {
-        localMapPanel.style.display = enableLocalMap ? 'flex' : 'none';
+        localMapPanel.style.display = 'none';
     }
-    
-            // Отрисовываем карту только если функция включена в настройках
-        if (enableLocalMap) {
-            if (player && player.localMap) {
-                buildLocalMap(player.localMap);
-            } else {
-                // Отрисовываем пустую заглушку (Неисследованная тьма)
-                const gridContainer = document.getElementById('local-map-grid');
-                const inspector = document.getElementById('local-map-inspector');
-                if (gridContainer) {
-                    gridContainer.style.gridTemplateColumns = `repeat(8, 32px)`;
-                    gridContainer.style.gridTemplateRows = `repeat(8, 32px)`;
-                    gridContainer.innerHTML = '';
-                    for(let i=0; i<64; i++) {
-                        let cell = document.createElement('div');
-                        cell.className = 'tile type-void';
-                        gridContainer.appendChild(cell);
-                    }
-                }
-                if (inspector) inspector.innerHTML = '<p style="color: #7f8c8d; font-style: italic; text-align: center;">Локация не исследована</p>';
-            }
-        }
 
     // Даем время CSS-анимациям завершиться, чтобы канвас получил реальный размер
     setTimeout(() => {
-        isMapInitialized = false;
-        renderVisualMap();
+        if (window.Cartographer) {
+            Cartographer.isMapInitialized = false;
+            Cartographer.render();
+        }
     }, 500);
     updateEnvironmentPanel();
-        updateTimeDisplay();
+    updateTimeDisplay();
+    
+    // Возобновление таймера путешествия при загрузке, если он был активен
+    if (player && player.travel && player.travel.active && !player.travel.paused) {
+        LivingRoads.resume();
+    }
 
 toggleStatIncreaseButtons();
 
@@ -5263,20 +5745,98 @@ toggleStatIncreaseButtons();
  * на которые действуют баффы или дебаффы.
  */
 function updateCharacterSheet() {
-    // Управление UI путешествия и блокировка ввода
-    if (player && player.currentJourney) {
+        // Управление UI путешествия и блокировка ввода
+    if (player && player.travel && player.travel.active) {
         if (locationStatLine) locationStatLine.style.display = 'none';
         if (journeyContainer) {
-            journeyContainer.style.display = 'block';
-            journeyDest.textContent = t('gameInterface.journey.onTheWay', { dest: player.currentJourney.destination }, `В пути: ${player.currentJourney.destination}`);
+            journeyContainer.style.display = 'flex';
+            journeyDest.textContent = `В пути: ${player.travel.destinationName}`;
+            journeyProgressText.textContent = `${player.travel.elapsedHours} / ${player.travel.totalHours} ч.`;
+            const pct = Math.min(100, (player.travel.elapsedHours / player.travel.totalHours) * 100);
+            journeyProgressBar.style.width = `${pct}%`;
+            
+            if (LivingRoads.isGeneratingHour) {
+                if (journeyLoading) journeyLoading.style.display = 'block';
+                if (travelControls) travelControls.style.display = 'flex';
+                if (journeyEventArea) journeyEventArea.style.display = 'none';
+            } else if (player.travel.currentEvents && player.travel.currentEvents.length > 0) {
+                if (journeyLoading) journeyLoading.style.display = 'none';
+                if (travelControls) travelControls.style.display = 'none';
+                if (journeyEventArea) {
+                    journeyEventArea.style.display = 'block';
+                    let htmlText = '';
+                    player.travel.currentEvents.forEach(ev => {
+                        let safeDesc = ev.description ? ev.description.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+                        htmlText += `<div class="journey-event-row">
+                                        <div class="journey-event-text-container"><strong>[Событие]</strong> ${ev.description}</div>`;
+                        if (ev.can_interact) {
+                            htmlText += `<div class="journey-event-btn-container">
+                                            <button class="travel-action-btn" onclick="LivingRoads.interact('${ev.object_type}', '${ev.sim_object_id}', '${safeDesc}')"><i class="fas fa-search"></i> Исследовать</button>
+                                         </div>`;
+                        }
+                        htmlText += `</div>`;
+                    });
+                    if (journeyEventText) journeyEventText.innerHTML = htmlText;
+                    if (journeyEventActions) {
+                        // Т3 ФИКС: Критические события (река, бандиты, бедствия) нельзя просто пропустить
+                        const hasCriticalEvent = player.travel.currentEvents.some(ev => ['river_crossing', 'bandit', 'disaster'].includes(ev.object_type));
+                        if (hasCriticalEvent) {
+                            journeyEventActions.innerHTML = `<div style="text-align:center; color:#e74c3c; font-size:0.8em; padding:5px;"><i class="fas fa-exclamation-triangle"></i> Это препятствие невозможно просто обойти. Нужно решение.</div>`;
+                        } else {
+                            journeyEventActions.innerHTML = `<button class="travel-action-btn btn-continue" style="width: 100%; margin: 0;" onclick="LivingRoads.resume()"><i class="fas fa-shoe-prints"></i> Уйти дальше</button>`;
+                        }
+                    }
+                }
+            } else {
+                if (journeyLoading) journeyLoading.style.display = 'none';
+                if (journeyEventArea) journeyEventArea.style.display = 'none';
+                if (travelControls) travelControls.style.display = 'flex';
+            }
+            
+            if (travelControls && travelControls.style.display === 'flex') {
+                if (travelPauseBtn) {
+                    travelPauseBtn.innerHTML = player.travel.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
+                    travelPauseBtn.title = player.travel.paused ? 'Продолжить путь' : 'Остановиться (Пауза)';
+                }
+                if (travelFastForwardBtn) {
+                    if (player.travel.isFastForwarding) {
+                        travelFastForwardBtn.style.background = 'rgba(46, 204, 113, 0.3)';
+                        travelFastForwardBtn.style.color = '#2ecc71';
+                        travelFastForwardBtn.style.borderColor = '#2ecc71';
+                    } else {
+                        travelFastForwardBtn.style.background = '';
+                        travelFastForwardBtn.style.color = '';
+                        travelFastForwardBtn.style.borderColor = '';
+                    }
+                }
+            }
+        }
+
+        if ((player.currentCombat && player.currentCombat.isActive) || (player.travel.paused && (!player.travel.currentEvents || player.travel.currentEvents.length === 0))) {
+            if (sendButton) sendButton.style.display = 'block';
+            if (voiceInputButton && recognition) voiceInputButton.style.display = 'inline-block';
+            if (userInput) {
+                if (!isWaitingForAI && !window.isSimulatingTime) userInput.disabled = false;
+                userInput.placeholder = (player.currentCombat && player.currentCombat.isActive) ? "Что вы будете делать в бою?" : "Путь приостановлен. Что делаем?";
+            }
+        } else {
+            if (sendButton) sendButton.style.display = 'none';
+            if (voiceInputButton) voiceInputButton.style.display = 'none';
+            if (userInput) {
+                userInput.disabled = true;
+                userInput.placeholder = LivingRoads.isGeneratingHour ? "Генерация пути..." : (player.travel.currentEvents && player.travel.currentEvents.length > 0 ? "Сделайте выбор в панели выше" : "Вы в пути... (Идет время)");
+            }
+        }
+    } else if (player && player.currentJourney) {
+        if (locationStatLine) locationStatLine.style.display = 'none';
+        if (journeyContainer) {
+            journeyContainer.style.display = 'flex';
+            journeyDest.textContent = `В пути: ${player.currentJourney.destination}`;
             journeyProgressText.textContent = `${player.currentJourney.currentPoint} / ${player.currentJourney.points}`;
             const pct = Math.min(100, (player.currentJourney.currentPoint / player.currentJourney.points) * 100);
             journeyProgressBar.style.width = `${pct}%`;
         }
-
-        if ((player.currentCombat && player.currentCombat.isActive) || (player.currentJourney && player.currentJourney.isPausedForCheck)) {
-            // Бой или Проверка во время путешествия - возвращаем управление
-            if (journeyContinueBtn) journeyContinueBtn.style.display = 'none';
+        if ((player.currentCombat && player.currentCombat.isActive) || player.currentJourney.isPausedForCheck) {
             if (sendButton) sendButton.style.display = 'block';
             if (voiceInputButton && recognition) voiceInputButton.style.display = 'inline-block';
             if (userInput) {
@@ -5284,28 +5844,26 @@ function updateCharacterSheet() {
                 userInput.placeholder = "Что вы будете делать в бою?";
             }
         } else {
-            // Мирное путешествие - блокируем ввод, показываем кнопку Вперед
-            if (journeyContinueBtn) journeyContinueBtn.style.display = 'block';
             if (sendButton) sendButton.style.display = 'none';
             if (voiceInputButton) voiceInputButton.style.display = 'none';
             if (userInput) {
                 userInput.disabled = true;
-                userInput.placeholder = t('gameInterface.journey.paused', null, "Вы в пути... Нажмите 'Вперед', чтобы продолжить.");
+                userInput.placeholder = "Вы в пути... (Устаревшая система)";
             }
         }
-    } else {
-        // Нет путешествия - стандартный UI
-        if (locationStatLine) locationStatLine.style.display = 'flex';
-        if (journeyContainer) journeyContainer.style.display = 'none';
-        if (journeyContinueBtn) journeyContinueBtn.style.display = 'none';
+            } else {
+            // Нет путешествия - стандартный UI
+            if (locationStatLine) locationStatLine.style.display = 'flex';
+            if (journeyContainer) journeyContainer.style.display = 'none';
+            if (journeyContinueBtn) journeyContinueBtn.style.display = 'none';
 
-        if (sendButton) sendButton.style.display = 'block';
-        if (voiceInputButton && recognition) voiceInputButton.style.display = 'inline-block';
-        if (userInput) {
-            if (!isWaitingForAI) userInput.disabled = false;
-            userInput.placeholder = "Что вы будете делать?";
+            if (sendButton) sendButton.style.display = 'block';
+            if (voiceInputButton && recognition) voiceInputButton.style.display = 'inline-block';
+            if (userInput) {
+                if (!isWaitingForAI && !window.isSimulatingTime) userInput.disabled = false;
+                userInput.placeholder = "Что вы будете делать?";
+            }
         }
-    }
 
     if (!player) return;
 
@@ -5326,36 +5884,37 @@ function updateCharacterSheet() {
         if (maxManaDisplay) maxManaDisplay.textContent = effectiveStats.maxMana;
     }
 
-    // Обновление основных характеристик с КРАСИВЫМИ тултипами
-    const statsToUpdate = ['str', 'dex', 'int', 'con', 'cha', 'res'];
-    statsToUpdate.forEach(statKey => {
-        const statLine = document.querySelector(`.stat-line[data-stat="${statKey}"]`);
-        const statValueElement = document.getElementById(`stat-${statKey}`);
-        if (!statValueElement || !statLine) return;
+            // Обновление основных характеристик с КРАСИВЫМИ тултипами
+        const statsToUpdate = ['str', 'dex', 'int', 'con', 'cha', 'res'];
+        statsToUpdate.forEach(statKey => {
+            const statLine = document.querySelector(`.stat-line[data-stat="${statKey}"]`);
+            const statValueElement = document.getElementById(`stat-${statKey}`);
+            if (!statValueElement || !statLine) return;
 
-        const base = player.stats[statKey];
-        const bonus = bonuses[statKey] || 0;
+            const base = player.stats[statKey];
+            const bonus = bonuses[statKey] || 0;
 
-        // Удаляем старый системный тултип
-        statLine.removeAttribute('title');
+            // Удаляем старый системный тултип
+            statLine.removeAttribute('title');
 
-        // Привязываем наш красивый тултип
-        statLine.onmouseenter = (e) => {
-            let content = `<div style="color:#aeb6bf; margin-bottom:5px;">Базовое значение: <b>${base}</b></div>`;
-            if (breakdown[statKey].length > 0) {
-                content += breakdown[statKey].map(b => `<div style="display:flex; justify-content:space-between; gap:10px;"><span>${b.name}:</span> <b style="color:#2ecc71">${b.change > 0 ? '+' : ''}${b.change}</b></div>`).join('');
-            }
-            showGenericTooltip(e, t(`gameInterface.characterPanel.${statKey}`), content);
-        };
-        statLine.onmouseleave = hideGenericTooltip;
-        statLine.onmousemove = moveGenericTooltip;
+            // Привязываем наш красивый тултип
+            statLine.onmouseenter = (e) => {
+                let content = `<div style="color:#1a110a; font-size: 1.1em; margin-bottom:5px; border-bottom: 1px solid rgba(0,0,0,0.2); padding-bottom: 3px;">Итоговое значение: <b>${effectiveStats[statKey]}</b></div>`;
+                content += `<div style="color:#2c1e14; margin-bottom:5px;">Базовое значение: <b>${base}</b></div>`;
+                if (breakdown[statKey].length > 0) {
+                    content += breakdown[statKey].map(b => `<div style="display:flex; justify-content:space-between; gap:10px; color:#3e2723;"><span>${b.name}:</span> <b style="${b.change > 0 ? 'color:#27ae60' : 'color:#c0392b'}">${b.change > 0 ? '+' : ''}${b.change}</b></div>`).join('');
+                }
+                showGenericTooltip(e, t(`gameInterface.characterPanel.${statKey}`), content);
+            };
+            statLine.onmouseleave = hideGenericTooltip;
+            statLine.onmousemove = moveGenericTooltip;
 
-        let htmlContent = `${effectiveStats[statKey]}`;
-        if (bonus > 0) htmlContent += ` <span class="stat-bonus">(+${bonus})</span>`;
-        else if (bonus < 0) htmlContent += ` <span class="stat-bonus negative">(${bonus})</span>`;
+            let htmlContent = `${base}`;
+            if (bonus > 0) htmlContent += ` <span class="stat-bonus" style="color:#2ecc71; font-size:0.9em;">(+${bonus})</span>`;
+            else if (bonus < 0) htmlContent += ` <span class="stat-bonus negative" style="color:#e74c3c; font-size:0.9em;">(${bonus})</span>`;
 
-        statValueElement.innerHTML = htmlContent;
-    });
+            statValueElement.innerHTML = htmlContent;
+        });
 
     if (goldDisplay) goldDisplay.textContent = player.stats.gold;
     if (locationDisplay) locationDisplay.textContent = player.location || '???';
@@ -5419,7 +5978,8 @@ function updateInventoryDisplay() {
             const legacyItemFormat = {
                 id: item.id, aiIdentifier: item.prototype_id, name: props.name, quantity: item.stack_size,
                 description: props.description, rarity: props.rarity, itemType: props.itemType,
-                slot: props.slot, effects: props.effects, value: props.value
+                slot: props.slot, effects: props.effects, value: props.value,
+                history: item.history
             };
             
             li.addEventListener('mouseenter', (e) => createItemTooltip(e, legacyItemFormat));
@@ -5533,8 +6093,8 @@ function updateSkillsDisplay() {
         let costType = (skill.costType || '').toLowerCase();
         if (costType.includes('mp') || costType.includes('ман')) {
             if (player.stats.mana < costVal) { showCustomAlert("Недостаточно маны!"); return; }
-        } else if (costType.includes('hp') || costType.includes('здоровь')) {
-            if (player.stats.hp <= costVal) { showCustomAlert("Недостаточно здоровья!"); return; }
+        } else if (costType.includes('hp') || costType.includes('здоровь') || costType.includes('stamina') || costType.includes('выносливост')) {
+            if (player.stats.hp <= costVal) { showCustomAlert("Недостаточно здоровья/выносливости!"); return; }
         }
 
         createSkillBadge(skillId, skill.name, skill.effect);
@@ -5658,6 +6218,9 @@ function updateWorldChroniclesDisplay() {
                     <button class="c-filter-btn ${currentChronicleFilter === 'war' ? 'active' : ''}" data-filter="war">⚔️ Войны</button>
                     <button class="c-filter-btn ${currentChronicleFilter === 'disaster' ? 'active' : ''}" data-filter="disaster">🌪️ Бедствия</button>
                     <button class="c-filter-btn ${currentChronicleFilter === 'trade' ? 'active' : ''}" data-filter="trade">💰 Экономика</button>
+                    <button class="c-filter-btn ${currentChronicleFilter === 'business' ? 'active' : ''}" data-filter="business">🏭 Бизнес</button>
+                    <button class="c-filter-btn ${currentChronicleFilter === 'market' ? 'active' : ''}" data-filter="market">⚖️ Рынок</button>
+                    <button class="c-filter-btn ${currentChronicleFilter === 'logistics' ? 'active' : ''}" data-filter="logistics">📦 Логистика</button>
                     <button class="c-filter-btn ${currentChronicleFilter === 'misc' ? 'active' : ''}" data-filter="misc">🗣️ Слухи</button>
                 </div>
                 <div class="chronicle-filter-row">
@@ -5687,7 +6250,11 @@ function updateWorldChroniclesDisplay() {
     // 2. Фоновые новости (World Sim)
     let simNews = [];
     if (typeof World !== 'undefined' && World && World.news) {
-        simNews = World.news;
+        const currentDay = Math.floor((World.tick || 0) / 24);
+        simNews = World.news.map(n => ({
+            ...n,
+            daysOld: Math.max(0, currentDay - (n.day || 0))
+        }));
     }
 
     // Применяем фильтр КАТЕГОРИЙ
@@ -5759,13 +6326,23 @@ function renderChroniclePage(page) {
             if (news.category === 'war') { icon = '<i class="fas fa-swords"></i>'; catName = 'Война'; color = '#e74c3c'; }
             if (news.category === 'disaster') { icon = '<i class="fas fa-volcano"></i>'; catName = 'Бедствие'; color = '#e67e22'; }
             if (news.category === 'trade') { icon = '<i class="fas fa-coins"></i>'; catName = 'Экономика'; color = '#f1c40f'; }
+            if (news.category === 'business') { icon = '<i class="fas fa-industry"></i>'; catName = 'Бизнес'; color = '#9b59b6'; }
+            if (news.category === 'market') { icon = '<i class="fas fa-balance-scale"></i>'; catName = 'Рынок'; color = '#1abc9c'; }
+            if (news.category === 'logistics') { icon = '<i class="fas fa-box"></i>'; catName = 'Логистика'; color = '#34495e'; }
 
+            let causalHtml = '';
+            if (news.causal_link) {
+                causalHtml = `<div style="margin-top: 4px; font-size: 0.85em; color: #8e44ad; font-style: italic;">
+                    <i class="fas fa-link"></i> Последствие прошлых событий
+                </div>`;
+            }
             li.innerHTML = `
                 <div style="display:flex; justify-content: space-between; align-items: flex-start;">
                     <span class="chronicle-title" style="color: #f39c12; font-size: 0.9em;">${news.daysOld} дн. назад</span>
                     <span class="chronicle-status-brewing" style="color:${color}">${icon} ${catName}</span>
                 </div>
                 <div class="chronicle-desc" style="color: #ecf0f1;">${news.text}</div>
+                ${causalHtml}
             `;
         }
         listEl.appendChild(li);
@@ -5830,28 +6407,48 @@ function updateTradeJournalDisplay() {
     }
 
     const region = World.regions[playerRegionId];
+    
+    if (region.population === 0 || !region.factionId) {
+        listEl.innerHTML = `<li style="color:#e74c3c; padding:10px; text-align:center; font-style:italic;">Это заброшенное место. Здесь нет ни рынков, ни торговцев.</li>`;
+        return;
+    }
+
     const prices = region.markets;
 
-    let html = `<li style="border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 5px; margin-bottom: 5px;"><strong style="color:#f1c40f">Рынок: ${region.name}</strong></li>`;
+    let seasonName = region.current_season === 'spring' ? 'Весна' : (region.current_season === 'summer' ? 'Лето' : (region.current_season === 'autumn' ? 'Осень' : 'Зима'));
+    let html = `<li style="border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 5px; margin-bottom: 5px;"><strong style="color:#f1c40f">Рынок: ${region.name}</strong><br><span style="font-size:0.85em; color:#bdc3c7;">Сезон: ${seasonName} | Погода: ${region.weather}</span></li>`;
     
     const formatPrice = (key, price) => {
         let name = getItemName(key, player ? player.era : 'rebirth');
         return `
         <li style="display:flex; justify-content:space-between; padding: 3px 0;">
             <span style="color:#bdc3c7">📦 ${name}</span>
-            <span style="color:#f5b041; font-weight:bold;">${price} 💰</span>
+            <span style="color:#f5b041; font-weight:bold;">${price.toFixed(1)} 💰</span>
         </li>`;
     };
 
-    // Выводим только те товары, которые реально есть на рынке или производятся
+    html += `<li style="color:#5dade2; font-size: 0.9em; padding: 3px 0; margin-top: 5px;"><b>Средние цены:</b></li>`;
     for(let good in prices) {
         const supply = countRealItems(region.vault_id, good);
-        if (supply > 0) {
+        if (supply > 0 || prices[good] > 0) {
             html += formatPrice(good, prices[good]);
         }
     }
 
-    html += `<li style="border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 5px; margin-top: 15px; margin-bottom: 5px;"><strong style="color:#f1c40f">Логистика и Слухи</strong></li>`;
+    html += `<li style="color:#5dade2; font-size: 0.9em; padding: 3px 0; margin-top: 5px;"><b>Частные предложения (NPC):</b></li>`;
+    if (region.market_square && region.market_square.length > 0) {
+        let offersHtml = '';
+        region.market_square.slice(0, 10).forEach(offer => {
+            let goodName = getItemName(offer.good, player ? player.era : 'rebirth');
+            offersHtml += `<li style="display:flex; justify-content:space-between; padding: 2px 0; font-size: 0.85em;"><span style="color:#bdc3c7">${goodName} (x${offer.quantity})</span><span style="color:#f5b041;">${offer.price.toFixed(1)} 💰</span></li>`;
+        });
+        html += offersHtml;
+        if (region.market_square.length > 10) html += `<li style="font-size: 0.8em; color: #7f8c8d;">...и еще ${region.market_square.length - 10} лотов</li>`;
+    } else {
+        html += `<li style="color:#7f8c8d; font-size: 0.85em; padding: 2px 0;">На площади пусто.</li>`;
+    }
+
+    html += `<li style="border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 5px; margin-top: 15px; margin-bottom: 5px;"><strong style="color:#f1c40f">Логистика и Караваны</strong></li>`;
     
     let incomingCaravans = [];
     let outgoingCaravans = [];
@@ -5865,105 +6462,35 @@ function updateTradeJournalDisplay() {
     }
     
     if (incomingCaravans.length > 0) {
-        html += `<li style="color:#2ecc71; font-size: 0.9em; padding: 3px 0;">Ожидается прибытие: ${incomingCaravans.length} караванов.</li>`;
+        html += `<li style="color:#2ecc71; font-size: 0.9em; padding: 3px 0;">Ожидается прибытие: ${incomingCaravans.length} купеческих караванов.</li>`;
     } else {
-        html += `<li style="color:#7f8c8d; font-size: 0.9em; padding: 3px 0;">В город никто не едет.</li>`;
+        html += `<li style="color:#7f8c8d; font-size: 0.85em; padding: 3px 0;">В город никто не едет.</li>`;
     }
     
     if (outgoingCaravans.length > 0) {
         html += `<li style="color:#3498db; font-size: 0.9em; padding: 3px 0;">Отправлено караванов: ${outgoingCaravans.length}.</li>`;
     }
     
-    let maxPriceRatio = 0;
-    let deficitGood = null;
-    for (let good in prices) {
-        let basePrice = ECONOMY_ITEMS[good] ? ECONOMY_ITEMS[good].basePrice : 1;
-        let ratio = prices[good] / basePrice;
-        if (ratio > 1.5 && ratio > maxPriceRatio) {
-            maxPriceRatio = ratio;
-            deficitGood = good;
-        }
-    }
-    
-    if (deficitGood) {
-        let name = getItemName(deficitGood, player ? player.era : 'rebirth');
-        html += `<li style="color:#e74c3c; font-size: 0.9em; margin-top: 5px; line-height: 1.3;">⚠️ Острый дефицит: ${name}! Цены завышены.</li>`;
-    }
-
     listEl.innerHTML = html;
 }
 
-function updateMapDisplay() {
-    if (!globalLocationsList || !customLocationsList) return;
 
-    // --- ОБНОВЛЕНИЕ ВИЗУАЛЬНОЙ КАРТЫ ---
-    renderVisualMap();
-
-    // --- ОБНОВЛЕНИЕ ТЕКСТОВЫХ СПИСКОВ (логика остается прежней) ---
-    const mapPanelTitle = document.querySelector('.map-panel .panel-toggle > span:first-child');
-    if (mapPanelTitle) mapPanelTitle.textContent = t('gameInterface.mapPanel.title');
-    const globalTitle = document.querySelector('.map-panel h3[data-i18n="gameInterface.mapPanel.globalTitle"]');
-    const customTitle = document.querySelector('.map-panel h3[data-i18n="gameInterface.mapPanel.customTitle"]');
-    if (globalTitle) globalTitle.textContent = t('gameInterface.mapPanel.globalTitle');
-    if (customTitle) customTitle.textContent = t('gameInterface.mapPanel.customTitle');
-
-    globalLocationsList.innerHTML = '';
-    const locationsData = (typeof globalLocations === 'object' && globalLocations !== null) ? globalLocations : {};
-    const globalKeys = Object.keys(locationsData);
-    const displayableGlobalKeys = globalKeys.filter(key => key !== 'startLocation' && locationsData[key]?.name);
-
-    // Вспомогательная функция для рендера подлокаций
-    const renderSubLocations = (parentId) => {
-        if (!player || !player.subLocations) return '';
-        const subs = Object.values(player.subLocations).filter(sub => sub.parentId === parentId);
-        if (subs.length === 0) return '';
-        let html = '<ul class="location-poi-list">';
-        subs.forEach(sub => {
-            html += `<li class="location-poi-item" title="${sub.description || ''}">${sub.name}</li>`;
-        });
-        html += '</ul>';
-        return html;
+function getResourceIcon(res) {
+    const icons = {
+        "wheat": "🌾", "meat": "🥩", "fish": "🐟", "wood": "🌲",
+        "iron_ore": "⛏️", "gold_ore": "💎", "cotton": "☁️", "herbs": "🌿",
+        "salt": "🧂", "stone": "🪨"
     };
+    return icons[res] || "📦";
+}
 
-    if (displayableGlobalKeys.length > 0) {
-        displayableGlobalKeys.sort((a, b) => (locationsData[a]?.name || '').localeCompare(locationsData[b]?.name || '', currentLanguage));
-        displayableGlobalKeys.forEach(key => {
-            const loc = locationsData[key];
-            const li = document.createElement('li');
-            li.innerHTML = `<span class="location-name">${loc.name}</span>`;
-            if (loc.description) {
-                li.innerHTML += `<span class="location-desc" title="${loc.description}">${loc.description}</span>`;
-            }
-            li.innerHTML += renderSubLocations(key);
-            globalLocationsList.appendChild(li);
+
+function updateMapDisplay() {
+    if (window.Cartographer) {
+        Cartographer.fetchMapData().then(() => {
+            Cartographer.updateSidebar();
+            // Рендер запускается автоматически через requestAnimationFrame внутри Cartographer
         });
-    } else {
-        let fallbackKey = 'gameInterface.mapPanel.noGlobal';
-        if (worldLore.startsWith(t('error.prefix', 'Ошибка:'))) {
-            fallbackKey = 'gameInterface.mapPanel.errorLoadingWorld';
-        }
-        globalLocationsList.innerHTML = `<li>${t(fallbackKey)}</li>`;
-    }
-
-    customLocationsList.innerHTML = '';
-    if (player && player.mapMarkers) {
-        const markerEntries = Object.entries(player.mapMarkers);
-        if (markerEntries.length > 0) {
-            markerEntries.sort(([, a], [, b]) => (a.name || '').localeCompare(b.name || '', currentLanguage));
-            markerEntries.forEach(([, marker]) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span class="location-name">${marker.name}</span>`;
-                if (marker.description) {
-                    li.innerHTML += `<span class="location-desc" title="${marker.description}">${marker.description}</span>`;
-                }
-                li.innerHTML += renderSubLocations(marker.id);
-                customLocationsList.appendChild(li);
-            });
-        } else {
-            customLocationsList.innerHTML = `<li data-i18n="gameInterface.mapPanel.noCustom">${t('gameInterface.mapPanel.noCustom')}</li>`;
-        }
-    } else {
-        customLocationsList.innerHTML = `<li data-i18n="gameInterface.mapPanel.noCustom">${t('gameInterface.mapPanel.noCustom')}</li>`;
     }
 }
 
@@ -6020,9 +6547,20 @@ function updateEnvironmentPanel() {
             li.appendChild(nameSpan);
 
             // Store data for tooltip
+            let profType = 'none';
+            let savings = 0;
+            if (typeof World !== 'undefined' && World && World.npcs && World.npcs[entity.aiIdentifier]) {
+                let wNpc = World.npcs[entity.aiIdentifier];
+                profType = wNpc.economy?.profession_type || 'none';
+                savings = wNpc.economy?.savings || 0;
+            }
+
             li.dataset.tooltipData = JSON.stringify({
+                id: entity.aiIdentifier,
                 name: entity.name,
                 type: entityTypeLocalized,
+                profession_type: profType,
+                savings: savings,
                 description: entity.description || t('gameInterface.environmentPanel.noDescription', 'Нет подробного описания.'),
                 hp: entity.stats?.hp,
                 maxHp: entity.stats?.maxHp,
@@ -6070,12 +6608,21 @@ function createItemTooltip(event, item) {
         </div>`;
     }
 
+    let historyHtml = '';
+    if (item.history && item.history.length > 0) {
+        const historyItems = item.history.slice(-3).map(h => `[День ${h.day}] ${h.event}`).join('<br>');
+        historyHtml = `<div style="margin-top:8px; border-top:1px dashed #2c1e14; padding-top:5px; font-size:0.85em; color:#d35400;">
+            <strong>Летопись предмета:</strong><br>${historyItems}
+        </div>`;
+    }
+
     itemTooltipElement.innerHTML = `
         <div class="item-card-header">${item.name}</div>
         <div class="item-card-body">
             <span class="item-card-rarity" style="color: ${rarityColor}">${item.rarity || 'Обычный'}</span>
             <div style="font-style:italic;">${item.description}</div>
             ${effectsHtml}
+            ${historyHtml}
             <div style="margin-top:8px; font-size:0.85em; text-align:right; opacity:0.8;">💰 Ценность: ${item.value || 0}</div>
         </div>
     `;
@@ -6150,10 +6697,27 @@ function showEntityTooltip(event) {
         traitsHtml = `<p><strong style="color: #9b59b6;">Черты:</strong> <span style="color: #ecf0f1; font-style: italic;">${data.traits.join(', ')}</span></p>`;
     }
 
+    let econHtml = '';
+    if (data.profession_type && data.profession_type !== 'none') {
+        const profMap = { 'farmer': 'Крестьянин', 'artisan': 'Ремесленник', 'merchant': 'Купец', 'innkeeper': 'Трактирщик', 'ruler': 'Феодал', 'cleric': 'Священник', 'mage': 'Маг', 'mercenary': 'Наемник' };
+        econHtml = `<p><strong style="color: #2ecc71;">Роль:</strong> <span style="color: #ecf0f1;">${profMap[data.profession_type] || data.profession_type}</span> | <strong style="color: #f1c40f;">Капитал:</strong> ${data.savings} з.</p>`;
+    }
+
+    let woundsHtml = '';
+    if (typeof World !== 'undefined' && World && World.npcs && World.npcs[data.id] && World.npcs[data.id].wounds) {
+        const wounds = World.npcs[data.id].wounds;
+        if (wounds.length > 0) {
+            const wList = wounds.map(w => `${w.type} (тяжесть: ${w.severity})`).join(', ');
+            woundsHtml = `<p><strong style="color: #e74c3c;">Ранения:</strong> <span style="color: #ffcccc;">${wList}</span></p>`;
+        }
+    }
+
     entityTooltip.innerHTML = `
         <h4>${data.name}</h4>
         <p><strong>${t('gameInterface.environmentPanel.tooltip.type', 'Тип')}:</strong> ${data.type}</p>
+        ${econHtml}
         ${traitsHtml}
+        ${woundsHtml}
         ${healthText}
         ${healthBarHtml}
         ${statsHtml}
@@ -6171,8 +6735,8 @@ function hideEntityTooltip() {
 
 function moveEntityTooltip(event) {
     if (entityTooltip && entityTooltip.style.display === 'block') {
-        const xOffset = 20; // Смещение от курсора
-        const yOffset = 10;
+        const xOffset = 25; // Т3 ФИКС: Увеличен отступ, чтобы окно не перекрывало курсор
+        const yOffset = 15;
         let newX = event.pageX + xOffset;
         let newY = event.pageY + yOffset;
 
@@ -6848,6 +7412,10 @@ async function handleUserInput() {
             player.currentCombat.participants = [];
             finalMessageForGM += "\n\n[SYSTEM: Бой автоматически завершен. Все противники устранены или покинули поле боя. Опиши исход боя и победителя.]";
             addCalculationMessage("[СИСТЕМА] Бой автоматически завершен.");
+            if (player.travel && player.travel.active && player.travel.paused && player.travel.pauseReason === 'combat') {
+                TravelSystem.resume();
+                finalMessageForGM += " [SYSTEM: ПУТЕШЕСТВИЕ ВОЗОБНОВЛЕНО. Упомяни, что герой продолжает путь.]";
+            }
         } else {
             // 2. Генерация скрытых бросков для противников
             let enemyRollsText = "\n\n[SYSTEM: АВТО-БРОСКИ ПРОТИВНИКОВ В ЭТОМ ХОДУ (d20): ";
@@ -6865,7 +7433,6 @@ async function handleUserInput() {
 
     // --- НАЧАЛО ЛОГИКИ МЕХАНИЗМА ПАМЯТИ ---
     player.stats.turnCount++;
-    advanceTime(1); // 1 пульс = 5 минут на базовое действие
     player.lastTurnPulses = player.gameTime.totalPulses; // Запоминаем время ДО выполнения действия
     const turn = player.stats.turnCount;
 
@@ -6953,6 +7520,39 @@ async function performAiFetch(systemInstruction, history, providerModel, current
 }
 
 async function _internalPerformAiFetch(systemInstruction, history, providerModel, currentInput = "") {
+    // --- ПРОВАЙДЕР-ЗАГЛУШКА (ДЛЯ ТЕСТОВ) ---
+    if (currentApiProvider === 'dummy') {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Имитация задержки
+        if (currentInput === "[INITIAL_GAME_SETUP_START_OF_STORY]") {
+            return JSON.stringify({
+                "director_notes": "Dummy initial setup.",
+                "time_passed": { "days": 0, "hours": 0, "minutes": 5 },
+                "narrative": "(( ТЕСТОВЫЙ СТАРТ. Вы появились в мире. Движок и UI готовы к тестам. ))",
+                "actions": [
+                    { "command": "setLocation", "args": { "locationName": "capital_aquilon" } },
+                    { "command": "renderLocation", "args": { "locationId": "dummy_start", "size": "15x15", "description": "Тестовая локация" } },
+                    { "command": "addItem", "args": { "id": "sword_short_common", "name": "Тестовый меч", "slot": "right_hand", "effects": [{"type": "modify_stat", "stat": "str", "change": 1}] } },
+                    { "command": "equipItem", "args": { "id": "sword_short_common", "slot": "right_hand" } },
+                    { "command": "addItem", "args": { "id": "leather_armor_light_common", "name": "Тестовая броня", "slot": "torso", "effects": [{"type": "modify_stat", "stat": "res", "change": 2}] } },
+                    { "command": "equipItem", "args": { "id": "leather_armor_light_common", "slot": "torso" } },
+                    { "command": "addItem", "args": { "id": "boots_common", "name": "Тестовые сапоги", "slot": "feet", "effects": [{"type": "modify_stat", "stat": "res", "change": 1}] } },
+                    { "command": "equipItem", "args": { "id": "boots_common", "slot": "feet" } },
+                    { "command": "addItem", "args": { "id": "pants_common", "name": "Тестовые штаны", "slot": "legs", "effects": [{"type": "modify_stat", "stat": "res", "change": 1}] } },
+                    { "command": "equipItem", "args": { "id": "pants_common", "slot": "legs" } },
+                    { "command": "updateStat", "args": { "stat": "gold", "change": 100 } }
+                ]
+            });
+        } else {
+            return JSON.stringify({
+                "director_notes": "Dummy response.",
+                "time_passed": { "days": 0, "hours": 1, "minutes": 0 },
+                "narrative": "(( ТЕСТОВЫЙ ОТВЕТ ЗАГЛУШКИ. Время продвинуто на 1 час. ))\n\nВаш запрос: *" + currentInput + "*",
+                "actions": []
+            });
+        }
+    }
+
+
     // --- ГЛОБАЛЬНАЯ ЗАДЕРЖКА (RATE LIMIT) ---
     const now = Date.now();
     const timeSinceLastRequest = now - lastApiRequestTime;
@@ -6975,7 +7575,23 @@ async function _internalPerformAiFetch(systemInstruction, history, providerModel
 
         // 1. Подготовка стандартного массива сообщений (OpenAI формат)
         let messages = [];
-        messages.push({ role: "system", content: systemInstruction });
+        
+        // ЯВНОЕ КЭШИРОВАНИЕ (Anthropic / Gemini через LLMost/OpenRouter)
+        if (usePromptCaching && (currentApiProvider === 'llmost' || currentApiProvider === 'openrouter')) {
+            messages.push({ 
+                role: "system", 
+                content: [
+                    {
+                        type: "text",
+                        text: systemInstruction,
+                        cache_control: { type: "ephemeral" }
+                    }
+                ]
+            });
+        } else {
+            messages.push({ role: "system", content: systemInstruction });
+        }
+
         if (history && history.length > 0) {
             history.forEach(item => {
                 messages.push({
@@ -7138,6 +7754,13 @@ async function _internalPerformAiFetch(systemInstruction, history, providerModel
                 delete requestBody.provider;
                 retry = true;
             }
+            if (errText.includes("cache_control")) {
+                console.warn('[API] Модель не поддерживает cache_control, отключаю...');
+                if (requestBody.messages && requestBody.messages[0] && Array.isArray(requestBody.messages[0].content)) {
+                    requestBody.messages[0].content = requestBody.messages[0].content[0].text;
+                }
+                retry = true;
+            }
             if (errText.includes("thinking") || errText.includes("reasoning_effort")) {
                 console.warn('[API] Модель не поддерживает thinking mode, отключаю...');
                 delete requestBody.thinking;
@@ -7173,93 +7796,15 @@ async function _internalPerformAiFetch(systemInstruction, history, providerModel
 /**
  * ОСНОВНАЯ ФУНКЦИЯ (ОРКЕСТРАТОР): Счетовод -> Поэт
  */
-async function generateLocalMapFromAI(description, size) {
-    console.log(`[CityGen] Запрос генерации карты: ${size}, Описание: ${description}`);
-    try {
-        const promptTemplate = await loadPromptFromFile('assets/promts/map_generator_prompt.txt');
-        if (promptTemplate.startsWith('Ошибка:')) throw new Error("Промпт генератора карт не найден.");
-        
-        const finalPrompt = promptTemplate
-            .replace('{size}', size)
-            .replace('{description}', description)
-            .replace('{available_tiles}', AVAILABLE_TILES_LIST);
-            
-        const modelId = currentApiProvider === 'gemini' ? geminiModelId : (currentApiProvider === 'llmost' ? llmostModelId : openrouterModelId);
-        
-        const rawResponse = await performAiFetch(finalPrompt, [], modelId, "Сгенерируй JSON план локации. ТЫ ОБЯЗАН ЗАПОЛНИТЬ АБСОЛЮТНО ВСЕ КЛЕТКИ СЕТКИ БЕЗ ПРОПУСКОВ! Выдай только JSON.");
-        
-        let plots = null;
-
-        // 1. Пытаемся распарсить стандартным способом
-        try {
-            const startIdx = rawResponse.indexOf('{');
-            const endIdx = rawResponse.lastIndexOf('}');
-            if (startIdx !== -1 && endIdx !== -1) {
-                let jsonString = rawResponse.substring(startIdx, endIdx + 1);
-                jsonString = jsonString.replace(/,\s*([\]}])/g, '$1');
-                const parsed = JSON.parse(jsonString);
-                
-                if (parsed.actions && Array.isArray(parsed.actions)) {
-                    const action = parsed.actions.find(a => a.command === 'renderLocation');
-                    if (action && action.args && action.args.plots) {
-                        plots = action.args.plots;
-                    }
-                }
-                if (!plots && parsed.args && parsed.args.plots) plots = parsed.args.plots;
-                if (!plots && parsed.plots) plots = parsed.plots;
-            }
-            
-            // Если ИИ вернул просто массив
-            if (!plots) {
-                const arrStart = rawResponse.indexOf('[');
-                const arrEnd = rawResponse.lastIndexOf(']');
-                if (arrStart !== -1 && arrEnd !== -1) {
-                    let arrString = rawResponse.substring(arrStart, arrEnd + 1);
-                    arrString = arrString.replace(/,\s*([\]}])/g, '$1');
-                    const parsedArr = JSON.parse(arrString);
-                    if (Array.isArray(parsedArr) && parsedArr.length > 0 && parsedArr[0].x !== undefined) {
-                        plots = parsedArr;
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn("[CityGen] Стандартный парсинг JSON не удался, пробуем экстренный метод.", e.message);
-        }
-
-        // 2. Экстренное спасение (если JSON обрезан из-за лимита токенов или сломан)
-        if (!plots || plots.length === 0) {
-            plots = [];
-            // Ищем все плоские объекты в ответе
-            const regex = /\{[^{}]*\}/g;
-            const matches = rawResponse.match(regex);
-            if (matches) {
-                for (const m of matches) {
-                    try {
-                        const cleanM = m.replace(/,\s*\}/g, '}');
-                        const obj = JSON.parse(cleanM);
-                        if (obj.x !== undefined && obj.y !== undefined && obj.type) {
-                            plots.push(obj);
-                        }
-                    } catch(e) {}
-                }
-            }
-            if (plots.length > 0) {
-                console.log(`[CityGen] Экстренно спасено тайлов: ${plots.length}`);
-            }
-        }
-
-        if (plots && plots.length > 0) {
-            return plots;
-        }
-        
-        throw new Error("Нейросеть не вернула массив plots или ответ был сильно поврежден.");
-    } catch (e) {
-        console.error("[CityGen] Ошибка генерации карты:", e);
-        return []; // Возвращаем пустой массив при ошибке
-    }
+/**
+ * @deprecated Ожидает реализации на движке.
+ */
+async function generateLocalMapFromAI(description, size) { 
+    console.warn("Ожидает реализации на движке"); 
+    return []; 
 }
 
-async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRollResponse = false, expiredEffects = [], isSummarizationRequest = false, skipLogic = false) {
+async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRollResponse = false, expiredEffects = [], isSummarizationRequest = false, timeRetryCount = 0) {
     isWaitingForAI = true;
     if (userInput) userInput.disabled = true;
     if (sendButton) sendButton.disabled = true;
@@ -7267,14 +7812,11 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
     const oldRetryBtn = document.getElementById('retry-request-btn');
     if (oldRetryBtn) oldRetryBtn.remove();
 
-    let logicPhaseCompleted = skipLogic;
-
-    // --- НОВАЯ СИСТЕМА ЛОАДЕРА (АСТРОЛЯБИЯ) ---
     const oldLoader = document.getElementById('active-ether-loader');
     if (oldLoader) oldLoader.remove();
 
-    const thinkingTitle = skipLogic ? "Вплетение новых нитей..." : (isInitialPrompt ? "Сотворение мира..." : "Чтение узоров Эфира...");
-    const thinkingSub = skipLogic ? "Поэт корректирует летопись" : (isInitialPrompt ? "Синтез первозданной материи" : "Счетовод вычисляет вероятности");
+    const thinkingTitle = isInitialPrompt ? "Сотворение мира..." : "Сплетение нитей судьбы...";
+    const thinkingSub = isInitialPrompt ? "Синтез первозданной материи" : "Единый разум обрабатывает реальность";
 
     const loaderDiv = document.createElement('div');
     loaderDiv.id = 'active-ether-loader';
@@ -7305,7 +7847,6 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             setTimeout(() => loader.remove(), 300);
         }
     };
-    // ------------------------------------------
 
     try {
         const modelIdForRequest = currentApiProvider === 'gemini' ? geminiModelId :
@@ -7313,7 +7854,13 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
                 currentApiProvider === 'openrouter' ? openrouterModelId : localModelId;
 
         let allPendingActions = [];
-        let logicSummaryForPoet = "";
+        let timeToApply = null;
+
+        const validateTime = (res) => {
+            if (isSummarizationRequest) return true;
+            if (!res.time_passed) return false;
+            return true;
+        };
 
         if (isInitialPrompt) {
             console.log(">>> Запуск Инициализации (Single Pass)...");
@@ -7321,26 +7868,26 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             let result = parseAIResponse(rawResponse);
 
             if (!result || !result.narrative) throw new Error("GM не смог сгенерировать стартовую сцену.");
+            if (!validateTime(result)) throw new Error("MISSING_TIME_PASSED");
 
+            timeToApply = result.time_passed;
             removeEtherLoader();
             allPendingActions = result.actions || [];
 
-            // --- ПЕРЕХВАТ И ГЕНЕРАЦИЯ КАРТЫ (OFFLOADING) ДЛЯ UNIFIED ---
             const mapAction = allPendingActions.find(a => a.command === 'renderLocation');
             if (mapAction && enableLocalMap) {
                 const loaderSub = document.querySelector('.ether-text-subtitle');
                 if (loaderSub) loaderSub.textContent = "Отрисовка плана местности...";
-                
-                // ФИКС: Используем имя локации игрока, если ИИ не описал местность отдельно
-                const locDesc = mapAction.args.description || `Локация: ${player.location}` || "Таинственное место";
-                const generatedPlots = await generateLocalMapFromAI(locDesc, mapAction.args.size || "15x15");
-                mapAction.args.plots = generatedPlots;
             }
 
             addLogMessage(result.narrative, "gm-message", false, result.image_prompt);
             conversationHistory.push({ role: "model", parts: [{ text: result.narrative }] });
             if (result.image_prompt && player && player.gmNotes) player.gmNotes['last_image_prompt'] = result.image_prompt;
-            if(result.image_prompt) player.gmNotes['last_image_prompt'] = result.image_prompt;
+
+            if (timeToApply && !isSummarizationRequest) {
+                if (allPendingActions.some(a => a.command === 'startTravel')) timeToApply = { days: 0, hours: 0, minutes: 5 };
+                applyTimePassed(timeToApply);
+            }
 
             let currentErrors = [];
             allPendingActions.forEach(action => {
@@ -7361,38 +7908,34 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             updateEnvironmentPanel();
             updateWorldChroniclesDisplay();
             updateTradeJournalDisplay();
+            updatePortPanel();
             hideLoadingScreen();
 
-            // Автосохранение после успешной генерации
             await autoSaveGame();
 
-        } else if (currentGmMode === 'unified' && !isSummarizationRequest) {
-            // --- ЕДИНЫЙ РЕЖИМ (UNIFIED GM) ---
+        } else if (!isSummarizationRequest) {
             console.log(">>> Запуск Единого GM...");
-            const loaderTitle = document.querySelector('.ether-text-title');
-            const loaderSub = document.querySelector('.ether-text-subtitle');
-            if (loaderTitle) loaderTitle.textContent = "Сплетение нитей судьбы...";
-            if (loaderSub) loaderSub.textContent = "Единый разум обрабатывает реальность";
+            
+            const unifiedPrompt = await prepareUnifiedPrompt();
+            const dynamicContext = buildDynamicContext(expiredEffects);
+            const finalInput = `${dynamicContext}\nИгрок ввел: "${promptTextForAI}"`;
 
-            const unifiedPrompt = await prepareUnifiedPrompt(expiredEffects, promptTextForAI);
-
-            const rawResponse = await performAiFetch(unifiedPrompt, conversationHistory, modelIdForRequest, promptTextForAI);
+            const rawResponse = await performAiFetch(unifiedPrompt, conversationHistory, modelIdForRequest, finalInput);
             const result = parseAIResponse(rawResponse);
 
             if (!result || (!result.narrative && !result.actions)) throw new Error("Единый GM вернул пустой ответ.");
+            if (!validateTime(result)) throw new Error("MISSING_TIME_PASSED");
 
+            timeToApply = result.time_passed;
             allPendingActions = result.actions || [];
+            
+            let valErrors = validateActionsArray(allPendingActions);
+            if (valErrors.length > 0) throw new Error("VALIDATION_FAILED|" + valErrors.join("; "));
 
-            // --- ПЕРЕХВАТ И ГЕНЕРАЦИЯ КАРТЫ (OFFLOADING) ДЛЯ UNIFIED ---
             const mapAction = allPendingActions.find(a => a.command === 'renderLocation');
             if (mapAction && enableLocalMap) {
                 const loaderSub = document.querySelector('.ether-text-subtitle');
                 if (loaderSub) loaderSub.textContent = "Отрисовка плана местности...";
-                
-                // ФИКС: Используем имя локации игрока, если ИИ не описал местность отдельно
-                const locDesc = mapAction.args.description || `Локация: ${player.location}` || "Таинственное место";
-                const generatedPlots = await generateLocalMapFromAI(locDesc, mapAction.args.size || "15x15");
-                mapAction.args.plots = generatedPlots;
             }
             const narrativeText = result.narrative || "Действие выполнено.";
 
@@ -7402,6 +7945,11 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             conversationHistory.push({ role: "user", parts: [{ text: promptTextForAI }] });
             conversationHistory.push({ role: "model", parts: [{ text: narrativeText }] });
             if (result.image_prompt && player && player.gmNotes) player.gmNotes['last_image_prompt'] = result.image_prompt;
+
+            if (timeToApply && !isSummarizationRequest) {
+                if (allPendingActions.some(a => a.command === 'startTravel')) timeToApply = { days: 0, hours: 0, minutes: 5 };
+                applyTimePassed(timeToApply);
+            }
 
             let currentErrors = [];
             allPendingActions.forEach(action => {
@@ -7420,108 +7968,13 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             updateMapDisplay();
             updateInventoryDisplay();
             updateEnvironmentPanel();
-
-        } else {
-            // --- ЭТАП 1: СЧЕТОВОД (LOGIC) ---
-            if (!isSummarizationRequest && !skipLogic) {
-                console.log(">>> Запуск Счетовода...");
-                let logicSystemPrompt = await prepareLogicPrompt(expiredEffects, promptTextForAI);
-                let logicInput = promptTextForAI;
-
-                let rawLogicResponse = await performAiFetch(logicSystemPrompt, [], modelIdForRequest, logicInput);
-                let logicResult = parseAIResponse(rawLogicResponse);
-
-                // Агентский цикл (поиск в архиве)
-                let searchAction = logicResult.actions.find(a => a.command === 'searchArchive');
-                if (searchAction && searchAction.args && searchAction.args.query) {
-                    console.log("[Agent Loop] Поиск в архиве...");
-                    let foundData = "";
-                    const query = searchAction.args.query.toLowerCase();
-                    for (const [key, text] of Object.entries(player.memoryArchives || {})) {
-                        if (key.toLowerCase().includes(query) || text.toLowerCase().includes(query)) foundData += `Блок [${key}]: ${text}\n`;
-                    }
-                    logicInput += `\n\n[SYSTEM: РЕЗУЛЬТАТ ПОИСКА ПО АРХИВУ]\n${foundData || "Информация не найдена."}`;
-                    rawLogicResponse = await performAiFetch(logicSystemPrompt, [], modelIdForRequest, logicInput);
-                    logicResult = parseAIResponse(rawLogicResponse);
-                }
-
-                if (!logicResult || (!logicResult.logic_summary && !logicResult.actions)) throw new Error("Счетовод вернул пустой ответ.");
-
-                allPendingActions = logicResult.actions || [];
-
-                // --- ПЕРЕХВАТ И ГЕНЕРАЦИЯ КАРТЫ (OFFLOADING) ---
-                const mapAction = allPendingActions.find(a => a.command === 'renderLocation');
-        if (mapAction && enableLocalMap) {
-            const loaderSub = document.querySelector('.ether-text-subtitle');
-            if (loaderSub) loaderSub.textContent = "Отрисовка плана местности...";
-            
-            const locDesc = mapAction.args.description || `Локация: ${player.location}` || "Таинственное место";
-            const generatedPlots = await generateLocalMapFromAI(locDesc, mapAction.args.size || "15x15");
-            mapAction.args.plots = generatedPlots;
-        }
-                logicSummaryForPoet = logicResult.logic_summary || logicResult.narrative || "Механика подтверждена.";
-
-                cachedLogicState = { actions: allPendingActions, summary: logicSummaryForPoet };
-                logicPhaseCompleted = true;
-            } else if (skipLogic) {
-                if (!cachedLogicState) {
-                    console.warn("Попытка пропуска логики при пустом кэше. Перезапуск Счетовода.");
-                    return sendApiRequest(promptTextForAI, isInitialPrompt, isDiceRollResponse, expiredEffects, isSummarizationRequest, false);
-                }
-                allPendingActions = cachedLogicState.actions;
-                logicSummaryForPoet = cachedLogicState.summary;
-            }
-
-            // --- ЭТАП 2: ПОЭТ ---
-            if (!isSummarizationRequest) {
-                console.log(">>> Запуск Поэта...");
-                const narrativeSystemPrompt = await prepareNarrativePrompt(logicSummaryForPoet, promptTextForAI);
-
-                // ПАТЧ: Жестко скармливаем Поэту действия игрока и расчеты Счетовода в последний запрос, чтобы он не мог их проигнорировать
-                const actionsString = allPendingActions.length > 0 ? JSON.stringify(allPendingActions, null, 2) : "Нет системных команд.";
-                const poetInput = `[ДЕЙСТВИЕ ИГРОКА И БРОСКИ]: ${promptTextForAI}\n\n[ФАКТЫ И РАСЧЕТЫ ОТ СЧЕТОВОДА (ВЫПОЛНИ ЕГО ИНСТРУКЦИИ)]: ${logicSummaryForPoet}\n\n[ВЫПОЛНЕННЫЕ СИСТЕМНЫЕ КОМАНДЫ (ОБЯЗАТЕЛЬНО ОТРАЗИ ИХ В ТЕКСТЕ)]:\n${actionsString}`;
-
-                const rawNarrativeResponse = await performAiFetch(narrativeSystemPrompt, conversationHistory, modelIdForRequest, poetInput);
-                const narrativeResult = parseAIResponse(rawNarrativeResponse);
-
-                if (!narrativeResult || !narrativeResult.narrative) throw new Error("Поэт не смог описать ситуацию.");
-
-                removeEtherLoader();
-                addLogMessage(narrativeResult.narrative, "gm-message", false, narrativeResult.image_prompt);
-
-                conversationHistory.push({ role: "user", parts: [{ text: promptTextForAI }] });
-                conversationHistory.push({ role: "model", parts: [{ text: narrativeResult.narrative }] });
-
-                if (!skipLogic) {
-                    let currentErrors = [];
-                    allPendingActions.forEach(action => {
-                        const feedback = executeCommand(action.command, action.args);
-                        if (feedback) {
-                            addLogMessage(feedback, "command-feedback");
-                            addCalculationMessage(feedback);
-                            if (typeof feedback === 'string' && feedback.includes("[ERROR]")) {
-                                currentErrors.push(`Команда ${action.command} с аргументами ${JSON.stringify(action.args)} вызвала ошибку: ${feedback}`);
-                            }
-                        }
-                    });
-                    player.gmErrors = currentErrors;
-                }
-
-                updateCharacterSheet();
-                updateMapDisplay();
-                updateInventoryDisplay();
-                updateEnvironmentPanel();
-            }
         }
 
-        // --- АВТОМАТИЧЕСКАЯ АРХИВАЦИЯ ПАМЯТИ ПОСЛЕ ХОДА ---
         if (!isInitialPrompt && !isSummarizationRequest && player.stats.turnCount > 0 && player.stats.turnCount % MEMORY_SUMMARY_TURN === 0) {
             await runBackgroundSummarization();
         }
 
-        // --- ГЛОБАЛЬНАЯ СИМУЛЯЦИЯ МИРА (ПОСЛЕ ДЕЙСТВИЙ GM) ---
         if (enableWorldSim && World && player && !isInitialPrompt && !isSummarizationRequest) {
-            // Запускаем событие если мир требует (прошел день) ИЛИ каждые 15 ходов для динамики игры
             if (World.needsGlobalEvent || (player.stats.turnCount > 0 && player.stats.turnCount % 15 === 0)) {
                 await runWorldSimulationTick();
                 World.needsGlobalEvent = false;
@@ -7529,6 +7982,23 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
         }
 
     } catch (error) {
+        if (error.message === "MISSING_TIME_PASSED" && timeRetryCount < 3) {
+            console.warn(`GM забыл указать time_passed. Попытка ${timeRetryCount + 1} из 3...`);
+            const timeErrorPrompt = promptTextForAI + "\n\n[СИСТЕМНАЯ ОШИБКА]: Твой предыдущий ответ был отклонён. Ты КАТЕГОРИЧЕСКИ ЗАБЫЛ добавить обязательное поле \"time_passed\" на верхнем уровне JSON или указал там нули. Оцени, сколько времени заняло действие игрока (даже если это 5 минут на разговор), добавь поле \"time_passed\": {\"days\": 0, \"hours\": 0, \"minutes\": 5} и сгенерируй ответ заново.";
+            const loaderSub = document.querySelector('.ether-text-subtitle');
+            if (loaderSub) loaderSub.textContent = "Корректировка временного потока...";
+            return sendApiRequest(timeErrorPrompt, isInitialPrompt, isDiceRollResponse, expiredEffects, isSummarizationRequest, timeRetryCount + 1);
+        }
+        
+        if (error.message.startsWith("VALIDATION_FAILED|") && timeRetryCount < 3) {
+            console.warn(`GM прислал невалидные команды. Попытка ${timeRetryCount + 1} из 3...`);
+            let errs = error.message.split("|")[1];
+            const validationErrorPrompt = promptTextForAI + `\n\n[СИСТЕМНАЯ ОШИБКА]: Твой предыдущий ответ был отклонён из-за неверных аргументов в командах:\n${errs}\nИСПРАВЬ ЭТИ ОШИБКИ И СГЕНЕРИРУЙ ОТВЕТ ЗАНОВО. ИСПОЛЬЗУЙ ТОЛЬКО СУЩЕСТВУЮЩИЕ ID И ТИПЫ!`;
+            const loaderSub = document.querySelector('.ether-text-subtitle');
+            if (loaderSub) loaderSub.textContent = "Исправление логических ошибок...";
+            return sendApiRequest(validationErrorPrompt, isInitialPrompt, isDiceRollResponse, expiredEffects, isSummarizationRequest, timeRetryCount + 1);
+        }
+
         console.error("Ошибка API:", error);
         removeEtherLoader();
 
@@ -7542,15 +8012,15 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
             isInitialPrompt,
             () => {
                 if (isInitialPrompt) showLoadingScreen('loadingScreen.generatingWorld', 'Генерация мира...');
-                sendApiRequest(lastUserMessageForRetry, isInitialPrompt, isDiceRollResponse, [], false, logicPhaseCompleted);
+                sendApiRequest(lastUserMessageForRetry, isInitialPrompt, isDiceRollResponse, [], false);
             }
         );
 
-    }     finally {
+    } finally {
         const errorModal = document.getElementById('ai-error-modal');
         if (!errorModal || !errorModal.classList.contains('visible')) {
+            isWaitingForAI = false;
             if (!window.isSimulatingTime) {
-                isWaitingForAI = false;
                 if (userInput) userInput.disabled = false;
                 if (sendButton) sendButton.disabled = false;
                 if (userInput) userInput.focus();
@@ -7558,6 +8028,7 @@ async function sendApiRequest(promptTextForAI, isInitialPrompt = false, isDiceRo
         }
     }
 }
+
 
 
 
@@ -7609,6 +8080,7 @@ function parseAIResponse(rawResponse) {
     let actions = [];
     let logic_summary = "";
     let image_prompt = "";
+    let time_passed = { days: 0, hours: 0, minutes: 0 };
 
     // 1. Очистка от маркдауна сразу
     let cleanRaw = rawResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -7626,7 +8098,7 @@ function parseAIResponse(rawResponse) {
             }
         }
 
-    // 3. Ищем главный объект {}
+        // 3. Ищем главный объект {}
     const startIdx = cleanRaw.indexOf('{');
     let endIdx = -1;
 
@@ -7661,10 +8133,23 @@ function parseAIResponse(rawResponse) {
             } else {
                 actions = [];
             }
+            
             if (parsed.director_notes && DEBUG_MODE) console.log("[GM THOUGHTS]:", parsed.director_notes);
             logic_summary = parsed.logic_summary || "";
             narrative = parsed.narrative || "";
             image_prompt = parsed.image_prompt || "";
+            
+            // АВТО-ФИКС ВРЕМЕНИ: Если поля нет, создаем его (1 минута по умолчанию)
+            if (!parsed.time_passed) {
+                console.warn("[Parser] GM забыл time_passed, ставлю 1 минуту.");
+                time_passed = { days: 0, hours: 0, minutes: 1 };
+            } else {
+                time_passed = {
+                    days: parseInt(parsed.time_passed.days) || 0,
+                    hours: parseInt(parsed.time_passed.hours) || 0,
+                    minutes: parseInt(parsed.time_passed.minutes) || 0
+                };
+            }
 
         } catch (jsonErr) {
             console.error("КРИТИЧЕСКАЯ ОШИБКА ПАРСИНГА:", jsonErr);
@@ -7691,7 +8176,7 @@ function parseAIResponse(rawResponse) {
         narrative = "(( Системный сбой связи с Эфиром. Мастер Игры прислал технический код вместо текста. Действия выполнены. ))";
     }
 
-    return { narrative, actions, logic_summary, image_prompt };
+    return { narrative, actions, logic_summary, image_prompt, time_passed };
 }
 
 function animateGoldChange(amount) {
@@ -7733,13 +8218,37 @@ function animateGoldChange(amount) {
  * ПОЛНАЯ СБОРКА ДЛЯ СЧЕТОВОДА (LOGIC)
  * Включает: logic_rules + rules_and_instructions + combat_rules + env_guide + items_ref + snapshot
  */
-async function prepareUnifiedPrompt(expiredEffects, promptTextForAI) {
+function buildDynamicContext(expiredEffects) {
+    let echoMemoryString = '';
+    if (player && player.echoMemory && player.echoMemory.items && player.echoMemory.items.length > 0) {
+        const itemsList = player.echoMemory.items.map((item, idx) => `${idx+1}. ${item}`).join('\n');
+        echoMemoryString = `\n### ЭХО-ПАМЯТЬ (КЛЮЧЕВЫЕ ФАКТЫ, НИКОГДА НЕ ЗАБЫВАЙ):\n${itemsList}\n`;
+    }
+    const snapshot = buildFullPlayerSnapshot();
+    const expiredText = expiredEffects && expiredEffects.length > 0 ? `ВНИМАНИЕ: Истекли эффекты: ${expiredEffects.join(', ')}` : "";
+    const errorText = (player && player.gmErrors && player.gmErrors.length > 0) ? `\n\n[КРИТИЧЕСКАЯ СИСТЕМНАЯ ОШИБКА ПРОШЛОГО ХОДА]\nТы допустил ошибки в JSON-командах в прошлом ответе:\n${player.gmErrors.join('\n')}\nТВОЙ АБСОЛЮТНЫЙ ПРИОРИТЕТ В ЭТОМ ХОДУ: ИСПРАВИТЬ ЭТИ ОШИБКИ! Вызови правильные команды с верными аргументами, прежде чем продолжать сюжет!` : "";
+    
+    return `======================================================================\n=== ДИНАМИЧЕСКИЕ ДАННЫЕ (ИЗМЕНЯЮТСЯ КАЖДЫЙ ХОД) ===\n======================================================================\n${echoMemoryString}\n${snapshot}\n${expiredText}\n${errorText}\n`;
+}
+
+
+let GLOBAL_CACHED_SYSTEM_PROMPT = null;
+
+function clearPromptCache() {
+    GLOBAL_CACHED_SYSTEM_PROMPT = null;
+    console.log("[Cache] Системный промпт сброшен.");
+}
+
+
+async function prepareUnifiedPrompt() {
+    if (GLOBAL_CACHED_SYSTEM_PROMPT) return GLOBAL_CACHED_SYSTEM_PROMPT;
     try {
         const logicRules = await loadPromptFromFile('assets/promts/logic_rules.txt');
         const narrativeRules = await loadPromptFromFile('assets/promts/narrative_rules.txt');
-                let masterInstructions = await loadPromptFromFile('assets/promts/1.txt');
-        let imgInstructionMaster = enableImageGeneration ? '"image_prompt": "ОБЯЗАТЕЛЬНО! Описание ТЕКУЩЕЙ сцены СТРОГО НА АНГЛИЙСКОМ ЯЗЫКЕ для нейросети генерации картинок. Пиши тегами через запятую. Укажи: персонажей, окружение, освещение, атмосферу. Обязательно добавляй в конце: \'dark fantasy anime style, cinematic lighting, masterpiece, highly detailed\'.",' : '';
-        masterInstructions = masterInstructions.replace(/\{image_prompt_instruction\}/g, imgInstructionMaster);
+        let masterInstructions = await loadPromptFromFile('assets/promts/1.txt');
+        let imgInstructionMaster = enableImageGeneration ? '"image_prompt": "ОБЯЗАТЕЛЬНО! Описание ТЕКУЩЕЙ сцены СТРОГО НА АНГЛИЙСКОМ ЯЗЫКЕ для нейросети генерации картинок. Пиши тегами через запятую. Укажи персонажей и детали. Обязательно добавляй в конце: \'Ado music video aesthetic, monochrome anime style with one spot color, dark gothic, creepy vibe, extreme contrast, inverted colors, masterpiece, highly detailed\'.",' : '';
+        masterInstructions = masterInstructions.replace(/\{image_prompt_instruction\}/g, imgInstructionMaster)
+                                               .replace(/\{debugMode\}/g, DEBUG_MODE ? "true" : "false");
         const rulesAndInstructions = await loadPromptFromFile('assets/promts/rules_and_instructions.txt');
         const combatRules = await loadPromptFromFile('assets/promts/combat_system_rules.txt');
         const envGuide = await loadPromptFromFile('assets/promts/environment_commands_guide.txt');
@@ -7747,18 +8256,9 @@ async function prepareUnifiedPrompt(expiredEffects, promptTextForAI) {
         const itemsRefString = Array.isArray(itemsReferenceData) ? JSON.stringify(itemsReferenceData) : "DATABASE ERROR";
 
         const eraContext = activeEraSpecialLore || "Данные по эпохе отсутствуют.";
-        let echoMemoryString = '';
-        if (player && player.echoMemory && player.echoMemory.items && player.echoMemory.items.length > 0) {
-            const itemsList = player.echoMemory.items.map((item, idx) => `${idx+1}. ${item}`).join('\n');
-            echoMemoryString = `\n### ЭХО-ПАМЯТЬ (КЛЮЧЕВЫЕ ФАКТЫ, НИКОГДА НЕ ЗАБЫВАЙ):\n${itemsList}\n`;
-        }
-
-        
-        const snapshot = buildFullPlayerSnapshot();
-        const expiredText = expiredEffects && expiredEffects.length > 0 ? `ВНИМАНИЕ: Истекли эффекты: ${expiredEffects.join(', ')}` : "";
+        const style = await loadPromptFromFile('assets/promts/supreme_gm_style.txt');
+        const nsfwRules = allowNSFW ? await loadPromptFromFile('assets/promts/nsfw_rules.txt') : '';
         const responseLanguage = (currentLanguage === 'ru') ? 'Russian' : 'English';
-        const errorText = (player && player.gmErrors && player.gmErrors.length > 0) ? `\n\n[КРИТИЧЕСКАЯ СИСТЕМНАЯ ОШИБКА ПРОШЛОГО ХОДА]\nТы допустил ошибки в JSON-командах в прошлом ответе:\n${player.gmErrors.join('\n')}\nТВОЙ АБСОЛЮТНЫЙ ПРИОРИТЕТ В ЭТОМ ХОДУ: ИСПРАВИТЬ ЭТИ ОШИБКИ! Вызови правильные команды с верными аргументами, прежде чем продолжать сюжет!` : "";
-        const style = narrators[currentNarratorIndex] ? await (await fetch(narrators[currentNarratorIndex].promptFile)).text() : "";
 
         let finalPrompt = `
 ${masterInstructions}
@@ -7778,11 +8278,6 @@ ${worldLore}
 ### СПРАВОЧНИК ПРЕДМЕТОВ:
 ${itemsRefString}
 
-${echoMemoryString}
-${snapshot}
-${expiredText}
-${errorText}
-
 ### СТИЛЬ ПОВЕСТВОВАНИЯ:
 ${style}
 
@@ -7794,16 +8289,17 @@ ${style}
 Формат:
 {
   ${enableImageGeneration ? '"image_prompt": "Описание сцены на АНГЛИЙСКОМ языке для генератора картинок (ОБЯЗАТЕЛЬНО).",' : ''}
+  "time_passed": { "days": 0, "hours": 0, "minutes": 5 },
   "narrative": "Твой художественный текст...",
   "actions": [ ...массив команд... ],
   "logic_summary": "Краткая сводка твоих расчетов (опционально)"
 }
 
-ВНИМАНИЕ: Если ты генерируешь карту (renderLocation), помни, что её описание — это техническая спецификация для робота-строителя, а не текст для игрока.
+### ВАЖНО: Если игрок использует теги {d20}, {str} и т.д. — интерпретируй их как броски кубиков и включай результат в повествование.
+${nsfwRules}`;
 
-Игрок ввел: "${promptTextForAI}"`;
-
-        if (allowNSFW) finalPrompt += NSFW_PROMPT_INJECTION;
+        GLOBAL_CACHED_SYSTEM_PROMPT = finalPrompt;
+        console.log("[Cache] Системный промпт успешно собран и закэширован в памяти.");
         return finalPrompt;
     } catch (error) {
         console.error("Error in prepareUnifiedPrompt:", error);
@@ -7811,66 +8307,11 @@ ${style}
     }
 }
 
-async function prepareLogicPrompt(expiredEffects, promptTextForAI) {
 
 
-    try {
-        const logicRules = await loadPromptFromFile('assets/promts/logic_rules.txt');
-                let masterInstructions = await loadPromptFromFile('assets/promts/1.txt');
-        let imgInstructionMaster = enableImageGeneration ? '"image_prompt": "ОБЯЗАТЕЛЬНО! Описание ТЕКУЩЕЙ сцены СТРОГО НА АНГЛИЙСКОМ ЯЗЫКЕ для нейросети генерации картинок. Пиши тегами через запятую. Укажи: персонажей, окружение, освещение, атмосферу. Обязательно добавляй в конце: \'dark fantasy anime style, cinematic lighting, masterpiece, highly detailed\'.",' : '';
-        masterInstructions = masterInstructions.replace(/\{image_prompt_instruction\}/g, imgInstructionMaster);
-        const rulesAndInstructions = await loadPromptFromFile('assets/promts/rules_and_instructions.txt');
-        const combatRules = await loadPromptFromFile('assets/promts/combat_system_rules.txt');
-        const envGuide = await loadPromptFromFile('assets/promts/environment_commands_guide.txt');
-        const itemsRefString = Array.isArray(itemsReferenceData) ? JSON.stringify(itemsReferenceData) : "DATABASE ERROR: Items not loaded";
 
-        const eraContext = activeEraSpecialLore || "Данные по эпохе отсутствуют.";
 
-        let echoMemoryString = '';
-        if (player && player.echoMemory && player.echoMemory.items && player.echoMemory.items.length > 0) {
-            const itemsList = player.echoMemory.items.map((item, idx) => `${idx+1}. ${item}`).join('\n');
-            echoMemoryString = `\n### ЭХО-ПАМЯТЬ (КЛЮЧЕВЫЕ ФАКТЫ, НИКОГДА НЕ ЗАБЫВАЙ):\n${itemsList}\n`;
-        }
 
-        
-        const snapshot = buildFullPlayerSnapshot();
-        const expiredText = expiredEffects && expiredEffects.length > 0 ? `ВНИМАНИЕ: Истекли эффекты: ${expiredEffects.join(', ')}` : "";
-        const responseLanguage = (currentLanguage === 'ru') ? 'Russian' : 'English';
-        const errorText = (player && player.gmErrors && player.gmErrors.length > 0) ? `\n\n[КРИТИЧЕСКАЯ СИСТЕМНАЯ ОШИБКА ПРОШЛОГО ХОДА]\nТы допустил ошибки в JSON-командах в прошлом ответе:\n${player.gmErrors.join('\n')}\nТВОЙ АБСОЛЮТНЫЙ ПРИОРИТЕТ В ЭТОМ ХОДУ: ИСПРАВИТЬ ЭТИ ОШИБКИ! Вызови правильные команды с верными аргументами, прежде чем продолжать сюжет!` : "";
-
-        let promptString = `
-${logicRules}
-${masterInstructions}
-${rulesAndInstructions}
-${combatRules}
-${envGuide}
-
-### РЕЕСТР ТЕКУЩЕЙ ЭПОХИ (ПРИОРИТЕТНАЯ ИСТИНА):
-${eraContext}
-
-### СПРАВОЧНИК ПРЕДМЕТОВ (ITEMS DATABASE):
-${itemsRefString}
-
-${echoMemoryString}
-${snapshot}
-${expiredText}
-${errorText}
-
-ЯЗЫК ОТВЕТА (КРИТИЧЕСКИ ВАЖНО): СТРОГО ${responseLanguage.toUpperCase()}! Весь текст в полях "director_notes" и "logic_summary" ОБЯЗАН быть на этом языке.
-
-### ИНСТРУКЦИЯ:
-Выполни расчеты и верни JSON.
-ВНИМАНИЕ: Если ты генерируешь карту (renderLocation), помни, что её описание — это техническая спецификация для робота-строителя, а не текст для игрока.`;
-        if (allowNSFW) promptString += NSFW_PROMPT_INJECTION;
-        return promptString;
-
-        if (allowNSFW) promptString += NSFW_PROMPT_INJECTION;
-        return promptString;
-    } catch (error) {
-        console.error("Error in prepareLogicPrompt:", error);
-        return "Critical logic error";
-    }
-}
 
 
 
@@ -7878,55 +8319,9 @@ ${errorText}
  * ПОЛНАЯ СБОРКА ДЛЯ ПОЭТА (NARRATIVE)
  * Включает: narrative_rules + rules_and_instructions + skills_ref + lore + snapshot + logic_summary
  */
-async function prepareNarrativePrompt(logicSummary, promptTextForAI) {
-    const narrativeRules = await loadPromptFromFile('assets/promts/narrative_rules.txt');
-            let masterInstructions = await loadPromptFromFile('assets/promts/1.txt');
-        let imgInstructionMaster = enableImageGeneration ? '"image_prompt": "ОБЯЗАТЕЛЬНО! Описание ТЕКУЩЕЙ сцены СТРОГО НА АНГЛИЙСКОМ ЯЗЫКЕ для нейросети генерации картинок. Пиши тегами через запятую. Укажи: персонажей, окружение, освещение, атмосферу. Обязательно добавляй в конце: \'dark fantasy anime style, cinematic lighting, masterpiece, highly detailed\'.",' : '';
-        masterInstructions = masterInstructions.replace(/\{image_prompt_instruction\}/g, imgInstructionMaster);
-    const skillRef = await loadPromptFromFile('assets/promts/skills_reference_prompt.txt');
-    let echoMemoryString = '';
-    if (player && player.echoMemory && player.echoMemory.items && player.echoMemory.items.length > 0) {
-        const itemsList = player.echoMemory.items.map((item, idx) => `${idx+1}. ${item}`).join('\n');
-        echoMemoryString = `\n### ЭХО-ПАМЯТЬ (КЛЮЧЕВЫЕ ФАКТЫ, НИКОГДА НЕ ЗАБЫВАЙ):\n${itemsList}\n`;
-    }
 
-    const snapshot = buildFullPlayerSnapshot();
-    const responseLanguage = (currentLanguage === 'ru') ? 'Russian' : 'English';
-    const style = narrators[currentNarratorIndex] ? await (await fetch(narrators[currentNarratorIndex].promptFile)).text() : "";
 
-    const eraContextNarrative = activeEraSpecialLore || "";
 
-    let promptString = `
-${narrativeRules}
-${masterInstructions}
-${skillRef}
-
-### СПЕЦИФИЧЕСКИЙ ЛОР ТЕКУЩЕЙ ЭПОХИ (ИСПОЛЬЗУЙ НАЗВАНИЯ ОТСЮДА):
-${eraContextNarrative}
-
-### ЛОР МИРА:
-${worldLore}
-
-${echoMemoryString}
-${snapshot}
-
-### СТИЛЬ ПОВЕСТВОВАНИЯ:
-${style}
-
-### ФАКТЫ ОТ ИГРОВОГО ДВИЖКА:
-${logicSummary}
-
-ЯЗЫК ОТВЕТА (КРИТИЧЕСКИ ВАЖНО): СТРОГО ${responseLanguage.toUpperCase()}! Весь текст в полях "narrative", "director_notes" и "logic_summary" ОБЯЗАН быть на этом языке. Запрещено отвечать на другом языке!
-
-ВНИМАНИЕ: Если ты генерируешь карту (renderLocation), помни, что её описание — это техническая спецификация для робота-строителя, а не текст для игрока.
-
-Игрок ввел: "${promptTextForAI}"`;
-    if (allowNSFW) promptString += NSFW_PROMPT_INJECTION;
-    return promptString;
-
-    if (allowNSFW) promptString += NSFW_PROMPT_INJECTION;
-    return promptString;
-}
 
 
 // --- Обработка Команд от Gemini ---
@@ -7995,6 +8390,190 @@ function processCommands(text) {
  * @param {object} args - Объект с именованными аргументами для команды.
  * @returns {string|null} - Сообщение для лога обратной связи или null, если обратная связь не требуется.
  */
+function applyTimePassed(tp) {
+    if (!tp) return 0;
+    let totalPulses = 0;
+    if (tp.days > 0) totalPulses += tp.days * 24 * 12;
+    if (tp.hours > 0) totalPulses += tp.hours * 12;
+    if (tp.minutes > 0) totalPulses += Math.ceil(tp.minutes / 5);
+
+    if (totalPulses > 0) {
+        advanceTime(totalPulses);
+        let timeStrings = [];
+        if (tp.days > 0) timeStrings.push(`${tp.days} дн.`);
+        if (tp.hours > 0) timeStrings.push(`${tp.hours} ч.`);
+        if (tp.minutes > 0) timeStrings.push(`${tp.minutes} мин.`);
+        addCalculationMessage(`[ВРЕМЯ] Прошло: ${timeStrings.join(', ')}.`);
+    }
+    return totalPulses;
+}
+
+function getFactionCapitalVault(factionId) {
+    if (typeof World === 'undefined' || !World || !World.factions[factionId]) return null;
+    let f = World.factions[factionId];
+    if (!f.regions || f.regions.length === 0) return null;
+    let capId = f.regions[0];
+    if (!World.regions[capId]) return null;
+    return World.regions[capId].vault_id;
+}
+function getFactionGold(factionId) {
+    let vaultId = getFactionCapitalVault(factionId);
+    if (!vaultId) return 0;
+    return countRealItems(vaultId, 'gold_ingot');
+}
+function getFactionGoodStock(factionId, goodType) {
+    let vaultId = getFactionCapitalVault(factionId);
+    if (!vaultId) return 0;
+    return countRealItems(vaultId, goodType);
+}
+function getRegionGoodStock(regionId, goodType) {
+    if (typeof World === 'undefined' || !World || !World.regions[regionId]) return 0;
+    let vaultId = World.regions[regionId].vault_id;
+    if (!vaultId) return 0;
+    return countRealItems(vaultId, goodType);
+}
+
+
+function validateGMCommand(command, args) {
+    if (!args || typeof args !== 'object') return { valid: true };
+    let testArgs = { ...args };
+    if (testArgs.entityKey !== undefined && testArgs.aiIdentifier === undefined) testArgs.aiIdentifier = testArgs.entityKey;
+    if (testArgs.target !== undefined && testArgs.aiIdentifier === undefined && testArgs.target !== 'player') testArgs.aiIdentifier = testArgs.target;
+    if (testArgs.id !== undefined) {
+        if (testArgs.aiIdentifier === undefined) testArgs.aiIdentifier = testArgs.id;
+        if (testArgs.key === undefined) testArgs.key = testArgs.id;
+        if (testArgs.effectId === undefined) testArgs.effectId = testArgs.id;
+    }
+    if (testArgs.id === undefined) testArgs.id = testArgs.aiIdentifier || testArgs.key || testArgs.effectId;
+
+    switch (command) {
+        case 'buildBusiness':
+            if (!testArgs.facilityType || !FACILITY_NAMES[testArgs.facilityType]) return { valid: false, error: `Неизвестный тип предприятия '${testArgs.facilityType}'. Допустимые: ${Object.keys(FACILITY_NAMES).join(', ')}` };
+            if (!testArgs.name || testArgs.name.trim() === '') return { valid: false, error: "Имя предприятия не может быть пустым." };
+            break;
+        case 'gmPurchaseGoods':
+            if (!testArgs.factionId) return { valid: false, error: "Не указан factionId." };
+            if (!testArgs.regionId) return { valid: false, error: "Не указан regionId." };
+            if (!testArgs.goodType || !ECONOMY_ITEMS[testArgs.goodType]) return { valid: false, error: `Неизвестный тип товара '${testArgs.goodType}'.` };
+            if (!testArgs.quantity || isNaN(parseInt(testArgs.quantity)) || parseInt(testArgs.quantity) <= 0) return { valid: false, error: "Количество должно быть положительным числом." };
+            if (typeof World !== 'undefined' && World) {
+                let r = World.regions[testArgs.regionId];
+                if (!r) return { valid: false, error: `Регион '${testArgs.regionId}' не найден.` };
+                let price = r.markets[testArgs.goodType] || ECONOMY_ITEMS[testArgs.goodType].basePrice || 1;
+                let cost = price * testArgs.quantity;
+                let gold = getFactionGold(testArgs.factionId);
+                if (gold < cost) return { valid: false, error: `У фракции '${testArgs.factionId}' недостаточно золота. Нужно ${cost}, есть ${gold}.` };
+                let stock = getRegionGoodStock(testArgs.regionId, testArgs.goodType);
+                if (stock < testArgs.quantity) return { valid: false, error: `В регионе '${testArgs.regionId}' недостаточно товара '${testArgs.goodType}'. Нужно ${testArgs.quantity}, есть ${stock}.` };
+            }
+            break;
+        case 'gmSellGoods':
+            if (!testArgs.factionId) return { valid: false, error: "Не указан factionId." };
+            if (!testArgs.regionId) return { valid: false, error: "Не указан regionId." };
+            if (!testArgs.goodType || !ECONOMY_ITEMS[testArgs.goodType]) return { valid: false, error: `Неизвестный тип товара '${testArgs.goodType}'.` };
+            if (!testArgs.quantity || isNaN(parseInt(testArgs.quantity)) || parseInt(testArgs.quantity) <= 0) return { valid: false, error: "Количество должно быть положительным числом." };
+            if (typeof World !== 'undefined' && World) {
+                let stock = getFactionGoodStock(testArgs.factionId, testArgs.goodType);
+                if (stock < testArgs.quantity) return { valid: false, error: `У фракции '${testArgs.factionId}' недостаточно товара '${testArgs.goodType}' для продажи. Нужно ${testArgs.quantity}, есть ${stock}.` };
+            }
+            break;
+        case 'gmInvestInFacility':
+            if (!testArgs.factionId || !testArgs.regionId || !testArgs.facilityType || !testArgs.action) return { valid: false, error: "Отсутствуют обязательные аргументы." };
+            if (typeof World !== 'undefined' && World) {
+                let cost = testArgs.action === 'repair' ? 500 : 2000;
+                let gold = getFactionGold(testArgs.factionId);
+                if (gold < cost) return { valid: false, error: `У фракции '${testArgs.factionId}' недостаточно золота для инвестиции. Нужно ${cost}, есть ${gold}.` };
+            }
+            break;
+        case 'gmSpreadRumor':
+            if (!testArgs.factionId || !testArgs.targetFactionId || !testArgs.type || testArgs.investmentGold === undefined) return { valid: false, error: "Отсутствуют обязательные аргументы." };
+            if (typeof World !== 'undefined' && World) {
+                let cost = parseInt(testArgs.investmentGold);
+                let gold = getFactionGold(testArgs.factionId);
+                if (gold < cost) return { valid: false, error: `У фракции '${testArgs.factionId}' недостаточно золота для слухов. Нужно ${cost}, есть ${gold}.` };
+            }
+            break;
+        case 'gmFrameForSabotage':
+            if (!testArgs.factionId || !testArgs.targetFactionId || !testArgs.regionId) return { valid: false, error: "Отсутствуют обязательные аргументы." };
+            if (typeof World !== 'undefined' && World) {
+                let gold = getFactionGold(testArgs.factionId);
+                if (gold < 3000) return { valid: false, error: `У фракции '${testArgs.factionId}' недостаточно золота для саботажа. Нужно 3000, есть ${gold}.` };
+            }
+            break;
+        case 'gmDirectResourceInjection':
+            if (!testArgs.regionId || !testArgs.goodType || !testArgs.quantity) return { valid: false, error: "Отсутствуют обязательные аргументы." };
+            if (typeof World !== 'undefined' && World) {
+                let currentDay = Math.floor((World.tick || 0) / 24);
+                let lastDay = World.lastDirectInjectionDay || -999;
+                if (currentDay - lastDay < 7) {
+                    return { valid: false, error: `Команда gmDirectResourceInjection на кулдауне. Прошло ${currentDay - lastDay} дней из 7 необходимых.` };
+                }
+            }
+            break;
+        case 'gmDeclareWar':
+            if (!testArgs.fromFactionId || !testArgs.toFactionId) return { valid: false, error: "Не указаны fromFactionId или toFactionId." };
+            break;
+        case 'gmForcePeace':
+            if (!testArgs.factionId1 || !testArgs.factionId2) return { valid: false, error: "Не указаны factionId1 или factionId2." };
+            break;
+        case 'gmChangeRulerTrait':
+            if (!testArgs.rulerId || !testArgs.trait || testArgs.value === undefined) return { valid: false, error: "Не указаны rulerId, trait или value." };
+            const allowedTraits = ['ambition', 'paranoia', 'wisdom', 'cruelty', 'diplomacy', 'military', 'stewardship'];
+            if (!allowedTraits.includes(testArgs.trait)) return { valid: false, error: `Неизвестная черта '${testArgs.trait}'. Допустимые: ${allowedTraits.join(', ')}` };
+            break;
+
+        case 'startIntrigue':
+            if (!testArgs.id || !testArgs.type || !testArgs.initiator || !testArgs.target) return { valid: false, error: "Не указаны id, type, initiator или target." };
+            const allowedIntrigues = ['assassination', 'sabotage', 'rebellion', 'bribery'];
+            if (!allowedIntrigues.includes(testArgs.type)) return { valid: false, error: `Неизвестный тип интриги '${testArgs.type}'. Допустимые: ${allowedIntrigues.join(', ')}` };
+            break;
+
+        case 'startTravel':
+            if (!testArgs.destinationId) return { valid: false, error: "Не указан destinationId." };
+            let destExists = false;
+            if (globalLocations && globalLocations[testArgs.destinationId]) destExists = true;
+            if (player && player.mapMarkers && player.mapMarkers[testArgs.destinationId]) destExists = true;
+            if (typeof World !== 'undefined' && World && World.subLocations && World.subLocations[testArgs.destinationId]) destExists = true;
+            if (player && player.subLocations && player.subLocations[testArgs.destinationId]) destExists = true;
+            if (!destExists) return { valid: false, error: `Локация '${testArgs.destinationId}' не найдена на карте. Используй только существующие ID.` };
+            break;
+        case 'updateStat':
+        case 'setStat':
+            if (!testArgs.stat) return { valid: false, error: "Не указан stat." };
+            const allowedStats = ['hp', 'mana', 'gold', 'statPoints', 'xp', 'str', 'dex', 'int', 'con', 'cha', 'res'];
+            let baseStat = testArgs.stat.split('.')[0];
+            if (!allowedStats.includes(baseStat) && baseStat !== 'reputation') {
+                return { valid: false, error: `Изменение стата '${testArgs.stat}' запрещено. Разрешены: ${allowedStats.join(', ')}, reputation.*` };
+            }
+            break;
+        case 'addEnvironment':
+            if (!testArgs.id) return { valid: false, error: "Не указан id." };
+            if (!testArgs.name) return { valid: false, error: "Не указано имя (name)." };
+            if (!testArgs.type || !['npc', 'creature', 'enemy'].includes(testArgs.type)) return { valid: false, error: "Тип (type) должен быть npc, creature или enemy." };
+            break;
+        case 'renderLocation':
+            if (!testArgs.size) return { valid: false, error: "Не указан размер (size)." };
+            let parts = testArgs.size.split('x');
+            if (parts.length !== 2 || isNaN(parseInt(parts[0])) || isNaN(parseInt(parts[1])) || parseInt(parts[0]) < 15 || parseInt(parts[1]) < 15) {
+                return { valid: false, error: "Размер (size) должен быть строго не менее 15x15 (например, '15x15')." };
+            }
+            break;
+    }
+    return { valid: true };
+}
+
+function validateActionsArray(actions) {
+    let errors = [];
+    if (!Array.isArray(actions)) return ["Поле 'actions' должно быть массивом."];
+    for (let action of actions) {
+        if (!action.command) continue;
+        let val = validateGMCommand(action.command, action.args);
+        if (!val.valid) errors.push(`Команда '${action.command}': ${val.error}`);
+    }
+    return errors;
+}
+
+
 function executeCommand(command, args) {
     if (!command) return null;
     if (!player) return t('gameInterface.commandFeedback.errorPlayerMissing');
@@ -8123,27 +8702,106 @@ case 'setMemory':
                 break;
 
             case 'setLocation':
-                if (args.locationName) {
-                    const newLocationName = String(args.locationName).trim().replace(/_/g, ' ');
-                    player.location = newLocationName;
+                let locId = args.id || args.aiIdentifier || args.locationName;
+                let locName = args.locationName;
+                let foundLoc = false;
+
+                // --- УМНЫЙ ПОИСК ПОДЛОКАЦИЙ (Т3 ФИКС) ---
+                // Если ГМ прислал текст вместо ID (например "Таверна 'Веселый Монах'"), ищем совпадение
+                if (locId && typeof World !== 'undefined' && World && World.subLocations && !World.subLocations[locId]) {
+                    const searchStr = String(locId).toLowerCase().trim();
+                    for (let key in World.subLocations) {
+                        const subName = World.subLocations[key].name.toLowerCase().trim();
+                        // Ищем перекрестное вхождение строк
+                        if (searchStr === subName || searchStr.includes(subName) || subName.includes(searchStr)) {
+                            locId = key;
+                            break;
+                        }
+                    }
+                }
+                // ----------------------------------------
+
+                if (locId && typeof World !== 'undefined' && World && World.subLocations && World.subLocations[locId]) {
+                    player.location = World.subLocations[locId].name;
+                    player.currentSublocation = locId;
+                    foundLoc = true;
+                } else if (locId && player.subLocations && player.subLocations[locId]) {
+                    player.location = player.subLocations[locId].name;
+                    player.currentSublocation = locId;
+                    foundLoc = true;
+                } else if (locId && globalLocations && globalLocations[locId]) {
+                    player.location = globalLocations[locId].name;
+                    player.currentSublocation = null;
+                    foundLoc = true;
+                } else if (locName) {
+                    player.location = String(locName).trim().replace(/_/g, ' ');
+                    player.currentSublocation = null;
+                    foundLoc = true;
+                }
+
+                if (foundLoc) {
                     syncPlayerContainerBindings();
 
                     ContainerRegistry.forEach(cont => {
                         if ((cont.type === 'mobile_cart' || cont.type === 'pack_animal') && cont.owner_id === 'player') {
-                            cont.location = { world_coords: [0,0,0], parent_entity: 'player', parent_container: null, region_id: newLocationName };
+                            cont.location = { world_coords: [0,0,0], parent_entity: 'player', parent_container: null, region_id: player.location };
                         }
                     });
-                    if (!player.visitedLocations.includes(newLocationName)) {
-                        player.visitedLocations.push(newLocationName);
+                    if (!player.visitedLocations.includes(player.location)) {
+                        player.visitedLocations.push(player.location);
                     }
                     feedback = t('gameInterface.commandFeedback.locationChanged', { location: player.location });
                     updateEnvironmentVisibility(); // Авто-скрытие/показ NPC
                     updateCharacterSheet();
                     updateMapDisplay();
                 } else {
-                    feedback = `[ERROR] 'setLocation' требует аргумент 'locationName'.`;
+                    feedback = `[ERROR] 'setLocation' требует корректный 'id' или 'locationName'.`;
                 }
                 break;
+
+            case 'gmDeclareWar':
+            if (!testArgs.fromFactionId || !testArgs.toFactionId) return { valid: false, error: "Не указаны fromFactionId или toFactionId." };
+            break;
+        case 'gmForcePeace':
+            if (!testArgs.factionId1 || !testArgs.factionId2) return { valid: false, error: "Не указаны factionId1 или factionId2." };
+            break;
+        case 'gmChangeRulerTrait':
+            if (!testArgs.rulerId || !testArgs.trait || testArgs.value === undefined) return { valid: false, error: "Не указаны rulerId, trait или value." };
+            const allowedTraits = ['ambition', 'paranoia', 'wisdom', 'cruelty', 'diplomacy', 'military', 'stewardship'];
+            if (!allowedTraits.includes(testArgs.trait)) return { valid: false, error: `Неизвестная черта '${testArgs.trait}'. Допустимые: ${allowedTraits.join(', ')}` };
+            break;
+
+        case 'startIntrigue':
+            if (!testArgs.id || !testArgs.type || !testArgs.initiator || !testArgs.target) return { valid: false, error: "Не указаны id, type, initiator или target." };
+            const allowedIntrigues = ['assassination', 'sabotage', 'rebellion', 'bribery'];
+            if (!allowedIntrigues.includes(testArgs.type)) return { valid: false, error: `Неизвестный тип интриги '${testArgs.type}'. Допустимые: ${allowedIntrigues.join(', ')}` };
+            break;
+
+        case 'startTravel':
+                if (args.destinationId) {
+                    LivingRoads.start(args.destinationId);
+                    feedback = `[СИСТЕМА] Путешествие инициировано.`;
+                } else {
+                    feedback = `[ERROR] 'startTravel' требует 'destinationId'.`;
+                }
+                break;
+            case 'pauseTravel':
+                LivingRoads.pause("gm_intervention");
+                feedback = `[СИСТЕМА] Путешествие приостановлено Мастером.`;
+                break;
+            case 'resumeTravel':
+                LivingRoads.resume();
+                feedback = `[СИСТЕМА] Путешествие возобновлено.`;
+                break;
+            case 'cancelTravel':
+                LivingRoads.cancel();
+                feedback = `[СИСТЕМА] Путешествие отменено.`;
+                break;
+            case 'fastForwardTravel':
+                LivingRoads.fastForward();
+                feedback = `[СИСТЕМА] Путешествие ускорено.`;
+                break;
+
 
             case 'startJourney':
                 if (!args.destination) {
@@ -8160,8 +8818,20 @@ case 'setMemory':
                         }
                     }
                     if (valid) {
-                        player.currentJourney = { destination: String(args.destination).trim(), points: args.events.length, currentPoint: 0, events: args.events };
-                        feedback = `[СИСТЕМА] Начато путешествие в ${args.destination}.`;
+                        let destId = String(args.destination).trim();
+                        let destName = destId;
+                        if (typeof World !== 'undefined' && World && World.subLocations && World.subLocations[destId]) {
+                            destName = World.subLocations[destId].name;
+                        } else if (player.subLocations && player.subLocations[destId]) {
+                            destName = player.subLocations[destId].name;
+                        } else if (globalLocations && globalLocations[destId]) {
+                            destName = globalLocations[destId].name;
+                        } else {
+                            destName = destId.replace(/_/g, ' ');
+                        }
+
+                        player.currentJourney = { destination: destName, destinationId: destId, points: args.events.length, currentPoint: 0, events: args.events };
+                        feedback = `[СИСТЕМА] Начато путешествие в ${destName}.`;
                         updateCharacterSheet();
                         setTimeout(() => { if (window.advanceJourney) window.advanceJourney(); }, 1500);
                     }
@@ -8169,48 +8839,30 @@ case 'setMemory':
                 break;
 
             case 'endJourney':
-                if (player.currentJourney) {
-                    player.location = player.currentJourney.destination;
-                    syncPlayerContainerBindings();
-                    feedback = `[СИСТЕМА] Путешествие завершено. Вы прибыли в: ${player.location}.`;
-                    player.currentJourney = null;
-                    updateCharacterSheet();
-                    updateMapDisplay();
-                }
-                break;
+            if (player.currentJourney) {
+                executeCommand('setLocation', { locationName: player.currentJourney.destinationId || player.currentJourney.destination });
+                feedback = `[СИСТЕМА] Путешествие завершено. Вы прибыли в: ${player.location}.`;
+                player.currentJourney = null;
+            player.travel = {
+                active: false,
+                destinationId: null,
+                destinationName: null,
+                startX: 0, startY: 0,
+                endX: 0, endY: 0,
+                totalHours: 0,
+                elapsedHours: 0,
+                speed: 5,
+                paused: false,
+                pauseReason: null,
+                lastEventHour: 0,
+                suppliesConsumed: { food: 0, water: 0 }
+            };
+                updateCharacterSheet();
+                updateMapDisplay();
+            }
+            break;
 
-                        case 'advanceTime':
-                let totalPulses = 0;
-                let timeStrings = [];
-
-                if (args.days) {
-                    let d = parseInt(args.days, 10);
-                    if (!isNaN(d) && d > 0) { totalPulses += d * 24 * 12; timeStrings.push(`${d} дн.`); }
-                }
-                if (args.hours) {
-                    let h = parseInt(args.hours, 10);
-                    if (!isNaN(h) && h > 0) { totalPulses += h * 12; timeStrings.push(`${h} ч.`); }
-                }
-                if (args.minutes) {
-                    let m = parseInt(args.minutes, 10);
-                    if (!isNaN(m) && m > 0) { totalPulses += Math.ceil(m / 5); timeStrings.push(`${m} мин.`); }
-                }
-                if (args.pulses) {
-                    let p = parseInt(args.pulses, 10);
-                    if (!isNaN(p) && p > 0) { totalPulses += p; timeStrings.push(`${p * 5} мин.`); }
-                }
-
-                if (totalPulses > 0) {
-                    advanceTime(totalPulses);
-                    feedback = `[ВРЕМЯ] Промотано: ${timeStrings.join(', ')}.`;
-                    addCalculationMessage(feedback);
-                } else {
-                    feedback = `[ERROR] 'advanceTime' требует 'days', 'hours' или 'minutes'.`;
-                }
-                break;
-
-
-case 'calculationLog':
+        case 'calculationLog':
                 if (args.message) {
                     addCalculationMessage(String(args.message));
                 }
@@ -8237,6 +8889,18 @@ case 'calculationLog':
                 if (args.stat && !isNaN(changeVal)) {
                     const stat = args.stat;
                     const change = changeVal;
+
+                    // --- СИНХРОНИЗАЦИЯ ФИЗИЧЕСКОГО ЗОЛОТА ---
+                    if (stat === 'gold') {
+                        if (change > 0) {
+                            executeCommand('addItem', { aiIdentifier: 'gold', name: 'Золото', quantity: change });
+                        } else if (change < 0) {
+                            executeCommand('removeItem', { aiIdentifier: 'gold', quantity: Math.abs(change) });
+                        }
+                        feedback = t('gameInterface.commandFeedback.goldChanged', { change: change > 0 ? `+${change}` : change, gold: player.stats.gold });
+                        break;
+                    }
+
                     const pathParts = stat.toLowerCase().split('.');
                     let currentStatObject = player.stats;
                     let finalStatName = pathParts[pathParts.length - 1];
@@ -8250,6 +8914,14 @@ case 'calculationLog':
                     }
 
                     const oldValue = currentStatObject[finalStatName] || 0;
+                    
+                    // Т3 ФИКС: Системный запрет на прямое исцеление игрока через updateStat
+                    if (stat === 'hp' && change > 0) {
+                        console.error("[System] GM attempted direct healing via updateStat. Action blocked.");
+                        addCalculationMessage("[ОШИБКА ЯДРА] Прямое исцеление через updateStat запрещено. Используйте статус-эффекты!");
+                        change = 0;
+                    }
+
                     currentStatObject[finalStatName] = oldValue + change;
 
                     if (stat === 'hp') {
@@ -8282,6 +8954,17 @@ case 'calculationLog':
             case 'setStat':
                 if (args.stat && typeof args.value === 'number') {
                     const { stat, value } = args;
+
+                    // --- СИНХРОНИЗАЦИЯ ФИЗИЧЕСКОГО ЗОЛОТА ---
+                    if (stat === 'gold') {
+                        let currentGold = syncPlayerGoldFromInventory();
+                        let diff = value - currentGold;
+                        if (diff > 0) executeCommand('addItem', { aiIdentifier: 'gold', name: 'Золото', quantity: diff });
+                        else if (diff < 0) executeCommand('removeItem', { aiIdentifier: 'gold', quantity: Math.abs(diff) });
+                        feedback = `Золото установлено на ${value}.`;
+                        break;
+                    }
+
                     const pathParts = stat.toLowerCase().split('.');
                     let currentStatObject = player.stats;
                     let finalStatName = pathParts[pathParts.length - 1];
@@ -8455,6 +9138,16 @@ case 'calculationLog':
                         questKey = Object.keys(player.quests).find(id => player.quests[id].title?.toLowerCase().trim() === searchTerm);
                     }
 
+                    // Т3 ФИКС: Улучшенный поиск квеста (Fuzzy Search)
+                    if (!questKey) {
+                        // Если не нашли по ID, ищем квест, в заголовке которого ЕСТЬ искомая фраза
+                        questKey = Object.keys(player.quests).find(id => {
+                            const q = player.quests[id];
+                            return q.title.toLowerCase().includes(searchTerm) || 
+                                   q.aiIdentifier?.toLowerCase().includes(searchTerm);
+                        });
+                    }
+
                     if (questKey) {
                         const quest = player.quests[questKey];
                         const newStatus = args.status.toLowerCase();
@@ -8587,8 +9280,24 @@ case 'calculationLog':
                 if (args.id && args.name && !isNaN(safeX) && !isNaN(safeY)) {
                     if (!player.mapMarkers) player.mapMarkers = {};
 
-                    let newX = args.x;
-                    let newY = args.y;
+                    let newX = safeX;
+                    let newY = safeY;
+
+                    // АНТИ-КЛАСТЕР: Если ИИ прислал (0,0) или координаты вне карты, 
+                    // привязываем маркер к текущей локации игрока.
+                    if ((newX <= 0 && newY <= 0) || newX > 250 || newY > 250) {
+                        let pLoc = null;
+                        if (typeof World !== 'undefined' && World && World.map && World.map.locations) {
+                            pLoc = Object.values(World.map.locations).find(l => player.location && player.location.includes(l.name));
+                        }
+                        if (pLoc) {
+                            newX = pLoc.x + (Math.random() * 20 - 10);
+                            newY = pLoc.y + (Math.random() * 20 - 10);
+                        } else {
+                            newX = 128 + (Math.random() * 40 - 20);
+                            newY = 128 + (Math.random() * 40 - 20);
+                        }
+                    }
                     const MIN_DISTANCE = 45; // Увеличено расстояние отталкивания меток друг от друга
 
                     // --- [НАЧАЛО НОВОЙ ЛОГИКИ] - Проверка коллизий ---
@@ -8687,19 +9396,76 @@ case 'calculationLog':
                 }
                 break;
 
-            case 'renderLocation':
-                if (args.size) {
-                    // Сохраняем данные в игрока
-                    player.localMap = args;
-                    buildLocalMap(args);
-                    feedback = `[СИСТЕМА КАРТЫ] План локации обновлен.`;
-                    addCalculationMessage(feedback);
+
+
+            // --- ЭКОНОМИКА ИГРОКА (БАНКИ И ВЛАДЕНИЯ) ---
+            case 'buildBusiness':
+                if (args.facilityType && args.name) {
+                    let playerRegionId = null;
+                    let pLoc = player.location.toLowerCase().trim();
+
+                    // 1. Прямой нечеткий поиск по регионам
+                    for (let rId in World.regions) {
+                        let rName = World.regions[rId].name.toLowerCase();
+                        if (pLoc.includes(rName) || rName.includes(pLoc) || pLoc === rId.toLowerCase()) {
+                            playerRegionId = rId; break;
+                        }
+                    }
+
+                    // 2. Поиск через подлокации (деревни, таверны)
+                    if (!playerRegionId) {
+                        const allSubs = [...Object.values(World.subLocations || {}), ...Object.values(player.subLocations || {})];
+                        for (let sub of allSubs) {
+                            let sName = sub.name.toLowerCase();
+                            if (pLoc.includes(sName) || sName.includes(pLoc)) {
+                                if (World.regions[sub.parentId]) {
+                                    playerRegionId = sub.parentId; break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!playerRegionId) {
+                        const availRegs = Object.values(World.regions).map(r => r.name).join(', ');
+                        feedback = `[ОШИБКА] Невозможно построить бизнес. Локация '${player.location}' — это дикая местность без экономики. Бизнес можно строить только в макро-регионах: ${availRegs}. Используй setLocation, чтобы переместить игрока в город, или откажи ему в постройке.`;
+                        break;
+                    }
+                    
+                    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+                        window.electronAPI.nexusManageBusiness({ 
+                            action: 'create', 
+                            args: { regionId: playerRegionId, facilityType: args.facilityType, name: args.name } 
+                        }).then(async (response) => {
+                            try {
+                                if (response.status === 'ok') {
+                                    const fullState = await window.electronAPI.nexusGetFullState();
+                                    if (fullState && fullState.status === 'ok') {
+                                        World = fullState.world;
+                                        updateHoldingsDisplay();
+                                        updateMapDisplay();
+                                        addLogMessage(`[СИСТЕМА] Предприятие '${args.name}' успешно построено и добавлено на карту!`, "level-up");
+                                        showCustomAlert(`Предприятие '${args.name}' построено! Откройте панель 'Владения' для настройки логистики.`);
+                                    } else {
+                                        addLogMessage(`[ОШИБКА] Сбой синхронизации мира после постройки.`, "system-message");
+                                    }
+                                } else {
+                                    addLogMessage(`[ОШИБКА ДВИЖКА] ${response.message || 'Неизвестная ошибка при создании бизнеса.'}`, "system-message");
+                                }
+                            } catch (err) {
+                                addLogMessage(`[КРИТИЧЕСКАЯ ОШИБКА] Сбой UI при постройке: ${err.message}`, "system-message");
+                                console.error("Business creation UI error:", err);
+                            }
+                        }).catch(err => {
+                            addLogMessage(`[КРИТИЧЕСКАЯ ОШИБКА] Сбой IPC при постройке: ${err.message}`, "system-message");
+                            console.error("Business creation IPC error:", err);
+                        });
+                        feedback = `[СТРОИТЕЛЬСТВО] Запрос на постройку '${args.name}' отправлен инженерам. Ожидание ответа от ядра...`;
+                    }
                 } else {
-                    feedback = `[ERROR] 'renderLocation' требует 'size'.`;
+                    feedback = `[ERROR] 'buildBusiness' требует 'facilityType' и 'name'.`;
                 }
                 break;
 
-            // --- ЭКОНОМИКА ИГРОКА (БАНКИ И ВЛАДЕНИЯ) ---
             case 'buyHolding':
                 if (args.id && args.name && args.baseProfit) {
                     if (!player.holdings) player.holdings = {};
@@ -8780,6 +9546,7 @@ case 'calculationLog':
                         updateNexusDisplay();
                         updateWorldChroniclesDisplay();
     updateTradeJournalDisplay();
+    updatePortPanel();
                     }
                 } else {
                     feedback = `[ERROR] 'nexusDefine' требует 'id', 'name', 'category', 'value'.`;
@@ -8815,6 +9582,7 @@ if (player.nexusData && player.nexusData[args.id]) {
                         updateNexusDisplay();
                         updateWorldChroniclesDisplay();
     updateTradeJournalDisplay();
+    updatePortPanel();
                     } else {
                         feedback = `[ERROR] Константа Nexus '${args.id}' не найдена.`;
                     }
@@ -8844,6 +9612,7 @@ if (player.nexusData && player.nexusData[args.id]) {
                         updateNexusDisplay();
                         updateWorldChroniclesDisplay();
     updateTradeJournalDisplay();
+    updatePortPanel();
                     } else {
                         feedback = `[ERROR] Константа Nexus '${args.id}' не найдена для удаления.`;
                     }
@@ -9031,6 +9800,22 @@ if (player.nexusData && player.nexusData[args.id]) {
             case 'updateEntityStat':
                 if (args.aiIdentifier && args.stat && typeof args.value === 'number') {
                     const entId = args.aiIdentifier;
+                    
+                    if (entId.startsWith("army_")) {
+                        let foundArmy = null;
+                        for (let fId in World.factions) {
+                            let army = World.factions[fId].armies.find(a => a.id === entId);
+                            if (army) { foundArmy = army; break; }
+                        }
+                        if (foundArmy) {
+                            if (args.stat === 'morale') foundArmy.morale = args.value;
+                            else if (args.stat === 'size') foundArmy.size = args.value;
+                            feedback = `[Армия] Стат '${args.stat}' армии ${entId} изменен на ${args.value}.`;
+                            addCalculationMessage(feedback);
+                            break;
+                        }
+                    }
+
         const entityKey = args.aiIdentifier; // Явное объявление для обратной совместимости
                     const entity = player.allKnownEntities[entId] || player.visibleEntities[entId];
                     
@@ -9039,9 +9824,27 @@ if (player.nexusData && player.nexusData[args.id]) {
                         if (entity.stats && ['hp', 'maxhp', 'str', 'dex', 'con', 'int'].includes(statName)) {
                             let systemStatName = statName === 'maxhp' ? 'maxHp' : statName;
                             
-                            // ИСПРАВЛЕНИЕ: Обновляем статы в обеих коллекциях, чтобы избежать рассинхрона после загрузки сохранения
-                            if (player.allKnownEntities[entId]) player.allKnownEntities[entId].stats[systemStatName] = args.value;
-                            if (player.visibleEntities[entId]) player.visibleEntities[entId].stats[systemStatName] = args.value;
+                            // Т3 ФИКС: Программное ограничение на ЛЮБОЕ увеличение HP существ
+                            let validatedValue = args.value;
+                            if (systemStatName === 'hp') {
+                                const currentHp = entity.stats.hp || 0;
+                                if (validatedValue > currentHp) {
+                                    console.error(`[System] Direct healing for ${entity.name} blocked. Only damage or status effects allowed.`);
+                                    addCalculationMessage(`[ОШИБКА ЯДРА] Попытка исцелить ${entity.name} через updateEntityStat пресечена.`);
+                                    validatedValue = currentHp;
+                                }
+                                
+                                // Дополнительный кап по maxHp (на случай если ГМ решит увеличить и текущее и макс сразу)
+                                if (entity.stats.maxHp && validatedValue > entity.stats.maxHp) {
+                                    validatedValue = entity.stats.maxHp;
+                                }
+                            }
+
+                            if (player.allKnownEntities[entId]) player.allKnownEntities[entId].stats[systemStatName] = validatedValue;
+                            if (player.visibleEntities[entId]) player.visibleEntities[entId].stats[systemStatName] = validatedValue;
+                            
+                            // Для фидбека используем уже валидированное значение
+                            args.value = validatedValue;
                             
                             feedback = t('gameInterface.commandFeedback.entityStatUpdated', { name: entity.name, stat: systemStatName.toUpperCase(), value: args.value });
 
@@ -9072,7 +9875,6 @@ if (player.nexusData && player.nexusData[args.id]) {
                 }
                 break;
 
-            case 'setCombatState':
             case 'startIntrigue':
                 if (args.id && args.type && args.initiator && args.target) {
                     if (!World.intrigues) World.intrigues = [];
@@ -9107,7 +9909,7 @@ if (player.nexusData && player.nexusData[args.id]) {
             case 'overthrowRuler':
                 if (args.factionId && World.factions[args.factionId]) {
                     // Вместо стабильности - физическое последствие: бунт уничтожает ресурсы столицы
-                    const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].owner === args.factionId);
+                    const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].factionId === args.factionId);
                     if (capitalRegionId && World.regions[capitalRegionId]?.vault_id) {
                         const capitalVault = World.regions[capitalRegionId].vault_id;
                         const weaponsLost = Math.floor(countRealItems(capitalVault, 'weapons') * 0.3);
@@ -9129,6 +9931,7 @@ if (player.nexusData && player.nexusData[args.id]) {
                 }
                 break;
 
+            case 'setCombatState':
                 // СУПЕР-ПРЕДОХРАНИТЕЛЬ: Если ИИ забыл isActive, но передал участников, считаем что бой начался
                 let isActiveVal = args.isActive;
                 if (isActiveVal === undefined && args.participants && args.participants.length > 0) {
@@ -9153,8 +9956,29 @@ if (player.nexusData && player.nexusData[args.id]) {
                         }
                     } else {
                         if (wasActive) {
-                            feedback = `[СИСТЕМА БОЯ] Бой принудительно завершен Мастером.`;
+                            feedback = `[СИСТЕМА БОЯ] Бой завершен.`;
                             document.querySelector('.input-area').style.boxShadow = 'none';
+                            
+                            if (player.travel && player.travel.interactTarget && player.travel.interactTarget.type === 'caravan') {
+                                let chestId = player.travel.interactTarget.data.chest_id;
+                                if (chestId && ContainerRegistry.has(chestId)) {
+                                    let cont = ContainerRegistry.get(chestId);
+                                    let itemsToMove = cont.items.map(id => {
+                                        let it = ItemRegistry.get(id);
+                                        return it ? { id: id, quantity: it.stack_size } : null;
+                                    }).filter(Boolean);
+                                    if (itemsToMove.length > 0) {
+                                        CoreInventorySystem.moveItems(chestId, player.container_backpack, itemsToMove, { actorId: 'player', ignoreAccess: true, ignoreDistance: true });
+                                        feedback += ` [АВТО-ЛУТ] Товары каравана перемещены в ваш рюкзак.`;
+                                    }
+                                }
+                                player.travel.interactTarget = null;
+                            }
+
+                            if (player.travel && player.travel.active && player.travel.paused && player.travel.pauseReason === 'combat') {
+                                LivingRoads.resume();
+                                feedback += " Путешествие возобновлено.";
+                            }
                         }
                     }
                     if (feedback) addCalculationMessage(feedback);
@@ -9197,7 +10021,7 @@ if (player.nexusData && player.nexusData[args.id]) {
             case 'overthrowRuler':
                 if (args.factionId && World.factions[args.factionId]) {
                     // Вместо стабильности - физическое последствие: бунт уничтожает ресурсы столицы
-                    const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].owner === args.factionId);
+                    const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].factionId === args.factionId);
                     if (capitalRegionId) {
                         const capitalVault = World.regions[capitalRegionId].vault_id;
                         const weaponsLost = Math.floor(countRealItems(capitalVault, 'weapons') * 0.3);
@@ -9591,6 +10415,11 @@ case 'setEntityBinding':
                 break;
 
             // --- ЛЕГИТИМНЫЕ ВМЕШАТЕЛЬСТВА ГМ (СТРАТЕГ) ---
+            case 'buildShip':
+            case 'buildPort':
+            case 'upgradePort':
+            case 'navalBlockade':
+
             case 'gmPurchaseGoods':
             case 'gmSellGoods':
             case 'gmInvestInFacility':
@@ -9599,6 +10428,9 @@ case 'setEntityBinding':
             case 'gmSpreadRumor':
             case 'gmFrameForSabotage':
             case 'gmDirectResourceInjection':
+            case 'gmDeclareWar':
+            case 'gmForcePeace':
+            case 'gmChangeRulerTrait':
                 if (window.electronAPI && window.electronAPI.nexusGmIntervention) {
                     window.electronAPI.nexusGmIntervention({ command, args }).then(res => {
                         if (res.status === 'ok') {
@@ -9607,6 +10439,7 @@ case 'setEntityBinding':
                             if (res.containers) res.containers.forEach(([k, v]) => ContainerRegistry.set(k, v));
                             if (res.deleted_items) res.deleted_items.forEach(id => ItemRegistry.delete(id));
                             if (res.deleted_containers) res.deleted_containers.forEach(id => ContainerRegistry.delete(id));
+                    processMonsterQuests();
                             addCalculationMessage(res.feedback);
                         }
                     });
@@ -9742,7 +10575,10 @@ function updateEquipmentDisplay() {
     if (!eqCont) return;
 
     bodySlots.forEach(slot => {
-        const itemId = eqCont.items.find(id => ItemRegistry.get(id).slot_index === slot);
+        const itemId = eqCont.items.find(id => {
+            const it = ItemRegistry.get(id);
+            return it && it.slot_index === slot;
+        });
         const item = itemId ? ItemRegistry.get(itemId) : null;
         const slotElement = equipmentElements[slot];
         if (!slotElement) return;
@@ -9884,12 +10720,8 @@ function updateHoldingsDisplay() {
     if (!player || !holdingsList || !panel) return;
     
     if (!player.bankAccount) player.bankAccount = { deposit: 0, loan: 0, loanDays: 0 };
-    const playerHoldings = Object.values(player.holdings || {});
-
-    if (playerHoldings.length === 0 && player.bankAccount.deposit === 0 && player.bankAccount.loan === 0) {
-        panel.style.display = 'none';
-        return;
-    }
+    
+    const playerBusinesses = (typeof World !== 'undefined' && World && World.businesses) ? Object.values(World.businesses).filter(b => b.owner_ids.includes('player')) : [];
 
     panel.style.display = 'flex';
     holdingsList.innerHTML = '';
@@ -9909,20 +10741,26 @@ function updateHoldingsDisplay() {
         }
     }
 
-    // Владения
-    if (playerHoldings.length > 0) {
-        const propHeader = document.createElement('li');
-        propHeader.className = 'category-header';
-        propHeader.innerHTML = '<i class="fas fa-home"></i> Недвижимость и Бизнес';
-        holdingsList.appendChild(propHeader);
+    // Предприятия
+    const propHeader = document.createElement('li');
+    propHeader.className = 'category-header';
+    propHeader.innerHTML = '<i class="fas fa-industry"></i> Предприятия';
+    holdingsList.appendChild(propHeader);
 
-        playerHoldings.forEach(holding => {
-            const li = document.createElement('li');
-            li.title = `${holding.description}\nРегион: ${holding.region}`;
-            li.innerHTML = `<span class="holding-name">${holding.name}</span><span class="holding-value" style="color:#f1c40f">+${holding.baseProfit}/дн</span>`;
-            holdingsList.appendChild(li);
-        });
-    }
+    playerBusinesses.forEach(bus => {
+        const li = document.createElement('li');
+        li.style.cursor = 'pointer';
+        li.title = "Нажмите для управления логистикой и производством";
+        li.onclick = () => openBusinessModal(bus.id);
+        let bName = getFacilityName(bus.facility_type);
+        const reg = World.regions[bus.region_id];
+        if (reg) {
+            const block = reg.cityLayout.find(b => b.linked_id === bus.id);
+            if (block) bName = block.name;
+        }
+        li.innerHTML = `<span class="holding-name" style="color:#3498db; text-decoration:underline;">${bName}</span><span class="holding-value" style="color:#f1c40f">${bus.cash_balance} 💰</span>`;
+        holdingsList.appendChild(li);
+    });
 }
 
 // --- Система Сохранений / Загрузки ---
@@ -9949,147 +10787,7 @@ function updateHoldingsDisplay() {
 /**
  * Настраивает управление интерактивной картой (панорамирование и зум).
  */
-function setupMapControls() {
-    if (mapControlsInitialized || !mapCanvas || !mapTooltipElement) return;
-
-    console.log("Инициализация управления картой...");
-
-    const handleMouseDown = (e) => {
-        mapState.isDragging = true;
-        mapState.lastMouseX = e.offsetX;
-        mapState.lastMouseY = e.offsetY;
-        mapCanvas.style.cursor = 'grabbing';
-    };
-
-    const handleMouseUp = () => {
-        mapState.isDragging = false;
-        mapCanvas.style.cursor = 'grab';
-    };
-
-    const handleMouseLeave = () => {
-        mapState.isDragging = false;
-        hoveredMapPoint = null;
-        mapCanvas.style.cursor = 'default';
-        mapTooltipElement.style.display = 'none';
-        mapTooltipElement.style.opacity = '0';
-        renderVisualMap();
-    };
-
-    const handleMouseMove = (e) => {
-        if (mapState.isDragging) {
-            const dx = e.offsetX - mapState.lastMouseX;
-            const dy = e.offsetY - mapState.lastMouseY;
-            mapState.offsetX += dx;
-            mapState.offsetY += dy;
-
-            // Ограничение при перетаскивании
-            const maxOffset = 3000 * mapState.zoom;
-            mapState.offsetX = Math.max(Math.min(mapState.offsetX, maxOffset), -maxOffset + mapCanvas.width);
-            mapState.offsetY = Math.max(Math.min(mapState.offsetY, maxOffset), -maxOffset + mapCanvas.height);
-
-            mapState.lastMouseX = e.offsetX;
-            mapState.lastMouseY = e.offsetY;
-            mapTooltipElement.style.display = 'none';
-            mapTooltipElement.style.opacity = '0';
-        } else {
-            const worldCoords = screenToWorld(e.offsetX, e.offsetY);
-            let pointFound = null;
-            let closestDist = 15 / mapState.zoom;
-            // Добавляем id для globalLocations, чтобы можно было искать подлокации
-            let allPoints = [
-                ...Object.keys(globalLocations || {}).map(k => ({ ...globalLocations[k], id: k })),
-                ...Object.values(player?.mapMarkers || {})
-            ].filter(loc => loc && typeof loc.x === 'number' && typeof loc.y === 'number');
-
-            for (const point of allPoints) {
-                const dist = Math.hypot(point.x - worldCoords.x, point.y - worldCoords.y);
-                if (dist < closestDist) {
-                    pointFound = point;
-                    closestDist = dist;
-                }
-            }
-
-            hoveredMapPoint = pointFound;
-
-            if (pointFound) {
-                mapCanvas.style.cursor = 'pointer';
-                
-                // Формируем список подлокаций
-                let subLocsHtml = '';
-                if (player && player.subLocations && pointFound.id) {
-                    const subs = Object.values(player.subLocations).filter(sub => sub.parentId === pointFound.id);
-                    if (subs.length > 0) {
-                        subLocsHtml = '<div style="margin-top: 8px; border-top: 1px solid rgba(243, 229, 171, 0.2); padding-top: 5px;">';
-                        subLocsHtml += '<strong style="color: #aeb6bf; font-size: 0.85em;">Открытые места:</strong><ul style="margin: 3px 0 0 0; padding-left: 15px; font-size: 0.9em; color: #bdc3c7;">';
-                        subs.forEach(sub => {
-                            subLocsHtml += `<li>${sub.name}</li>`;
-                        });
-                        subLocsHtml += '</ul></div>';
-                    }
-                }
-
-                // Формируем список жителей (только если локация посещена)
-                let residentsHtml = '';
-                if (player.visitedLocations.includes(pointFound.name) || player.visitedLocations.some(l => pointFound.name.includes(l))) {
-                    const residents = Object.values(player.allKnownEntities).filter(e => e.boundTo === pointFound.name && e.stats.hp > 0);
-                    if (residents.length > 0) {
-                        residentsHtml = '<div style="margin-top: 8px; border-top: 1px dashed rgba(243, 229, 171, 0.4); padding-top: 5px;">';
-                        residentsHtml += '<strong style="color: #f1c40f; font-size: 0.85em;">Известные жители:</strong><ul style="margin: 3px 0 0 0; padding-left: 15px; font-size: 0.85em; color: #ecf0f1;">';
-                        residents.forEach(res => {
-                            residentsHtml += `<li>${res.name}</li>`;
-                        });
-                        residentsHtml += '</ul></div>';
-                    }
-                }
-
-                mapTooltipElement.innerHTML = `<h4>${pointFound.name}</h4><p>${pointFound.description || ''}</p>${subLocsHtml}${residentsHtml}`;
-                mapTooltipElement.style.display = 'block';
-                mapTooltipElement.style.opacity = '1';
-
-                let newX = e.clientX + 15;
-                let newY = e.clientY + 15;
-
-                if (newX + mapTooltipElement.offsetWidth > window.innerWidth) newX = e.clientX - mapTooltipElement.offsetWidth - 15;
-                if (newY + mapTooltipElement.offsetHeight > window.innerHeight) newY = e.clientY - mapTooltipElement.offsetHeight - 15;
-
-                mapTooltipElement.style.left = `${newX}px`;
-                mapTooltipElement.style.top = `${newY}px`;
-            } else {
-                mapCanvas.style.cursor = 'grab';
-                mapTooltipElement.style.display = 'none';
-                mapTooltipElement.style.opacity = '0';
-            }
-        }
-        renderVisualMap();
-    };
-
-    const handleWheel = (e) => {
-        e.preventDefault();
-        const zoomIntensity = 0.1;
-        const scroll = e.deltaY < 0 ? 1 : -1;
-        const zoomFactor = Math.exp(scroll * zoomIntensity);
-        const newZoom = Math.max(0.1, Math.min(5, mapState.zoom * zoomFactor));
-        const mouseX = e.offsetX;
-        const mouseY = e.offsetY;
-        const worldX = (mouseX - mapState.offsetX) / mapState.zoom;
-        const worldY = (mouseY - mapState.offsetY) / mapState.zoom;
-        mapState.offsetX = mouseX - worldX * newZoom;
-        mapState.offsetY = mouseY - worldY * newZoom;
-        mapState.zoom = newZoom;
-        renderVisualMap();
-    };
-
-    // Привязываем события
-    mapCanvas.addEventListener('mousedown', handleMouseDown);
-    mapCanvas.addEventListener('mouseup', handleMouseUp);
-    mapCanvas.addEventListener('mouseleave', handleMouseLeave);
-    mapCanvas.addEventListener('mousemove', handleMouseMove);
-    mapCanvas.addEventListener('wheel', handleWheel);
-
-    // Устанавливаем флаг, что все готово
-    mapControlsInitialized = true;
-    console.log("Управление картой успешно инициализировано ОДИН РАЗ.");
-}
+function setupMapControls() { if (window.Cartographer) Cartographer.init(); }
 
 /**
  * Преобразует экранные координаты в мировые.
@@ -10108,56 +10806,7 @@ function setupMapControls() {
 function drawMountain() { }
 function drawTree() { }
 
-function drawMapMarker(ctx, pos, type, isPlayer, isHovered = false) {
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#2c3e50';
-
-    if (isPlayer) {
-        ctx.fillStyle = '#e74c3c';
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 6, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.stroke();
-    } else {
-        ctx.beginPath();
-        if (type === 'road') {
-            // Дорога - путевой камень (треугольник)
-            ctx.fillStyle = '#7d6b5d';
-            ctx.beginPath();
-            ctx.moveTo(pos.x - 4, pos.y + 5);
-            ctx.lineTo(pos.x, pos.y - 6);
-            ctx.lineTo(pos.x + 4, pos.y + 5);
-            ctx.fill();
-        } else if (type === 'city') {
-            ctx.fillStyle = '#bdc3c7';
-            ctx.rect(pos.x - 8, pos.y - 6, 16, 12);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = '#c0392b';
-            ctx.beginPath();
-            ctx.moveTo(pos.x - 10, pos.y - 6);
-            ctx.lineTo(pos.x, pos.y - 14);
-            ctx.lineTo(pos.x + 10, pos.y - 6);
-            ctx.fill();
-            ctx.stroke();
-        } else if (type === 'mountain') {
-            ctx.fillStyle = '#7f8c8d';
-            ctx.beginPath();
-            ctx.moveTo(pos.x - 8, pos.y + 6);
-            ctx.lineTo(pos.x, pos.y - 8);
-            ctx.lineTo(pos.x + 8, pos.y + 6);
-            ctx.fill();
-            ctx.stroke();
-        } else {
-            ctx.fillStyle = '#27ae60';
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 6, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.stroke();
-        }
-    }
-}
+function drawMapMarker(ctx, pos, type, isPlayer, isHovered = false) { if (window.Cartographer) Cartographer.drawMapMarker(ctx, pos, type, isPlayer); }
 
 
 /**
@@ -10393,306 +11042,39 @@ document.addEventListener('mousedown', (e) => {
 
 // --- Запуск приложения ---
 
-function renderVisualMap() {
-    if (!mapContext || !mapCanvas || !player) return;
-
-    const ctx = mapContext;
-    const width = mapCanvas.width;
-    const height = mapCanvas.height;
-    if (width === 0) return;
-
-    let allPoints = [
-        ...Object.keys(globalLocations || {}).map(k => ({ ...globalLocations[k], id: k })),
-        ...Object.values(player.mapMarkers || {})
-    ].filter(loc => loc && loc.name && !isNaN(Number(loc.x)) && !isNaN(Number(loc.y)));
-
-    if (!isMapInitialized) {
-        const currentLocName = (player.location || "").toLowerCase().trim();
-        const playerPoint = allPoints.find(p => p.name.toLowerCase().trim().includes(currentLocName) || currentLocName.includes(p.name.toLowerCase().trim()));
-
-        if (playerPoint) {
-            mapState.offsetX = (width / 2) - (Number(playerPoint.x) * mapState.zoom);
-            mapState.offsetY = (height / 2) - (Number(playerPoint.y) * mapState.zoom);
-            isMapInitialized = true;
-        } else if (allPoints.length > 0) {
-            mapState.offsetX = (width / 2) - (Number(allPoints[0].x) * mapState.zoom);
-            mapState.offsetY = (height / 2) - (Number(allPoints[0].y) * mapState.zoom);
-            isMapInitialized = true;
-        }
-    }
-
-    ctx.fillStyle = '#f3e5ab';
-    ctx.fillRect(0, 0, width, height);
-
-    const transform = (worldX, worldY) => ({
-        x: (Number(worldX) * mapState.zoom) + mapState.offsetX,
-        y: (Number(worldY) * mapState.zoom) + mapState.offsetY
-    });
-
-    // Сетка
-    ctx.strokeStyle = 'rgba(93, 74, 54, 0.05)';
-    const gridSize = 50 * mapState.zoom;
-    for (let x = mapState.offsetX % gridSize; x < width; x += gridSize) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
-    }
-    for (let y = mapState.offsetY % gridSize; y < height; y += gridSize) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-    }
-
-    // --- ОТРИСОВКА ДОРОГ (ВОЗВРАЩЕНА) ---
-    ctx.strokeStyle = 'rgba(110, 95, 80, 0.45)'; // Цвет старого тракта
-    ctx.setLineDash([15, 8]);
-    ctx.lineWidth = 4; // Дороги стали еще солиднее
-
-    allPoints.forEach(p1 => {
-        const pos1 = transform(p1.x, p1.y);
-        // Ищем ближайших соседей в радиусе 250 единиц
-        let neighbors = allPoints
-            .map(p2 => ({ point: p2, dist: Math.hypot(Number(p1.x) - Number(p2.x), Number(p1.y) - Number(p2.y)) }))
-            .filter(d => d.dist > 0 && d.dist < 250)
-            .sort((a, b) => a.dist - b.dist)
-            .slice(0, 2); // Соединяем с двумя ближайшими
-
-        neighbors.forEach(n => {
-            const pos2 = transform(n.point.x, n.point.y);
-            ctx.beginPath();
-            ctx.moveTo(pos1.x, pos1.y);
-            ctx.lineTo(pos2.x, pos2.y);
-            ctx.stroke();
+function renderVisualMap() { 
+    if (window.Cartographer) {
+        Cartographer.fetchMapData().then(() => {
+            Cartographer.render();
         });
-    });
-    ctx.setLineDash([]);
-
-    // Отрисовка точек
-    allPoints.forEach(point => {
-        const pos = transform(point.x, point.y);
-        const isPlayerLocation = player.location && player.location.toLowerCase().trim().includes(point.name.toLowerCase().trim());
-
-        drawMapMarker(ctx, pos, getLocationType(point.name), isPlayerLocation);
-
-        const fontSize = Math.max(8, Math.min(14, 10 * mapState.zoom));
-        ctx.font = (isPlayerLocation ? 'bold ' : '') + fontSize + "px 'MedievalSharp', cursive";
-        ctx.fillStyle = '#5D4A36';
-        ctx.textAlign = 'center';
-        ctx.fillText(point.name.split('(')[0].trim(), pos.x, pos.y + 15);
-    });
-
-    drawCompassRose(ctx, width - 30, 30, 15);
+    }
 }
 
 
 
-function screenToWorld(screenX, screenY) {
-    return {
-        x: (screenX - mapState.offsetX) / mapState.zoom,
-        y: (screenY - mapState.offsetY) / mapState.zoom
-    };
-}
 
-function getLocationType(name) {
-    const lowerName = name.toLowerCase();
-    if (['дорога', 'путь', 'тракт', 'перевал', 'road', 'way', 'path', 'pass'].some(s => lowerName.includes(s))) return 'road';
-    if (['город', 'столица', 'цитадель', 'гавань', 'поселение', 'city', 'citadel', 'haven'].some(s => lowerName.includes(s))) return 'city';
-    if (['горы', 'хребет', 'пик', 'mountains', 'ridge', 'peak'].some(s => lowerName.includes(s))) return 'mountain';
-    if (['лес', 'роща', 'woods', 'forest'].some(s => lowerName.includes(s))) return 'natural';
-    return 'default';
-}
+function screenToWorld(screenX, screenY) { return window.Cartographer ? Cartographer.screenToWorld(screenX, screenY) : {x:0, y:0}; }
+
+
+function getLocationType(name) { return 'default'; }
 
 
 
-function drawCompassRose(ctx, x, y, radius) {
-    ctx.strokeStyle = 'rgba(93, 74, 54, 0.7)';
-    ctx.fillStyle = 'rgba(93, 74, 54, 0.7)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x, y - radius); ctx.lineTo(x, y + radius);
-    ctx.moveTo(x - radius, y); ctx.lineTo(x + radius, y);
-    ctx.stroke();
-    ctx.font = 'bold ' + (radius * 0.7) + "px Georgia, serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('N', x, y - radius - 8);
-    ctx.fillText('S', x, y + radius + 8);
-    ctx.fillText('W', x - radius - 8, y);
-    ctx.fillText('E', x + radius + 8, y);
-}
+function drawCompassRose(ctx, x, y, radius) { if (window.Cartographer) Cartographer.drawCompassRose(ctx, x, y, radius); }
 
 
 // --- ЛОГИКА ЛОКАЛЬНОЙ КАРТЫ (CITYGEN) ---
-function buildLocalMap(args) {
-    const localMapPanel = document.getElementById('local-map-panel');
-    const statusText = document.getElementById('local-map-status');
-    const openBtn = document.getElementById('open-fullscreen-map-btn');
-    
-    if (!localMapPanel || !statusText || !openBtn) return;
-    
-    // СТРОГАЯ ПРОВЕРКА: Если функция выключена, прячем панель и прерываем отрисовку
-    if (!enableLocalMap) {
-        localMapPanel.style.display = 'none';
-        return;
-    }
-    
-    localMapPanel.style.display = 'flex';
-    
-    if (!args || !args.plots || args.plots.length === 0) {
-        statusText.textContent = "План местности недоступен.";
-        openBtn.style.display = 'none';
-        return;
-    }
+function buildLocalMap(args) { console.warn("[DEPRECATED] CityGen is removed."); }
 
-    currentLocalMapPlots = args.plots;
-    const [width, height] = args.size.split('x').map(Number);
-    currentLocalMapSize = { width, height };
+function renderCanvasMap(plots, width, height, canvas) { console.warn("[DEPRECATED] CityGen is removed."); }
 
-    statusText.textContent = `Доступен план: ${args.description || args.locationId || 'Локация'}`;
-    openBtn.style.display = 'block';
+function handleCanvasTileClick(event, plots, width, height) { console.warn("[DEPRECATED] CityGen is removed."); }
 
-    let canvas = document.getElementById('local-map-canvas');
-    if (!canvas) {
-        const panelContent = document.querySelector('#local-map-panel .panel-content');
-        if (panelContent) {
-            canvas = document.createElement('canvas');
-            canvas.id = 'local-map-canvas';
-            canvas.style.width = '100%';
-            canvas.style.height = 'auto';
-            canvas.style.cursor = 'pointer';
-            canvas.style.border = '2px solid #34495e';
-            canvas.style.borderRadius = '4px';
-            canvas.style.boxShadow = 'inset 0 0 20px rgba(0,0,0,0.9)';
-            panelContent.insertBefore(canvas, openBtn);
-            
-            // Скрываем старый CSS-грид, если он остался
-            const oldGrid = document.getElementById('local-map-grid');
-            if (oldGrid) oldGrid.style.display = 'none';
-        }
-    }
-    if (canvas) {
-        renderCanvasMap(args.plots, width, height, canvas);
-        canvas.onclick = (e) => handleCanvasTileClick(e, args.plots, width, height);
-    }
+function showLocalTileInfo(plot) { console.warn("[DEPRECATED] CityGen is removed."); }
 
-    openBtn.onclick = () => openFullscreenMap(args);
-}
+function openFullscreenMap(args) { console.warn("[DEPRECATED] CityGen is removed."); }
 
-function renderCanvasMap(plots, width, height, canvas) {
-    if (!canvas || !TILESET_IMAGE) return;
-    
-    canvas.width = width * RENDER_TILE_SIZE;
-    canvas.height = height * RENDER_TILE_SIZE;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false; // ВАЖНО для пиксель-арта!
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const plot = plots.find(p => p.x === x && p.y === y);
-            const type = plot ? plot.type : 'void';
-            const coords = getSpriteCoords(type);
-            
-            // Учитываем отступы в спрайт-листе (1px)
-            const srcX = coords.x * (SOURCE_TILE_SIZE + SPACING);
-            const srcY = coords.y * (SOURCE_TILE_SIZE + SPACING);
-            
-            ctx.drawImage(
-                TILESET_IMAGE, 
-                srcX, srcY, SOURCE_TILE_SIZE, SOURCE_TILE_SIZE, 
-                x * RENDER_TILE_SIZE, y * RENDER_TILE_SIZE, RENDER_TILE_SIZE, RENDER_TILE_SIZE
-            );
-            
-            // Отрисовка легкой сетки поверх тайлов
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x * RENDER_TILE_SIZE, y * RENDER_TILE_SIZE, RENDER_TILE_SIZE, RENDER_TILE_SIZE);
-        }
-    }
-}
-
-function handleCanvasTileClick(event, plots, width, height) {
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mouseX = (event.clientX - rect.left) * scaleX;
-    const mouseY = (event.clientY - rect.top) * scaleY;
-    const tileX = Math.floor(mouseX / RENDER_TILE_SIZE);
-    const tileY = Math.floor(mouseY / RENDER_TILE_SIZE);
-    
-    if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) return;
-    
-    const plot = plots.find(p => p.x === tileX && p.y === tileY);
-    if (plot) {
-        showLocalTileInfo(plot);
-    }
-}
-
-function showLocalTileInfo(plot) {
-    const inspector = document.getElementById('local-map-inspector') || document.getElementById('large-map-info-details');
-    if (!inspector) return;
-    
-    let detailsHtml = `
-        <div style="color: #f1c40f; font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid rgba(241, 196, 15, 0.3); padding-bottom: 3px;">
-            [ ${plot.name || "Неизвестно"} ]
-        </div>
-        <div class="info-row"><span class="info-label">Объект:</span> ${tileTypeDictionary[plot.type] || plot.type}</div>
-        <div class="info-row"><span class="info-label">Позиция:</span> X:${plot.x} | Y:${plot.y}</div>
-    `;
-    if (plot.desc) detailsHtml += `<div class="info-row" style="margin-top: 6px; font-style: italic; color: #bdc3c7;">"${plot.desc}"</div>`;
-    if (plot.loot) detailsHtml += `<div class="info-row" style="margin-top: 6px; color: #2ecc71;"><span class="info-label">Замечено:</span> ${plot.loot}</div>`;
-    if (plot.owner) detailsHtml += `<div class="info-row" style="margin-top: 6px; color: #9b59b6;"><span class="info-label">Владелец:</span> ${plot.owner}</div>`;
-    
-    inspector.innerHTML = detailsHtml;
-}
-
-function openFullscreenMap(args) {
-    const modal = document.getElementById('fullscreen-map-modal');
-    const gridContainer = document.getElementById('large-map-grid');
-    const inspector = document.getElementById('large-map-info-details');
-    const title = document.getElementById('fullscreen-map-title');
-    const closeBtn = document.getElementById('close-fullscreen-map-btn');
-
-    if (!modal || !gridContainer) return;
-    const [width, height] = args.size.split('x').map(Number);
-    title.innerHTML = `<i class="fas fa-compass"></i> План: ${args.description || args.locationId || 'Локация'}`;
-
-    gridContainer.innerHTML = ''; 
-    const canvas = document.createElement('canvas');
-    canvas.id = 'fullscreen-map-canvas';
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
-    canvas.style.cursor = 'pointer';
-    gridContainer.appendChild(canvas);
-    
-    renderCanvasMap(args.plots, width, height, canvas);
-    
-    canvas.onclick = (e) => handleFullscreenTileClick(e, args.plots, width, height, inspector);
-    
-    modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('visible'), 10);
-    closeBtn.onclick = () => {
-        modal.classList.remove('visible');
-        setTimeout(() => modal.style.display = 'none', 300);
-    };
-}
-
-function handleFullscreenTileClick(event, plots, width, height, inspector) {
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mouseX = (event.clientX - rect.left) * scaleX;
-    const mouseY = (event.clientY - rect.top) * scaleY;
-    const tileX = Math.floor(mouseX / RENDER_TILE_SIZE);
-    const tileY = Math.floor(mouseY / RENDER_TILE_SIZE);
-    
-    if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) return;
-    
-    const plot = plots.find(p => p.x === tileX && p.y === tileY);
-    if (plot) {
-        showLocalTileInfo(plot);
-    } else {
-        inspector.innerHTML = '<p style="color: #7f8c8d;">Пустая область</p>';
-    }
-}
+function handleFullscreenTileClick(event, plots, width, height, inspector) { console.warn("[DEPRECATED] CityGen is removed."); }
 
 
 
@@ -10929,7 +11311,12 @@ function populateAdminMenu() {
         if(World.intrigues && World.intrigues.length > 0) {
             html += '<div style="margin-top:10px; border-top:1px dashed #555; padding-top:5px;"><b>Активные заговоры:</b><br>';
             World.intrigues.forEach(i => {
-                html += `<span style="color:${i.isDiscovered ? '#e74c3c' : '#f39c12'}">[${i.type}]</span> ${i.initiatorFactionId} -> ${i.targetFactionId} (Прогресс: ${Math.floor(i.progress)}/${i.requiredProgress})<br>`;
+                let phaseName = i.phase;
+                if (phaseName === 'recruitment') phaseName = 'Вербовка';
+                else if (phaseName === 'espionage') phaseName = 'Шпионаж';
+                else if (phaseName === 'execution') phaseName = 'Исполнение';
+                else if (phaseName === 'cover_up') phaseName = 'Заметание следов';
+                html += `<span style="color:${i.isDiscovered ? '#e74c3c' : '#f39c12'}">[${i.type}]</span> ${i.initiatorFactionId} -> ${i.targetFactionId} (Фаза: ${phaseName}, Прогресс: ${Math.floor(i.progress)}/${i.requiredProgress})<br>`;
             });
             html += '</div>';
         }
@@ -11208,8 +11595,8 @@ async function runDeepSetupPipeline(narratorStyleGuide) {
             if (action.command === 'renderLocation' && enableLocalMap) {
                 updateLoader("Этап 3/5: Сцена и Актеры", "Отрисовка плана местности...");
                 const locDesc = action.args.description || `Локация: ${player.location}`;
-                const generatedPlots = await generateLocalMapFromAI(locDesc, action.args.size || "15x15");
-                action.args.plots = generatedPlots;
+                // const generatedPlots = await generateLocalMapFromAI(locDesc, action.args.size || "15x15"); // Ожидает реализации на движке
+                // action.args.plots = generatedPlots;
             }
             executeCommand(action.command, action.args);
         }
@@ -11229,7 +11616,7 @@ async function runDeepSetupPipeline(narratorStyleGuide) {
         // --- STAGE 5 ---
         updateLoader("Этап 5/5: Пролог", "Ожидание Рассказчика...");
                 let p5 = await loadPromptFromFile('assets/promts/deep_setup/stage5_prologue.txt');
-        let imgExample = enableImageGeneration ? '"image_prompt": "Cinematic shot...",' : '';
+        let imgExample = enableImageGeneration ? '"image_prompt": "Ado music video aesthetic, monochrome with red accent...",' : '';
         p5 = p5.replace('{narrator_style_guide}', narratorStyleGuide)
                .replace('{image_prompt_example}', imgExample)
                .replace('{stage_1_results}', stage_1_results)
@@ -11300,10 +11687,10 @@ function updateWorldSimDebugDisplay() {
                 return num;
             };
 
-            const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].owner === fId);
+            const capitalRegionId = Object.keys(World.regions).find(rid => World.regions[rid].factionId === fId);
             let gold = 0;
             if (capitalRegionId && World.regions[capitalRegionId]?.vault_id) {
-                gold = countRealItems(World.regions[capitalRegionId].vault_id, 'gold');
+                gold = countRealItems(World.regions[capitalRegionId].vault_id, 'gold_ingot');
             }
             const manpower = availableManpower(f);
             
@@ -11329,7 +11716,11 @@ function updateWorldSimDebugDisplay() {
                 } else if (a.siegeDays > 0) {
                     statusText = `<b style="color:#e67e22">ОСАДА</b> (осталось ${a.siegeDays} дн.)`;
                 } else {
-                    statusText = `<b style="color:#e74c3c">ШТУРМ / БОЙ</b>`;
+                    let phaseName = a.current_phase;
+                    if (phaseName === 'vanguard_clash') phaseName = 'Стычка авангардов';
+                    else if (phaseName === 'main_battle') phaseName = 'Основное сражение';
+                    else if (phaseName === 'rout') phaseName = 'Отступление';
+                    statusText = `<b style="color:#e74c3c">БОЙ: ${phaseName}</b>`;
                 }
 
                 html += `<div class="debug-army-item">
@@ -11345,7 +11736,7 @@ function updateWorldSimDebugDisplay() {
         html += '<div class="debug-card"><div class="debug-card-title"><span>🌍 РЕГИОНЫ</span></div><div class="debug-grid">';
         for (let rId in World.regions) {
             let r = World.regions[rId];
-            let owner = World.factions[r.owner] ? World.factions[r.owner].name : "Нейтралы";
+            let owner = World.factions[r.factionId] ? World.factions[r.factionId].name : "Нейтралы";
             
             let totalWorkforce = Math.floor(r.population * 0.6);
             let totalJobs = 0;
@@ -11369,13 +11760,37 @@ function updateWorldSimDebugDisplay() {
                 resHtml = '<span style="color:#e74c3c;">Склад не найден</span>';
             }
 
+            let layoutHtml = '';
+            if (r.cityLayout && r.layoutWidth > 0) {
+                layoutHtml += `<div style="margin-top:5px; font-family:monospace; font-size:0.75em; line-height:1.1; background:rgba(0,0,0,0.5); padding:5px; border-radius:3px; overflow-x:auto; white-space:nowrap;">`;
+                for(let y=0; y<r.layoutHeight; ++y) {
+                    let rowStr = '';
+                    for(let x=0; x<r.layoutWidth; ++x) {
+                        let block = r.cityLayout[y * r.layoutWidth + x];
+                        let ch = '.';
+                        if (block.type === 'road') ch = '<span style="color:#7f8c8d">#</span>';
+                        else if (block.type === 'house') ch = '<span style="color:#e67e22">H</span>';
+                        else if (block.type === 'tavern') ch = '<span style="color:#e74c3c">T</span>';
+                        else if (block.type === 'forge') ch = '<span style="color:#95a5a6">F</span>';
+                        else if (block.type === 'market') ch = '<span style="color:#f1c40f">M</span>';
+                        else if (block.type === 'office') ch = '<span style="color:#3498db">O</span>';
+                        else if (block.type === 'temple') ch = '<span style="color:#9b59b6">+</span>';
+                        rowStr += ch + ' ';
+                    }
+                    layoutHtml += rowStr + '<br>';
+                }
+                layoutHtml += `</div>`;
+            }
+
+            let seasonName = r.current_season === 'spring' ? 'Весна' : (r.current_season === 'summer' ? 'Лето' : (r.current_season === 'autumn' ? 'Осень' : 'Зима'));
             html += `<div class="debug-item">
-                     <b style="color:#2ecc71">${r.name}</b><br>
+                     <b style="color:#2ecc71">${r.name}</b> <span style="font-size:0.8em; color:#bdc3c7;">[${seasonName}]</span><br>
                      <span style="font-size:0.8em; color:#7f8c8d;">${owner}</span><br>
                      Поп: ${Math.floor(r.population)} (Занятость: ${empRate}%)<br>
                      <div style="max-height: 60px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px; font-size: 0.85em;">
                         ${resHtml}
                      </div>
+                     ${layoutHtml}
                      </div>`;
         }
         html += '</div></div>';
@@ -11398,7 +11813,12 @@ function updateWorldSimDebugDisplay() {
         if(World.intrigues && World.intrigues.length > 0) {
             html += '<div style="margin-top:10px; border-top:1px dashed #555; padding-top:5px;"><b>Активные заговоры:</b><br>';
             World.intrigues.forEach(i => {
-                html += `<span style="color:${i.isDiscovered ? '#e74c3c' : '#f39c12'}">[${i.type}]</span> ${i.initiatorFactionId} -> ${i.targetFactionId} (Прогресс: ${Math.floor(i.progress)}/${i.requiredProgress})<br>`;
+                let phaseName = i.phase;
+                if (phaseName === 'recruitment') phaseName = 'Вербовка';
+                else if (phaseName === 'espionage') phaseName = 'Шпионаж';
+                else if (phaseName === 'execution') phaseName = 'Исполнение';
+                else if (phaseName === 'cover_up') phaseName = 'Заметание следов';
+                html += `<span style="color:${i.isDiscovered ? '#e74c3c' : '#f39c12'}">[${i.type}]</span> ${i.initiatorFactionId} -> ${i.targetFactionId} (Фаза: ${phaseName}, Прогресс: ${Math.floor(i.progress)}/${i.requiredProgress})<br>`;
             });
             html += '</div>';
         }
@@ -11619,3 +12039,441 @@ document.addEventListener('DOMContentLoaded', () => {
         cb.addEventListener('change', (e) => toggleLowSpecMode(e.target.checked));
     }
 });
+
+
+// ==========================================
+// --- BUSINESS & LOGISTICS UI SYSTEM ---
+// ==========================================
+
+window.getFacilityProducts = function(facilityType) {
+    let products = [];
+    if (facilityType === 'farms') products = ['wheat', 'meat', 'fish', 'cotton', 'herbs'];
+    else if (facilityType === 'lumbermills') products = ['wood'];
+    else if (facilityType === 'mines') products = ['iron_ore', 'gold_ore'];
+    else if (facilityType === 'apiaries') products = ['honey', 'wax'];
+    else if (facilityType === 'hunting_lodges') products = ['fur', 'meat'];
+    else if (facilityType === 'observatories') products = ['ether_dust'];
+    else if (facilityType === 'warehouses') return []; // Склады ничего не производят
+    else {
+        CRAFTING_RECIPES.forEach(r => {
+            if (r.facility === facilityType) {
+                products.push(...Object.keys(r.outputs));
+            }
+        });
+    }
+    return [...new Set(products)];
+};
+
+window.openBusinessModal = async function(bId) {
+    if (!World || !World.businesses[bId]) return;
+    const bus = World.businesses[bId];
+    const modal = document.getElementById('business-modal');
+    const content = document.getElementById('business-modal-content');
+    document.getElementById('business-modal-title').innerHTML = `<i class="fas fa-industry"></i> Управление: ${getFacilityName(bus.facility_type)}`;
+
+    let maxEmp = bus.level * 100;
+    
+    // Формируем логи
+    let logsHtml = '';
+    if (bus.activity_logs && bus.activity_logs.length > 0) {
+        logsHtml = bus.activity_logs.map(log => {
+            let color = '#bdc3c7';
+            if (log.includes('Произведено') || log.includes('Добыто')) color = '#2ecc71';
+            if (log.includes('Караван')) color = '#f39c12';
+            if (log.includes('БАНКРОТСТВО') || log.includes('ОШИБКА')) color = '#e74c3c';
+            return `<div style="color: ${color}; margin-bottom: 3px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 2px;">${log}</div>`;
+        }).join('');
+    } else {
+        logsHtml = '<div style="color:#7f8c8d; font-style:italic;">Журнал пуст. Запустите симуляцию времени.</div>';
+    }
+
+    // Формируем инвентарь склада
+    let invHtml = '<ul style="list-style:none; padding:0; margin:0; max-height: 120px; overflow-y: auto; font-size: 0.85em; border: 1px solid #34495e; border-radius: 4px; background: #0a0a0a;">';
+    const storage = ContainerRegistry.get(bus.local_storage_id);
+    if (storage && storage.items.length > 0) {
+        let itemsMap = {};
+        storage.items.forEach(id => {
+            let it = ItemRegistry.get(id);
+            if (it) itemsMap[it.prototype_id] = (itemsMap[it.prototype_id] || 0) + it.stack_size;
+        });
+        for (let proto in itemsMap) {
+            invHtml += `<li style="padding: 4px; border-bottom: 1px solid #1a2530; border-left: 3px solid #3498db;">📦 ${getItemName(proto, player.era)}: ${itemsMap[proto]} шт.</li>`;
+        }
+    } else {
+        invHtml += '<li style="color:#7f8c8d; padding: 5px; text-align:center;">Склад пуст.</li>';
+    }
+    invHtml += '</ul>';
+
+    let html = `
+    <div class="business-modal-grid">
+        <!-- ЛЕВАЯ КОЛОНКА: Управление -->
+        <div class="bus-col-left">
+            <div class="bus-card">
+                <h4 class="bus-card-title"><i class="fas fa-chart-line"></i> Статус предприятия</h4>
+                <div style="display:flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><b>Уровень:</b> ${bus.level}</span>
+                    <span><b>Касса:</b> <span style="color:#f1c40f; font-weight:bold;">${bus.cash_balance} 💰</span></span>
+                </div>
+                <div style="display:flex; gap:5px; margin-bottom: 15px;">
+                    <input type="number" id="bus-cash-input" placeholder="Сумма" class="bus-input">
+                    <button onclick="depositBusinessCash('${bId}')" class="bus-btn btn-green" title="Внести свои деньги в кассу предприятия"><i class="fas fa-arrow-down"></i> Внести</button>
+                    <button onclick="withdrawBusinessCash('${bId}')" class="bus-btn btn-red" title="Забрать прибыль себе"><i class="fas fa-arrow-up"></i> Снять</button>
+                </div>
+                
+                <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><b>Штат:</b> ${bus.employee_count} / ${maxEmp} чел.</span>
+                </div>
+                <div style="display:flex; gap:5px; margin-bottom: 15px;">
+                    <input type="number" id="bus-emp-input" value="${bus.target_employee_count !== undefined ? bus.target_employee_count : bus.employee_count}" class="bus-input">
+                    <button onclick="setBusinessEmployees('${bId}')" class="bus-btn btn-blue">Назначить</button>
+                </div>
+
+                <div style="display:flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><b>Эффективность:</b></span>
+                </div>
+                <div style="display:flex; gap:5px; align-items: center;">
+                    <input type="range" id="bus-eff-slider" min="0" max="100" value="${bus.target_efficiency !== undefined ? bus.target_efficiency : 100}" oninput="document.getElementById('bus-eff-val').innerText = this.value + '%'" style="flex-grow:1;">
+                    <span id="bus-eff-val" style="min-width:40px; text-align:right; font-weight:bold; color:#f1c40f;">${bus.target_efficiency !== undefined ? bus.target_efficiency : 100}%</span>
+                    <button onclick="setBusinessEfficiency('${bId}')" class="bus-btn btn-blue">Задать</button>
+                </div>
+            </div>
+`;
+
+    if (bus.facility_type !== 'warehouses') {
+        html += `
+            <div class="bus-card">
+                <h4 class="bus-card-title"><i class="fas fa-cogs"></i> Производство и Склад</h4>
+                <label style="font-size: 0.85em; color:#aeb6bf;">Что производим:</label>
+                <div style="display:flex; gap:5px; margin-top:5px; margin-bottom: 10px;">
+                    <select id="bus-focus-select" class="bus-input" style="flex-grow:1;">
+                        <option value="">-- Остановлено --</option>
+        `;
+        const products = getFacilityProducts(bus.facility_type);
+        products.forEach(p => {
+            const sel = bus.production_focus === p ? 'selected' : '';
+            html += `<option value="${p}" ${sel}>${getItemName(p, player.era)}</option>`;
+        });
+        html += `
+                    </select>
+                    <button onclick="saveBusinessFocus('${bId}')" class="bus-btn btn-blue">Применить</button>
+                </div>
+                <label style="font-size: 0.85em; color:#aeb6bf; margin-bottom: 5px; display:block;">Содержимое склада:</label>
+                ${invHtml}
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="bus-card">
+                <h4 class="bus-card-title"><i class="fas fa-box"></i> Склад</h4>
+                ${invHtml}
+            </div>
+        `;
+    }
+
+    html += `
+            <!-- ЛОГИ ПРЕДПРИЯТИЯ -->
+            <div class="bus-card" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <h4 class="bus-card-title"><i class="fas fa-list-alt"></i> Журнал событий</h4>
+                <div class="bus-log-area">
+                    ${logsHtml}
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: Логистика -->
+        <div class="bus-col-right">
+            <div class="bus-card" style="height: 100%; display: flex; flex-direction: column;">
+                <h4 class="bus-card-title"><i class="fas fa-route"></i> Логистика и Снабжение</h4>
+                <p style="font-size: 0.8em; color: #7f8c8d; margin-top: 0;">Настройте автоматическое движение товаров. Караваны нанимаются автоматически за счет кассы предприятия.</p>
+                
+                <div class="bus-rules-list">
+`;
+    
+    bus.logistics.forEach(rule => {
+        const typeName = rule.type === 'transfer' ? '📦 ЭКСПОРТ (Отправить)' : (rule.type === 'pull' ? '📥 ИМПОРТ (Забрать)' : '🛒 ЗАКУПКА (Контракт)');
+        const color = rule.type === 'transfer' ? '#2ecc71' : (rule.type === 'pull' ? '#3498db' : '#f39c12');
+        let targetName = rule.target_id;
+        if (World.regions[rule.target_id]) targetName = `Рынок: ${World.regions[rule.target_id].name}`;
+        else if (World.businesses[rule.target_id]) targetName = `Склад: ${getFacilityName(World.businesses[rule.target_id].facility_type)} (${World.regions[World.businesses[rule.target_id].region_id]?.name || ''})`;
+        
+        const reserveText = rule.keep_reserve > 0 ? ` | Оставлять: ${rule.keep_reserve}` : '';
+        html += `
+                    <div class="bus-rule-item" style="border-left-color: ${color};">
+                        <div style="flex-grow: 1;">
+                            <b style="color:${color}">${typeName}</b><br>
+                            <span style="color:#ecf0f1; font-size: 1.1em;">${getItemName(rule.resource, player.era)} (до ${rule.amount} шт.)</span><br>
+                            <span style="font-size:0.85em; color:#bdc3c7;">Связь с: <b>${targetName}</b><br>Частота: каждые ${rule.frequency_days} дн.${reserveText}</span>
+                        </div>
+                        <button onclick="removeLogisticRule('${bId}', '${rule.id}')" class="bus-btn btn-red" style="padding: 10px;"><i class="fas fa-trash"></i></button>
+                    </div>
+        `;
+    });
+    if (bus.logistics.length === 0) html += `<div style="color:#7f8c8d; font-size:0.9em; text-align:center; padding:20px;">Маршруты не настроены. Предприятие работает только на свой локальный склад.</div>`;
+    
+    html += `
+                </div>
+
+                <!-- ДОБАВЛЕНИЕ ПРАВИЛА -->
+                <div class="bus-rule-form">
+                    <h5 style="margin:0 0 10px 0; color:#5dade2;"><i class="fas fa-plus-circle"></i> Новое правило</h5>
+                    
+                    <label class="bus-label">Тип операции:</label>
+                    <select id="new-rule-type" onchange="toggleRuleType()" class="bus-input">
+                        <option value="transfer">📦 ЭКСПОРТ (Отправить продукцию)</option>
+                        <option value="pull">📥 ИМПОРТ (Забрать сырье со склада)</option>
+                        <option value="order">🛒 ЗАКУПКА (Купить сырье на рынке)</option>
+                    </select>
+                    
+                    <label class="bus-label">Товар:</label>
+                    <select id="new-rule-res" class="bus-input">
+`;
+    Object.keys(ECONOMY_ITEMS).forEach(k => {
+        html += `<option value="${k}">${getItemName(k, player.era)}</option>`;
+    });
+    html += `
+                    </select>
+                    
+                    <label class="bus-label">Целевой склад / Рынок:</label>
+                    <select id="new-rule-target" class="bus-input">
+                        <optgroup label="Городские рынки">
+`;
+    Object.values(World.regions).forEach(r => {
+        html += `<option value="${r.id}">Рынок: ${r.name}</option>`;
+    });
+    html += `
+                        </optgroup>
+                        <optgroup label="Мои склады">
+`;
+    Object.values(World.businesses).filter(b => b.owner_ids.includes('player') && b.id !== bId).forEach(b => {
+        html += `<option value="${b.id}">Склад: ${getFacilityName(b.facility_type)} (${World.regions[b.region_id]?.name || b.region_id})</option>`;
+    });
+    html += `
+                        </optgroup>
+                    </select>
+                    
+                    <div style="display:flex; gap:10px; margin-top: 10px;">
+                        <div style="flex: 1;">
+                            <label class="bus-label" title="Максимум за одну ходку">Кол-во:</label>
+                            <input type="number" id="new-rule-amount" placeholder="Шт." class="bus-input">
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="bus-label" title="Как часто ездит телега">Дней:</label>
+                            <input type="number" id="new-rule-freq" value="7" class="bus-input">
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="bus-label" title="Сколько НЕ трогать на складе-источнике">Резерв:</label>
+                            <input type="number" id="new-rule-reserve" value="0" class="bus-input">
+                        </div>
+                    </div>
+                    
+                    <div id="price-container" style="display:none; margin-top: 10px;">
+                        <label class="bus-label">Макс. цена закупки (золото/шт):</label>
+                        <input type="number" id="new-rule-price" placeholder="Цена" class="bus-input">
+                    </div>
+                    
+                    <button onclick="addLogisticRule('${bId}')" class="bus-btn btn-green" style="width:100%; margin-top: 15px; padding: 10px;">Создать маршрут</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+
+    content.innerHTML = html;
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('visible'), 10);
+    
+    document.getElementById('close-business-modal-btn').onclick = () => {
+        modal.classList.remove('visible');
+        setTimeout(() => modal.style.display = 'none', 300);
+    };
+}
+
+;
+
+function updatePortPanel() {
+    const panel = document.getElementById('port-panel');
+    const content = document.getElementById('port-panel-content');
+    if (!panel || !content || !player || !World) return;
+
+    let playerRegionId = null;
+    for (let rId in World.regions) {
+        if (player.location.toLowerCase().includes(World.regions[rId].name.toLowerCase())) {
+            playerRegionId = rId;
+            break;
+        }
+    }
+
+    if (!playerRegionId || !World.port_facilities || !World.port_facilities[playerRegionId]) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    panel.style.display = 'flex';
+    const port = World.port_facilities[playerRegionId];
+    const reg = World.regions[playerRegionId];
+    
+    let html = `<div style="margin-bottom: 10px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 5px; font-size: 0.85em; color: #ecf0f1;">
+        <b>Уровень порта:</b> ${port.level} | <b>Тип:</b> ${port.type}<br>
+        <b>Верфь:</b> ${port.has_shipyard ? '<span style="color:#2ecc71">Есть</span>' : '<span style="color:#e74c3c">Нет</span>'} | 
+        <b>Блокада:</b> ${port.is_blockaded ? '<span style="color:#e74c3c">Да</span>' : '<span style="color:#2ecc71">Нет</span>'}
+    </div>`;
+    
+    html += `<h4 style="color:#f1c40f; margin: 10px 0 5px 0; font-size: 0.9em; border-bottom:1px solid #f1c40f; padding-bottom:3px;">Склад порта</h4><ul style="list-style:none; padding:0; margin:0; max-height: 120px; overflow-y: auto; font-size: 0.85em;">`;
+    if (port.dock_container_id && ContainerRegistry.has(port.dock_container_id)) {
+        const dockCont = ContainerRegistry.get(port.dock_container_id);
+        if (dockCont.items.length === 0) {
+            html += `<li style="color:#7f8c8d; padding: 3px;">Склад пуст.</li>`;
+        } else {
+            let itemsMap = {};
+            dockCont.items.forEach(id => {
+                let it = ItemRegistry.get(id);
+                if (it) itemsMap[it.prototype_id] = (itemsMap[it.prototype_id] || 0) + it.stack_size;
+            });
+            for (let proto in itemsMap) {
+                html += `<li style="background: rgba(0,0,0,0.4); padding: 4px; margin-bottom: 2px; border-radius: 4px; border-left: 3px solid #f1c40f;">📦 ${getItemName(proto, player ? player.era : 'rebirth')}: ${itemsMap[proto]} шт.</li>`;
+            }
+        }
+    } else {
+        html += `<li style="color:#7f8c8d; padding: 3px;">Склад недоступен.</li>`;
+    }
+    html += `</ul>`;
+
+    if (port.has_shipyard) {
+        html += `<h4 style="color:#e67e22; margin: 10px 0 5px 0; font-size: 0.9em; border-bottom:1px solid #e67e22; padding-bottom:3px;">Контракты верфи</h4><ul style="list-style:none; padding:0; margin:0; max-height: 100px; overflow-y: auto; font-size: 0.85em;">`;
+        if (port.build_queue && port.build_queue.length > 0) {
+            port.build_queue.forEach(bq => {
+                html += `<li style="background: rgba(0,0,0,0.4); padding: 4px; margin-bottom: 2px; border-radius: 4px; border-left: 3px solid #e67e22;">🏗️ ${bq.type} (Владелец: ${bq.owner_id}) - Осталось дней: ${bq.days_left}</li>`;
+            });
+        } else {
+            html += `<li style="color:#7f8c8d; padding: 3px;">Очередь пуста.</li>`;
+        }
+        html += `</ul>`;
+    }
+
+    html += `<h4 style="color:#9b59b6; margin: 10px 0 5px 0; font-size: 0.9em; border-bottom:1px solid #9b59b6; padding-bottom:3px;">Военные Флоты</h4><ul style="list-style:none; padding:0; margin:0; max-height: 100px; overflow-y: auto; font-size: 0.85em;">`;
+    let fleetsInPort = (World.fleets || []).filter(f => f.destination === playerRegionId && (!f.path || f.path_index >= f.path.length - 1));
+    if (fleetsInPort.length === 0) html += `<li style="color:#7f8c8d; padding: 3px;">Нет флотов.</li>`;
+    fleetsInPort.forEach(f => {
+        html += `<li style="background: rgba(0,0,0,0.4); padding: 4px; margin-bottom: 2px; border-radius: 4px; border-left: 3px solid #9b59b6;">⚓🛡️ <b>Флот</b> (Владелец: ${f.owner_id})<br><span style="font-size:0.85em; color:#bdc3c7;">Кораблей: ${f.ship_ids.length} | Миссия: ${f.mission}</span></li>`;
+    });
+    html += `</ul>`;
+
+    html += `<h4 style="color:#3498db; margin: 10px 0 5px 0; font-size: 0.9em; border-bottom:1px solid #3498db; padding-bottom:3px;">Пришвартованные суда</h4><ul style="list-style:none; padding:0; margin:0; max-height: 120px; overflow-y: auto; font-size: 0.85em;">`;
+    let shipsInPort = (World.ships || []).filter(s => s.destination === playerRegionId && (!s.path || s.path.length === 0));
+    if (shipsInPort.length === 0) html += `<li style="color:#7f8c8d; padding: 3px;">Нет кораблей в порту.</li>`;
+    shipsInPort.forEach(s => {
+        let icon = "⛵";
+        if (s.type === "WAR_GALLEY" || s.type === "WAR_FRIGATE") icon = "⛴️";
+        if (s.type === "PIRATE") icon = "🏴‍☠️";
+        if (s.type === "TRANSPORT") icon = "🛶";
+        html += `<li style="background: rgba(0,0,0,0.4); padding: 4px; margin-bottom: 2px; border-radius: 4px; border-left: 3px solid #3498db;">${icon} <b>${s.type}</b> (Владелец: ${s.owner_id})<br><span style="font-size:0.85em; color:#bdc3c7;">Прочность: ${s.hull}% | Команда: ${s.sailors} | Груз: ${s.cargo_capacity}</span></li>`;
+    });
+    html += `</ul>`;
+    
+    content.innerHTML = html;
+}
+;
+
+
+window.saveBusinessFocus = async function(bId) {
+    const focus = document.getElementById('bus-focus-select').value;
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const res = await window.electronAPI.nexusManageBusiness({ action: 'set_focus', args: { businessId: bId, focus: focus } });
+        if (res.status === 'ok') {
+            World.businesses[bId].production_focus = focus;
+            openBusinessModal(bId);
+        }
+    }
+};
+
+window.toggleRuleType = function() {
+    const type = document.getElementById('new-rule-type').value;
+    document.getElementById('price-container').style.display = type === 'order' ? 'block' : 'none';
+};
+;
+
+window.addLogisticRule = async function(bId) {
+    const type = document.getElementById('new-rule-type').value;
+    const res = document.getElementById('new-rule-res').value;
+    const target = document.getElementById('new-rule-target').value;
+    const amount = parseInt(document.getElementById('new-rule-amount').value) || 0;
+    const freq = parseInt(document.getElementById('new-rule-freq').value) || 1;
+    const price = parseInt(document.getElementById('new-rule-price').value) || 0;
+    const reserve = parseInt(document.getElementById('new-rule-reserve').value) || 0;
+
+    if (amount <= 0) return alert("Введите корректное количество.");
+
+    const rule = { type: type, resource: res, target_id: target, amount: amount, frequency_days: freq, days_since_last: 0, max_price: price, keep_reserve: reserve };
+
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const response = await window.electronAPI.nexusManageBusiness({ action: 'add_rule', args: { businessId: bId, rule: rule } });
+        if (response.status === 'ok') {
+            const fullState = await window.electronAPI.nexusGetFullState();
+            if (fullState && fullState.status === 'ok') World = fullState.world;
+            openBusinessModal(bId);
+        }
+    }
+};
+
+window.removeLogisticRule = async function(bId, ruleId) {
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const response = await window.electronAPI.nexusManageBusiness({ action: 'remove_rule', args: { businessId: bId, ruleId: ruleId } });
+        if (response.status === 'ok') {
+            const fullState = await window.electronAPI.nexusGetFullState();
+            if (fullState && fullState.status === 'ok') World = fullState.world;
+            openBusinessModal(bId);
+        }
+    }
+};
+
+window.setBusinessEmployees = async function(bId) {
+window.setBusinessEfficiency = async function(bId) {
+    const eff = parseInt(document.getElementById('bus-eff-slider').value);
+    if (isNaN(eff) || eff < 0 || eff > 100) return alert("Введите значение от 0 до 100");
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const res = await window.electronAPI.nexusManageBusiness({ action: 'set_efficiency', args: { businessId: bId, efficiency: eff } });
+        if (res.status === 'ok') {
+            World.businesses[bId].target_efficiency = eff;
+            openBusinessModal(bId);
+        }
+    }
+};
+    const count = parseInt(document.getElementById('bus-emp-input').value) || 0;
+    if (count < 0) return alert("Количество не может быть отрицательным.");
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const res = await window.electronAPI.nexusManageBusiness({ action: 'set_employees', args: { businessId: bId, count: count } });
+        if (res.status === 'ok') {
+            World.businesses[bId].target_employee_count = count;
+            World.businesses[bId].employee_count = Math.min(count, World.businesses[bId].level * 100);
+            openBusinessModal(bId);
+        }
+    }
+};
+
+window.depositBusinessCash = async function(bId) {
+    const amount = parseInt(document.getElementById('bus-cash-input').value) || 0;
+    if (amount <= 0 || player.stats.gold < amount) return alert("Недостаточно золота в инвентаре!");
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const res = await window.electronAPI.nexusManageBusiness({ action: 'deposit_cash', args: { businessId: bId, amount: amount } });
+        if (res.status === 'ok') {
+            executeCommand('updateStat', { stat: 'gold', change: -amount });
+            World.businesses[bId].cash_balance += amount;
+            openBusinessModal(bId);
+        }
+    }
+};
+
+window.withdrawBusinessCash = async function(bId) {
+    const amount = parseInt(document.getElementById('bus-cash-input').value) || 0;
+    if (amount <= 0 || World.businesses[bId].cash_balance < amount) return alert("Недостаточно средств в кассе предприятия!");
+    if (window.electronAPI && window.electronAPI.nexusManageBusiness) {
+        const res = await window.electronAPI.nexusManageBusiness({ action: 'withdraw_cash', args: { businessId: bId, amount: amount } });
+        if (res.status === 'ok') {
+            executeCommand('updateStat', { stat: 'gold', change: amount });
+            World.businesses[bId].cash_balance -= amount;
+            openBusinessModal(bId);
+        }
+    }
+};
+
+;

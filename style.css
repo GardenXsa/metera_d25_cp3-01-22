@@ -1319,7 +1319,18 @@ button:not(.arrow-button):hover::after {
 .entity-name { font-weight: 500; color: #ecf0f1; flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .entity-tooltip {
-    display: none; position: absolute; background: #1a110a; border: 2px solid #b8860b; border-radius: 8px; padding: 0; z-index: 3000; width: 230px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); pointer-events: none; overflow: hidden; font-family: 'Lora', serif; 
+    display: none; 
+    position: absolute; 
+    background: #1a110a; 
+    border: 2px solid #b8860b; 
+    border-radius: 8px; 
+    padding: 12px; 
+    z-index: 3000; 
+    width: 280px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+    pointer-events: auto; /* Т3 ФИКС: Позволяет взаимодействовать с окном (скроллить) */
+    overflow: hidden; 
+    font-family: 'Lora', serif; 
 }
 .item-tooltip {
     display: none; position: absolute; background: #2c1e14; border: 3px solid #b8860b; border-radius: 10px; padding: 0; z-index: 2000; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); pointer-events: none; overflow: hidden; font-family: 'Lora', serif;
@@ -1341,7 +1352,25 @@ button:not(.arrow-button):hover::after {
 .entity-tooltip p { margin: 4px 0; }
 .entity-tooltip .stat-label { color: #bdc3c7; display: inline-block; min-width: 90px; }
 .entity-tooltip .stat-value { color: #f5b041; font-weight: bold; }
-.entity-tooltip .description-text { font-style: italic; color: #aeb6bf; margin-top: 8px; font-size: 0.95em; max-height: 60px; overflow-y: auto; }
+.entity-tooltip .description-text {
+    font-style: italic;
+    color: #aeb6bf;
+    margin-top: 10px;
+    font-size: 0.95em;
+    max-height: 300px; /* Т3 ФИКС: Увеличено с 60px для отображения полных описаний GM */
+    overflow-y: auto;
+    padding-right: 8px;
+    line-height: 1.5;
+}
+
+/* Стилизация скроллбара внутри описания NPC */
+.entity-tooltip .description-text::-webkit-scrollbar {
+    width: 4px;
+}
+.entity-tooltip .description-text::-webkit-scrollbar-thumb {
+    background: #b8860b;
+    border-radius: 2px;
+}
 .entity-tooltip .health-bar-container { width: 100%; height: 12px; background-color: rgba(0,0,0,0.4); border-radius: 3px; margin-top: 8px; border: 1px solid rgba(0,0,0,0.2); }
 .entity-tooltip .health-bar {
     height: 100%;
@@ -1464,6 +1493,118 @@ button:not(.arrow-button):hover::after {
 .help-content .api-security-note p { color: #ecf0f1; }
 
 /* --- АДАПТИВНОСТЬ --- */
+/* --- НОВЫЙ ИНТЕРФЕЙС БИЗНЕСА --- */
+#business-modal .custom-alert-box {
+    max-width: 900px !important;
+    width: 95% !important;
+    padding: 20px 30px !important;
+}
+.business-modal-grid {
+    display: flex;
+    gap: 20px;
+    height: 65vh;
+    min-height: 500px;
+}
+.bus-col-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 300px;
+}
+.bus-col-right {
+    flex: 1.5;
+    min-width: 400px;
+}
+.bus-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+.bus-card-title {
+    margin: 0 0 15px 0;
+    color: #f1c40f;
+    font-size: 1.1em;
+    border-bottom: 1px solid rgba(241, 196, 15, 0.3);
+    padding-bottom: 5px;
+}
+.bus-input {
+    width: 100%;
+    padding: 8px 10px;
+    background: #1a2530;
+    color: #fff;
+    border: 1px solid #34495e;
+    border-radius: 4px;
+    font-family: inherit;
+}
+.bus-input:focus {
+    border-color: #5dade2;
+    outline: none;
+}
+.bus-label {
+    display: block;
+    font-size: 0.85em;
+    color: #aeb6bf;
+    margin-bottom: 4px;
+}
+.bus-btn {
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.bus-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.bus-btn:active { transform: translateY(1px); }
+.btn-green { background: #27ae60; }
+.btn-red { background: #c0392b; }
+.btn-blue { background: #2980b9; }
+
+.bus-log-area {
+    flex-grow: 1;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+.bus-log-area::-webkit-scrollbar { width: 6px; }
+.bus-log-area::-webkit-scrollbar-thumb { background: #5dade2; border-radius: 3px; }
+
+.bus-rules-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+}
+.bus-rules-list::-webkit-scrollbar { width: 6px; }
+.bus-rules-list::-webkit-scrollbar-thumb { background: #f39c12; border-radius: 3px; }
+
+.bus-rule-item {
+    background: rgba(20, 25, 30, 0.8);
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 4px solid #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.bus-rule-form {
+    background: rgba(41, 128, 185, 0.1);
+    border: 1px solid rgba(41, 128, 185, 0.3);
+    padding: 15px;
+    border-radius: 6px;
+}
+
 @media (max-width: 1100px) {
     .main-layout {
         flex-direction: column;
@@ -3848,4 +3989,244 @@ button:hover {
 .low-spec-mode #background-container {
     transform: none !important;
     transition: none !important;
+}
+
+/* --- ИНДУСТРИЯ И ГОРОДСКИЕ ЗДАНИЯ (CITYGEN C++ OVERHAUL) --- */
+.type-temple { background-color: #f0f0f0; border-top: 8px solid #d4af37; border-bottom: 8px solid #d4af37; box-shadow: inset 0 0 10px #fff; }
+.type-office { background-color: #34495e; border: 4px solid #2c3e50; background-image: linear-gradient(45deg, #2980b9 25%, transparent 25%); }
+.type-farms { background-color: #f1c40f; background-image: repeating-linear-gradient(90deg, #e67e22, #e67e22 4px, transparent 4px, transparent 8px); border: 2px solid #d35400; }
+.type-lumbermills { background-color: #8b4513; background-image: repeating-linear-gradient(0deg, #5c3317, #5c3317 4px, transparent 4px, transparent 8px); border: 4px solid #3e2723; }
+.type-mines { background-color: #2c3e50; border-radius: 50%; box-shadow: inset 0 0 20px #000; border: 4px solid #7f8c8d; }
+.type-forges { background-color: #555; border: 6px solid #333; background-image: radial-gradient(circle at center, #ff8c00 20%, transparent 50%); }
+.type-smelters { background-color: #333; border: 4px solid #222; background-image: radial-gradient(circle at center, #e74c3c 30%, transparent 60%); animation: fire-pulse 2s infinite alternate; }
+.type-weavers { background-color: #ecf0f1; border: 4px solid #bdc3c7; background-image: repeating-linear-gradient(45deg, #3498db, #3498db 2px, transparent 2px, transparent 6px); }
+.type-bakeries { background-color: #d35400; border: 4px solid #a04000; box-shadow: inset 0 0 10px #e67e22; }
+.type-smokehouses { background-color: #5d4037; border: 4px solid #3e2723; background-image: radial-gradient(circle at top, #7f8c8d 20%, transparent 50%); }
+.type-alchemists { background-color: #2c3e50; border: 4px solid #8e44ad; background-image: radial-gradient(circle at center, #2ecc71 20%, transparent 50%); }
+.type-banks { background-color: #95a5a6; border: 6px solid #f1c40f; box-shadow: inset 0 0 10px #7f8c8d; }
+.type-mills { background-color: #d35400; border-radius: 50%; border: 4px dashed #f39c12; }
+.type-tailors { background-color: #9b59b6; border: 4px solid #8e44ad; background-image: linear-gradient(90deg, #e74c3c 33%, #3498db 33%, #3498db 66%, #2ecc71 66%); }
+.type-jewelers { background-color: #ecf0f1; border: 4px solid #f1c40f; background-image: radial-gradient(circle at center, #00ffff 20%, transparent 50%); }
+.type-shipyards { background-color: #8b4513; border: 4px solid #3498db; background-image: repeating-linear-gradient(45deg, #5c3317, #5c3317 4px, transparent 4px, transparent 8px); }
+.type-fisheries { background-color: #2980b9; border: 2px solid #1abc9c; background-image: radial-gradient(circle at center, #ecf0f1 10%, transparent 30%); }
+
+
+/* --- ТРЕК СИСТЕМА (TRAVEL CONTROLS) --- */
+.travel-controls .travel-btn {
+    flex: 1;
+    padding: 6px 0 !important;
+    margin: 0 !important;
+    min-width: auto !important;
+    font-size: 1.1em;
+    background: rgba(52, 152, 219, 0.2) !important;
+    border: 1px solid rgba(52, 152, 219, 0.5) !important;
+    color: #5dade2 !important;
+    border-radius: 4px;
+}
+.travel-controls .travel-btn:hover {
+    background: rgba(52, 152, 219, 0.5) !important;
+    color: #fff !important;
+}
+.travel-controls .travel-btn.btn-danger {
+    background: rgba(231, 76, 60, 0.2) !important;
+    border-color: rgba(231, 76, 60, 0.5) !important;
+    color: #e74c3c !important;
+}
+.travel-controls .travel-btn.btn-danger:hover {
+    background: rgba(231, 76, 60, 0.5) !important;
+    color: #fff !important;
+}
+
+
+/* --- КНОПКИ ДЕЙСТВИЙ В ПУТЕШЕСТВИИ --- */
+.travel-action-btn {
+    flex: 1;
+    padding: 8px 10px !important;
+    margin: 0 !important;
+    min-width: auto !important;
+    font-size: 0.9em !important;
+    background: rgba(41, 128, 185, 0.3) !important;
+    border: 1px solid rgba(52, 152, 219, 0.5) !important;
+    color: #5dade2 !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.travel-action-btn:hover {
+    background: rgba(52, 152, 219, 0.6) !important;
+    color: #fff !important;
+}
+.travel-action-btn.btn-continue {
+    background: rgba(39, 174, 96, 0.3) !important;
+    border-color: rgba(46, 204, 113, 0.5) !important;
+    color: #2ecc71 !important;
+}
+.travel-action-btn.btn-continue:hover {
+    background: rgba(46, 204, 113, 0.6) !important;
+    color: #fff !important;
+}
+
+
+/* --- ПЛАВАЮЩЕЕ ОКНО ПУТЕШЕСТВИЯ --- */
+.journey-modal {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 750px;
+    background: rgba(15, 20, 25, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid #f39c12;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(243, 156, 18, 0.2);
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: slideDownFade 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.journey-modal-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1em;
+    color: #f39c12;
+    font-weight: bold;
+    border-bottom: 1px dashed rgba(243, 156, 18, 0.4);
+    padding-bottom: 8px;
+}
+
+.journey-progress-wrapper {
+    width: 100%;
+    height: 12px;
+    background: #1a2530;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(243, 156, 18, 0.4);
+}
+
+#journey-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #e67e22, #f1c40f);
+    transition: width 1s linear;
+    box-shadow: 0 0 8px #f1c40f;
+}
+
+#journey-loading {
+    text-align: center;
+    color: #5dade2;
+    font-size: 1em;
+    padding: 10px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+}
+
+#journey-event-area {
+    background: rgba(0,0,0,0.6);
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #f39c12;
+    display: flex;
+    flex-direction: column;
+}
+
+#journey-event-text {
+    max-height: 40vh;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Стилизация скроллбара внутри событий пути */
+#journey-event-text::-webkit-scrollbar {
+    width: 6px;
+}
+#journey-event-text::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+#journey-event-text::-webkit-scrollbar-thumb {
+    background-color: #f39c12;
+    border-radius: 3px;
+}
+
+#journey-event-actions {
+    margin-top: 10px;
+    flex-shrink: 0;
+}
+
+.journey-event-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(243, 156, 18, 0.3);
+}
+
+.journey-event-text-container {
+    flex: 1 1 auto;
+    padding-right: 15px;
+    word-break: break-word;
+    font-size: 0.95em;
+    color: #ecf0f1;
+    line-height: 1.4;
+}
+
+.journey-event-btn-container {
+    flex: 0 0 auto;
+    width: 140px;
+}
+
+.journey-event-btn-container button {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#travel-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+
+/* --- MAP FILTERS --- */
+.map-controls-bar {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+.map-filter-btn {
+    background: rgba(20, 25, 30, 0.8) !important;
+    border: 1px solid rgba(93, 173, 226, 0.3) !important;
+    color: #aeb6bf !important;
+    padding: 4px 8px !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    cursor: pointer;
+    min-width: auto !important;
+    margin: 0 !important;
+    transition: all 0.2s ease;
+}
+.map-filter-btn:hover {
+    color: #ecf0f1 !important;
+    background: rgba(52, 152, 219, 0.2) !important;
+}
+.map-filter-btn.active {
+    background: rgba(52, 152, 219, 0.4) !important;
+    border-color: #5dade2 !important;
+    color: #fff !important;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
 }
