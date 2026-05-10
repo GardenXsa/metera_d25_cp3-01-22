@@ -1,0 +1,17 @@
+{
+  "aquilon_ruins": { "name": "Aquilon Ruins (Enclave)", "type": "ruins", "description": "The skeleton of an ancient city where survivors hide from the creatures of Silence under a weak dome.", "placement": "center", "x": 0, "y": 0 },
+  "ash_desert": { "name": "Ash Desert (Plains)", "type": "anomaly", "description": "Dead lands covered in a thick layer of gray volcanic ash.", "placement": "desert", "x": -100, "y": -80 },
+  "silent_forest": { "name": "Silent Forest (Forest)", "type": "anomaly", "description": "Petrified trees where shadows of the past roam.", "placement": "forest", "x": 80, "y": -20 },
+  "scrap_canyon": { "name": "Scrap Canyon (Mountains)", "type": "ruins", "description": "A giant junkyard of Architect machines where stalkers scavenge for resources.", "placement": "mountain", "x": -50, "y": 120 },
+  "dead_lake": { "name": "Dead Lake (Swamp)", "type": "anomaly", "description": "A body of water filled with toxic waste from ancient wars.", "placement": "water", "x": 150, "y": 50 },
+  "iron_remnant_base": { "name": "Iron Remnant Base (Citadel)", "type": "fort", "description": "A fortified bunker of techno-fascists controlling the remaining technology.", "placement": "mountain", "x": 100, "y": -150 },
+  "rusting_spires": { "name": "Rusting Spires (Ruins)", "type": "ruins", "description": "Fallen floating islands whose metal structures are slowly decaying.", "placement": "desert", "x": -150, "y": 100 },
+  "deep_vault_7": { "name": "Deep Vault 7 (Settlement)", "type": "fort", "description": "A sealed dwarven bunker that hasn't sent a signal in decades.", "placement": "mountain", "x": 20, "y": -100 },
+  "whispering_dunes": { "name": "Whispering Dunes (Desert)", "type": "anomaly", "description": "Sands that echo the voices of those who died here of thirst.", "placement": "desert", "x": -250, "y": -100 },
+  "sunken_haven": { "no_road": true, "name": "Sunken Haven (Ruins)", "type": "ruins", "description": "Remnants of a port city half-submerged in poisoned water.", "placement": "water", "x": -30, "y": 120 },
+  "bone_fields": { "name": "Bone Fields (Plains)", "type": "anomaly", "description": "A mass grave of giant mutants whose bones are used for building.", "placement": "desert", "x": 120, "y": 80 },
+  "forgotten_obs": { "name": "Forgotten Observatory (Ruins)", "type": "observatory", "description": "A frozen peak that has become a refuge for Void cultists.", "placement": "mountain", "x": 180, "y": -180 },
+  "flesh_craft_pits": { "name": "Flesh-Craft Pits (Settlement)", "type": "camp", "description": "A camp of madmen trying to 'improve' themselves with mutagens.", "placement": "desert", "x": -80, "y": 50 },
+  "crystal_wastes": { "name": "Crystal Wastes (Plains)", "type": "anomaly", "description": "A plain littered with shards of exploded mana crystals.", "placement": "desert", "x": 50, "y": -120 },
+  "muted_valley": { "name": "Muted Valley (Anomaly)", "type": "anomaly", "description": "A zone of absolute silence where sound physically cannot travel.", "placement": "mountain", "x": -120, "y": -50 }
+}

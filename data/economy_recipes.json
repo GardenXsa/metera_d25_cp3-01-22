@@ -1,0 +1,23 @@
+[
+  { "facility": "mills", "inputs": { "wheat": 2 }, "outputs": { "flour": 1 } },
+  { "facility": "bakeries", "inputs": { "flour": 1 }, "outputs": { "bread": 2 } },
+  { "facility": "smokehouses", "inputs": { "meat": 1, "wood": 1 }, "outputs": { "smoked_meat": 1 } },
+  { "facility": "lumbermills", "inputs": { "wood": 1 }, "outputs": { "boards": 2 } },
+  { "facility": "smelters", "inputs": { "iron_ore": 2, "wood": 1 }, "outputs": { "iron_ingot": 1 } },
+  { "facility": "smelters", "inputs": { "gold_ore": 2, "wood": 1 }, "outputs": { "gold_ingot": 1 } },
+  { "facility": "weavers", "inputs": { "cotton": 2 }, "outputs": { "cloth": 1 } },
+  { "facility": "tailors", "inputs": { "cloth": 2 }, "outputs": { "clothes": 1 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 2, "wood": 1 }, "outputs": { "weapons": 1 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 3, "cloth": 1 }, "outputs": { "armor": 1 } },
+  { "facility": "alchemists", "inputs": { "herbs": 2, "ether_dust": 1 }, "outputs": { "potions": 1 } },
+  { "facility": "jewelers", "inputs": { "gold_ingot": 1 }, "outputs": { "jewelry": 1 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 1, "wood": 1 }, "outputs": { "sickle": 2 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 2, "wood": 1 }, "outputs": { "pickaxe": 2 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 1, "wood": 1 }, "outputs": { "axe": 2 } },
+  { "facility": "forges", "inputs": { "iron_ingot": 2, "wood": 1 }, "outputs": { "hammer": 2 } },
+  { "facility": "lumbermills", "inputs": { "boards": 10, "iron_ingot": 2 }, "outputs": { "wagon": 1 } },
+  { "facility": "alchemists", "inputs": { "herbs": 3 }, "outputs": { "perfume": 1 } },
+  { "facility": "tailors", "inputs": { "cloth": 1 }, "outputs": { "lingerie": 2 } },
+  { "facility": "tailors", "inputs": { "fur": 2 }, "outputs": { "clothes": 1 } },
+  { "facility": "alchemists", "inputs": { "monster_parts": 1, "herbs": 1 }, "outputs": { "aphrodisiac": 1 } }
+]

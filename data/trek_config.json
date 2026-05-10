@@ -1,0 +1,7 @@
+{
+  "tick_interval_ms": 1000,
+  "scan_radius": 1,
+  "bandit_cooldown_hours": 4,
+  "max_messages_stored": 50,
+  "base_travel_speed": 5
+}

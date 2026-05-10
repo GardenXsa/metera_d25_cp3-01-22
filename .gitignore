@@ -1,0 +1,33 @@
+# Резервные копии AI
+.ai_backups/
+
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# TTS – большие модели и голосовые данные
+tts/
+
+# Общие бинарники
+*.dll
+*.onnx
+*.ort
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+engine/debug_test
+engine/debug_test.exe
+engine/raw_test
+engine/raw_test.exe
+
+# Electron build artifacts
+dist/
+*.exe

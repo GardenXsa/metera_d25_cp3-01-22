@@ -1,0 +1,1123 @@
+========================================
+        АРХИТЕКТУРА ПРОЕКТА
+========================================
+
+СityGen/
+    AIPatcher.py
+    index.html
+    scan.py
+    css/
+        style.css
+        tiles.css
+    js/
+        main.js
+        test_data.js
+
+
+========================================
+     СОДЕРЖИМОЕ ТЕКСТОВЫХ ФАЙЛОВ
+========================================
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\AIPatcher.py
+----------------------------------------
+
+import os
+import json
+import shutil
+import datetime
+import difflib
+import re
+import customtkinter as ctk
+from tkinter import messagebox
+
+# --- НАСТРОЙКИ ИНТЕРФЕЙСА ---
+BG_COLOR = "#1e1e1e"
+SIDEBAR_COLOR = "#252526"
+TEXT_COLOR = "#d4d4d4"
+DIFF_ADD_BG = "#234b23" 
+DIFF_DEL_BG = "#512020" 
+ACCENT_COLOR = "#007acc" 
+
+BACKUP_DIR = ".ai_backups"
+
+class BackupManagerWindow(ctk.CTkToplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Машина Времени")
+        self.geometry("600x450")
+        self.configure(fg_color=BG_COLOR)
+        self.attributes("-topmost", True)
+        
+        lbl = ctk.CTkLabel(self, text="История патчей:", font=("Consolas", 14, "bold"), text_color=ACCENT_COLOR)
+        lbl.pack(pady=10)
+
+        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color=SIDEBAR_COLOR)
+        self.scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        self.load_backups()
+
+    def load_backups(self):
+        if not os.path.exists(BACKUP_DIR): return
+        backups = sorted(os.listdir(BACKUP_DIR), reverse=True)
+        for b_dir in backups:
+            full_path = os.path.join(BACKUP_DIR, b_dir)
+            if not os.path.isdir(full_path): continue
+            
+            meta_path = os.path.join(full_path, "patch_meta.json")
+            name = b_dir
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, 'r', encoding='utf-8') as f:
+                        meta = json.load(f)
+                        name = f"[{meta['timestamp']}] {meta['patch_name']}"
+                except: pass
+
+            frame = ctk.CTkFrame(self.scroll_frame, fg_color=BG_COLOR)
+            frame.pack(fill="x", pady=2, padx=5)
+            ctk.CTkLabel(frame, text=name, font=("Consolas", 11), anchor="w").pack(side="left", padx=10, pady=5)
+            ctk.CTkButton(frame, text="ОТКАТ", width=60, fg_color="#c0392b", 
+                          command=lambda p=full_path: self.restore(p)).pack(side="right", padx=5)
+
+    def restore(self, path):
+        if messagebox.askyesno("Подтверждение", "Откатить файлы к этой версии?"):
+            for root, _, files in os.walk(path):
+                for f in files:
+                    if f == "patch_meta.json": continue
+                    src = os.path.join(root, f)
+                    rel = os.path.relpath(src, path)
+                    dst = os.path.join(os.getcwd(), rel)
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.copy2(src, dst)
+            messagebox.showinfo("Успех", "Файлы восстановлены!")
+            self.destroy()
+
+class AIPatcherPro(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("AI Patcher Pro")
+        # Уменьшил размер окна, чтобы влезало на любые экраны
+        self.geometry("1000x650")
+        self.configure(fg_color=BG_COLOR)
+        
+        self.memory_files = {} 
+        self.current_patch_name = "Без имени"
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        # Сайдбар (уже)
+        self.sidebar = ctk.CTkFrame(self, width=280, fg_color=SIDEBAR_COLOR, corner_radius=0)
+        self.sidebar.pack(side="left", fill="y")
+
+        ctk.CTkLabel(self.sidebar, text="AI PATCHER", font=("Consolas", 18, "bold"), text_color=ACCENT_COLOR).pack(pady=10)
+
+        # Кнопки управления буфером
+        btn_box = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        btn_box.pack(fill="x", padx=10)
+        ctk.CTkButton(btn_box, text="📋 Вставить", width=120, height=28, command=self.paste).pack(side="left", padx=2)
+        ctk.CTkButton(btn_box, text="🗑 Очистить", width=120, height=28, fg_color="#c0392b", command=self.clear).pack(side="right", padx=2)
+
+        self.txt_json = ctk.CTkTextbox(self.sidebar, height=300, font=("Consolas", 11))
+        self.txt_json.pack(padx=10, pady=10, fill="x")
+
+        self.btn_analyze = ctk.CTkButton(self.sidebar, text="🔍 Анализировать", height=35, command=self.analyze)
+        self.btn_analyze.pack(pady=5, padx=10, fill="x")
+
+        self.lbl_status = ctk.CTkLabel(self.sidebar, text="Статус: Ожидание", font=("Consolas", 12), text_color="#f1c40f")
+        self.lbl_status.pack()
+
+        self.btn_apply = ctk.CTkButton(self.sidebar, text="✅ ПРИМЕНИТЬ", height=40, state="disabled", fg_color="#27ae60", command=self.apply)
+        self.btn_apply.pack(pady=10, padx=10, fill="x", side="bottom")
+
+        self.btn_history = ctk.CTkButton(self.sidebar, text="📜 История", height=30, fg_color="#8e44ad", command=self.open_history)
+        self.btn_history.pack(pady=5, padx=10, fill="x", side="bottom")
+
+        # Основная зона (Diff)
+        self.main_area = ctk.CTkFrame(self, fg_color=BG_COLOR)
+        self.main_area.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+        self.txt_diff = ctk.CTkTextbox(self.main_area, font=("Consolas", 12), wrap="none")
+        self.txt_diff.pack(fill="both", expand=True)
+        
+        self.txt_diff.tag_config("add", background=DIFF_ADD_BG)
+        self.txt_diff.tag_config("del", background=DIFF_DEL_BG)
+        self.txt_diff.tag_config("info", foreground=ACCENT_COLOR)
+
+    def paste(self):
+        self.txt_json.delete("1.0", "end")
+        self.txt_json.insert("end", self.clipboard_get())
+
+    def clear(self):
+        self.txt_json.delete("1.0", "end")
+        self.txt_diff.configure(state="normal")
+        self.txt_diff.delete("1.0", "end")
+        self.txt_diff.configure(state="disabled")
+        self.btn_apply.configure(state="disabled")
+
+    def open_history(self):
+        BackupManagerWindow(self)
+
+    def extract_brace_block(self, content, start_marker):
+        start_idx = content.find(start_marker)
+        if start_idx == -1: return -1, -1
+        b_start = content.find('{', start_idx)
+        if b_start == -1: return -1, -1
+        count = 0
+        for i in range(b_start, len(content)):
+            if content[i] == '{': count += 1
+            elif content[i] == '}': count -= 1
+            if count == 0: return start_idx, i + 1
+        return -1, -1
+
+    def analyze(self):
+        self.txt_diff.configure(state="normal")
+        self.txt_diff.delete("1.0", "end")
+        self.memory_files = {}
+        
+        raw = self.txt_json.get("1.0", "end").strip()
+        try:
+            # Умный поиск JSON
+            match = re.search(r'(\{.*\})', raw, re.DOTALL)
+            if not match: raise ValueError("JSON не найден")
+            js_str = re.sub(r',(\s*[\]}])', r'\1', match.group(1)) # Фикс запятых
+            data = json.loads(js_str)
+        except Exception as e:
+            self.txt_diff.insert("end", f"ОШИБКА JSON: {e}", "info")
+            return
+
+        self.current_patch_name = data.get("patch_name", "Без имени")
+        ops = data.get("operations", [])
+        errs = False
+
+        for op in ops:
+            path = op.get("path")
+            action = op.get("action")
+            abs_p = os.path.abspath(path)
+            
+            self.txt_diff.insert("end", f"\nФайл: {path} [{action}]\n", "info")
+            
+            if action != "create_file" and not os.path.exists(abs_p):
+                self.txt_diff.insert("end", f"❌ ОШИБКА: Файл не найден\n")
+                errs = True; continue
+
+            # Логика получения контента
+            if abs_p in self.memory_files:
+                old_c = self.memory_files[abs_p]
+            else:
+                old_c = "" if action == "create_file" else open(abs_p, 'r', encoding='utf-8').read()
+
+            new_c = old_c
+            try:
+                if action == "create_file": new_c = op.get("content", "")
+                elif action == "replace":
+                    if op["search"] not in old_c: raise ValueError("Текст не найден")
+                    new_c = old_c.replace(op["search"], op["content"])
+                elif action == "insert_after":
+                    if op["search"] not in old_c: raise ValueError("Якорь не найден")
+                    new_c = old_c.replace(op["search"], op["search"] + "\n" + op["content"])
+                elif action in ["replace_js_block", "delete_js_block"]:
+                    s, e = self.extract_brace_block(old_c, op["start_marker"])
+                    if s == -1: raise ValueError("Маркер не найден")
+                    new_c = old_c[:s] + (op.get("content", "") if action == "replace_js_block" else "") + old_c[e:]
+
+                # Diff
+                for line in difflib.unified_diff(old_c.splitlines(), new_c.splitlines(), n=1, lineterm=''):
+                    if line.startswith('+'): self.txt_diff.insert("end", line + "\n", "add")
+                    elif line.startswith('-'): self.txt_diff.insert("end", line + "\n", "del")
+                
+                self.memory_files[abs_p] = new_c
+            except Exception as e:
+                self.txt_diff.insert("end", f"❌ ОШИБКА: {e}\n")
+                errs = True
+
+        self.txt_diff.configure(state="disabled")
+        if not errs:
+            self.lbl_status.configure(text="✅ Готово", text_color="#2ecc71")
+            self.btn_apply.configure(state="normal")
+        else:
+            self.lbl_status.configure(text="❌ Ошибки", text_color="#e74c3c")
+
+    def apply(self):
+        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        b_path = os.path.join(BACKUP_DIR, f"backup_{ts}")
+        os.makedirs(b_path, exist_ok=True)
+        
+        with open(os.path.join(b_path, "patch_meta.json"), "w", encoding="utf-8") as f:
+            json.dump({"timestamp": ts, "patch_name": self.current_patch_name}, f, ensure_ascii=False)
+
+        for p, content in self.memory_files.items():
+            if os.path.exists(p):
+                rel = os.path.relpath(p, os.getcwd())
+                bp = os.path.join(b_path, rel)
+                os.makedirs(os.path.dirname(bp), exist_ok=True)
+                shutil.copy2(p, bp)
+            
+            # --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+            # Принудительно создаем древо папок для нового файла, если их нет
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            
+            # Теперь файл безопасно запишется
+            with open(p, 'w', encoding='utf-8') as f: 
+                f.write(content)
+            
+        messagebox.showinfo("Успех", "Патч применен!")
+        self.clear()
+
+if __name__ == "__main__":
+    app = AIPatcherPro()
+    app.mainloop()
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\index.html
+----------------------------------------
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Fantasy City Generator v2</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tiles.css">
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <span>CityBuilder OS - Core Module</span>
+            <span>_ □ X</span>
+        </div>
+        <div class="content">
+            <div class="map-container">
+                <div id="mapGrid" class="map-grid"></div>
+            </div>
+            <div class="sidebar">
+                <h2 id="infoName">Инициализация...</h2>
+                <div id="infoDetails">
+                    <p>Ожидание ввода координат.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="window">
+        <div class="title-bar">
+            <span>AI Neural Link (JSON Data)</span>
+        </div>
+        <div class="content data-panel">
+            <textarea id="jsonInput" class="json-area"></textarea>
+            <div class="button-group">
+                <button onclick="generateFromInput()">Сгенерировать карту</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/test_data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\scan.py
+----------------------------------------
+
+import os
+import threading
+import customtkinter as ctk
+from tkinter import filedialog, messagebox
+
+# --- КОНФИГУРАЦИЯ ИНТЕРФЕЙСА ---
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
+
+class ProjectScannerApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # Настройка главного окна
+        self.title("Project Scanner Pro")
+        self.geometry("650x700")
+        self.minsize(600, 650)
+
+        # --- Переменные состояния ---
+        self.project_path = ctk.StringVar(value=os.getcwd())
+        self.output_file = ctk.StringVar(value=os.path.join(os.getcwd(), "project_scan.txt"))
+        
+        # Режим сканирования: 1 - полный, 0 - только структура
+        self.full_scan_mode = ctk.BooleanVar(value=True) 
+        
+        # Настройки
+        self.skip_hidden = ctk.BooleanVar(value=True)
+        self.skip_large_files = ctk.BooleanVar(value=True)
+        self.max_file_size_mb = ctk.StringVar(value="1.0")
+
+        # Базовые списки исключений
+        self.default_ignored_dirs = [
+            '.git', '.idea', '.vscode', '__pycache__', '.godot', 
+            'node_modules', 'venv', '.import', 'dist', 'build', 'bin', 'obj', 'sound', '.ai_backups'
+        ]
+        
+        self.default_ignored_exts = [
+            '.png', '.jpg', '.jpeg', '.gif', '.ico', '.bmp', '.tga', '.svg',
+            '.wav', '.mp3', '.ogg', '.flac',
+            '.exe', '.dll', '.so', '.pck', '.zip', '.rar', '.pdf', '.docx', 
+            '.ttr', '.ttf', '.otf', '.pyc',
+            '.obj', '.gltf', '.glb', '.fbx', '.dae', '.stl', '.ply', 
+            '.blend', '.blend1', '.3ds', '.max', '.ma', '.mb'
+        ]
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # === Вкладки (Tabs) ===
+        self.tabview = ctk.CTkTabview(self)
+        self.tabview.pack(fill="both", expand=True, padx=20, pady=(10, 0))
+
+        self.tab_main = self.tabview.add("Основное")
+        self.tab_ignore = self.tabview.add("Исключения")
+        self.tab_settings = self.tabview.add("Настройки")
+
+        self.setup_main_tab()
+        self.setup_ignore_tab()
+        self.setup_settings_tab()
+
+        # === Блок управления (Всегда виден внизу) ===
+        self.frame_actions = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_actions.pack(pady=10, padx=20, fill="x", side="bottom")
+
+        self.btn_start = ctk.CTkButton(
+            self.frame_actions, text="НАЧАТЬ СКАНИРОВАНИЕ", 
+            height=45, font=("Arial", 14, "bold"), command=self.start_scan_thread
+        )
+        self.btn_start.pack(fill="x", pady=(0, 10))
+
+        # Прогресс бар и статус
+        self.progress_bar = ctk.CTkProgressBar(self.frame_actions, mode='indeterminate')
+        self.progress_bar.set(0)
+        self.progress_bar.pack(fill="x", pady=(0, 5))
+        
+        self.status_label = ctk.CTkLabel(self.frame_actions, text="Готов к работе", text_color="gray", font=("Arial", 12))
+        self.status_label.pack()
+
+    def setup_main_tab(self):
+        # Выбор папки проекта
+        ctk.CTkLabel(self.tab_main, text="📁 Папка проекта:", font=("Arial", 13, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+        input_row = ctk.CTkFrame(self.tab_main, fg_color="transparent")
+        input_row.pack(fill="x", padx=10, pady=(5, 15))
+        
+        ctk.CTkEntry(input_row, textvariable=self.project_path).pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkButton(input_row, text="Обзор", width=80, command=self.select_directory).pack(side="right")
+
+        # Выбор файла отчета
+        ctk.CTkLabel(self.tab_main, text="📄 Файл отчета:", font=("Arial", 13, "bold")).pack(anchor="w", padx=10)
+        output_row = ctk.CTkFrame(self.tab_main, fg_color="transparent")
+        output_row.pack(fill="x", padx=10, pady=(5, 20))
+        
+        ctk.CTkEntry(output_row, textvariable=self.output_file).pack(side="left", fill="x", expand=True, padx=(0, 10))
+        ctk.CTkButton(output_row, text="Сохранить как", width=80, command=self.select_output_file).pack(side="right")
+
+        # Режим сканирования
+        mode_frame = ctk.CTkFrame(self.tab_main)
+        mode_frame.pack(fill="x", padx=10, pady=10)
+        ctk.CTkLabel(mode_frame, text="Режим сканирования:", font=("Arial", 13, "bold")).pack(pady=(10, 5))
+        
+        ctk.CTkRadioButton(mode_frame, text="Полный скан (Структура + Содержимое файлов)", variable=self.full_scan_mode, value=True).pack(anchor="w", padx=20, pady=5)
+        ctk.CTkRadioButton(mode_frame, text="Только архитектура (Дерево папок и файлов)", variable=self.full_scan_mode, value=False).pack(anchor="w", padx=20, pady=(5, 15))
+
+    def setup_ignore_tab(self):
+        self.tab_ignore.grid_columnconfigure(0, weight=1)
+        self.tab_ignore.grid_columnconfigure(1, weight=1)
+
+        # Папки
+        lbl_dirs = ctk.CTkLabel(self.tab_ignore, text="Исключить папки:", font=("Arial", 12, "bold"))
+        lbl_dirs.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        
+        self.txt_ignore_dirs = ctk.CTkTextbox(self.tab_ignore, height=350)
+        self.txt_ignore_dirs.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
+        self.txt_ignore_dirs.insert("0.0", "\n".join(self.default_ignored_dirs))
+
+        # Форматы (Расширения)
+        lbl_exts = ctk.CTkLabel(self.tab_ignore, text="Исключить расширения:", font=("Arial", 12, "bold"))
+        lbl_exts.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        
+        self.txt_ignore_exts = ctk.CTkTextbox(self.tab_ignore, height=350)
+        self.txt_ignore_exts.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="nsew")
+        self.txt_ignore_exts.insert("0.0", "\n".join(self.default_ignored_exts))
+
+    def setup_settings_tab(self):
+        # Скрытые файлы
+        ctk.CTkSwitch(self.tab_settings, text="Игнорировать скрытые файлы/папки (начинаются с точки)", variable=self.skip_hidden).pack(anchor="w", padx=20, pady=15)
+        
+        # Лимит размера
+        size_frame = ctk.CTkFrame(self.tab_settings, fg_color="transparent")
+        size_frame.pack(fill="x", padx=20, pady=10)
+        
+        ctk.CTkSwitch(size_frame, text="Пропускать большие файлы", variable=self.skip_large_files).pack(side="left")
+        
+        ctk.CTkLabel(size_frame, text="Лимит (МБ):").pack(side="left", padx=(20, 5))
+        entry_size = ctk.CTkEntry(size_frame, textvariable=self.max_file_size_mb, width=60)
+        entry_size.pack(side="left")
+
+    # --- ЛОГИКА ИНТЕРФЕЙСА ---
+    def select_directory(self):
+        path = filedialog.askdirectory()
+        if path:
+            self.project_path.set(path)
+
+    def select_output_file(self):
+        path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        if path:
+            self.output_file.set(path)
+
+    def start_scan_thread(self):
+        self.btn_start.configure(state="disabled", text="СКАНИРОВАНИЕ...")
+        self.progress_bar.start()
+        self.status_label.configure(text="Подготовка...", text_color=ctk.ThemeManager.theme["CTkLabel"]["text_color"])
+        
+        # Собираем настройки
+        config = {
+            "project_path": self.project_path.get(),
+            "output_file": self.output_file.get(),
+            "full_scan": self.full_scan_mode.get(),
+            "skip_hidden": self.skip_hidden.get(),
+            "skip_large": self.skip_large_files.get(),
+            "max_mb": 1.0
+        }
+
+        # Обработка лимита МБ
+        try:
+            config["max_mb"] = float(self.max_file_size_mb.get())
+        except ValueError:
+            config["max_mb"] = 1.0
+            self.max_file_size_mb.set("1.0")
+        
+        # Сбор игнорируемых данных (сразу приводим к нижнему регистру для расширений)
+        config["ignore_dirs"] = {line.strip() for line in self.txt_ignore_dirs.get("0.0", "end").splitlines() if line.strip()}
+        config["ignore_exts"] = {line.strip().lower() for line in self.txt_ignore_exts.get("0.0", "end").splitlines() if line.strip()}
+
+        # Запуск потока
+        thread = threading.Thread(target=self.run_scan, args=(config,))
+        thread.start()
+
+    def run_scan(self, config):
+        try:
+            abs_output_file = os.path.abspath(config["output_file"])
+            project_path = config["project_path"]
+            max_size_bytes = config["max_mb"] * 1024 * 1024
+            
+            if not os.path.exists(project_path):
+                raise FileNotFoundError("Указанная папка проекта не существует.")
+
+            with open(config["output_file"], 'w', encoding='utf-8') as f:
+                # --- ЭТАП 1: АРХИТЕКТУРА ---
+                f.write("========================================\n")
+                f.write("        АРХИТЕКТУРА ПРОЕКТА\n")
+                f.write("========================================\n\n")
+
+                self.update_status(f"Анализ структуры папок...")
+
+                for root, dirs, files in os.walk(project_path):
+                    # Фильтрация папок (по списку исключений и скрытым)
+                    dirs[:] = [d for d in dirs if d not in config["ignore_dirs"] and not (config["skip_hidden"] and d.startswith('.'))]
+                    
+                    level = root.replace(project_path, '').count(os.sep)
+                    indent = ' ' * 4 * level
+                    f.write(f"{indent}{os.path.basename(root)}/\n")
+                    sub_indent = ' ' * 4 * (level + 1)
+                    
+                    # Запись файлов
+                    for file_name in files:
+                        if config["skip_hidden"] and file_name.startswith('.'):
+                            continue
+                        if os.path.abspath(os.path.join(root, file_name)) != abs_output_file:
+                            f.write(f"{sub_indent}{file_name}\n")
+
+                # Если выбран режим "Только архитектура", завершаем работу
+                if not config["full_scan"]:
+                    self.finish_scan(True, config["output_file"])
+                    return
+
+                # --- ЭТАП 2: ЧТЕНИЕ СОДЕРЖИМОГО ---
+                f.write("\n\n========================================\n")
+                f.write("     СОДЕРЖИМОЕ ТЕКСТОВЫХ ФАЙЛОВ\n")
+                f.write("========================================\n\n")
+
+                self.update_status(f"Чтение файлов...")
+                
+                for root, dirs, files in os.walk(project_path):
+                    dirs[:] = [d for d in dirs if d not in config["ignore_dirs"] and not (config["skip_hidden"] and d.startswith('.'))]
+
+                    for file_name in files:
+                        if config["skip_hidden"] and file_name.startswith('.'):
+                            continue
+
+                        file_path = os.path.join(root, file_name)
+                        
+                        # Пропускаем сам файл отчета
+                        if os.path.abspath(file_path) == abs_output_file:
+                            continue
+                        
+                        # Проверка расширения
+                        _, ext = os.path.splitext(file_name)
+                        if ext.lower() in config["ignore_exts"]:
+                            continue
+
+                        self.update_status(f"Обработка: {file_name}")
+
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as content_file:
+                                if config["skip_large"]:
+                                    content_file.seek(0, 2)
+                                    size = content_file.tell()
+                                    content_file.seek(0)
+                                    if size > max_size_bytes:
+                                        f.write(f"--- Файл {file_name} пропущен (>{config['max_mb']}MB) ---\n\n")
+                                        continue
+
+                                content = content_file.read()
+                                f.write(f"----------------------------------------\n")
+                                f.write(f"Файл: {file_path}\n")
+                                f.write(f"----------------------------------------\n\n")
+                                f.write(content)
+                                f.write("\n\n")
+                        except Exception:
+                            # Игнорируем бинарные файлы, которые попытались открыться как текст, или файлы без прав
+                            pass
+
+            self.finish_scan(True, config["output_file"])
+
+        except Exception as e:
+            self.finish_scan(False, str(e))
+
+    def update_status(self, text):
+        # Обрезаем длинный текст для статуса
+        if len(text) > 50:
+            text = text[:47] + "..."
+        self.status_label.configure(text=text)
+
+    def finish_scan(self, success, message):
+        self.progress_bar.stop()
+        self.btn_start.configure(state="normal", text="НАЧАТЬ СКАНИРОВАНИЕ")
+        
+        if success:
+            self.status_label.configure(text="Готово!", text_color="green")
+            if messagebox.askyesno("Успех", f"Сканирование завершено.\n\nОткрыть файл отчета?"):
+                try:
+                    os.startfile(message)  # Windows
+                except AttributeError:
+                    try:
+                        os.system(f"open '{message}'")  # macOS
+                    except:
+                        os.system(f"xdg-open '{message}'") # Linux
+        else:
+            self.status_label.configure(text="Ошибка", text_color="red")
+            messagebox.showerror("Ошибка", f"Произошла ошибка:\n{message}")
+
+if __name__ == "__main__":
+    app = ProjectScannerApp()
+    app.mainloop()
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\css\style.css
+----------------------------------------
+
+:root {
+    --ui-bg: #121212;
+    --ui-panel: #1e1e1e;
+    --ui-border: #333333;
+    --ui-accent: #8b6b4a;
+    --text-main: #d4d4d4;
+    --text-muted: #888888;
+}
+body {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background-color: #0a0a0a;
+    background-image: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+.window {
+    background-color: var(--ui-panel);
+    border: 1px solid var(--ui-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    margin-bottom: 20px;
+    max-width: 1200px;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.title-bar {
+    background-color: #0f0f0f;
+    color: var(--ui-accent);
+    padding: 8px 12px;
+    font-weight: bold;
+    font-size: 14px;
+    border-bottom: 1px solid var(--ui-border);
+    display: flex;
+    justify-content: space-between;
+    letter-spacing: 1px;
+}
+.content {
+    padding: 15px;
+    display: flex;
+    gap: 20px;
+}
+.data-panel {
+    flex-direction: column;
+}
+.map-container {
+    background: #000;
+    padding: 0;
+    border: 1px solid var(--ui-border);
+    position: relative;
+    overflow: hidden;
+}
+.map-container::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: inset 0 0 80px 20px rgba(0,0,0,0.9);
+    pointer-events: none;
+    z-index: 50;
+}
+.map-grid {
+    display: grid;
+    gap: 0;
+    image-rendering: pixelated;
+    background-color: #050505;
+}
+.sidebar {
+    width: 320px;
+    background: var(--ui-bg);
+    border: 1px solid var(--ui-border);
+    padding: 15px;
+    border-radius: 2px;
+}
+.sidebar h2 {
+    font-size: 16px;
+    color: var(--ui-accent);
+    margin-top: 0;
+    border-bottom: 1px dashed var(--ui-border);
+    padding-bottom: 10px;
+    text-transform: uppercase;
+}
+.info-row {
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.info-label {
+    color: var(--text-muted);
+}
+.json-area {
+    width: 100%;
+    height: 200px;
+    background: #0a0a0a;
+    color: #a3be8c;
+    border: 1px solid var(--ui-border);
+    padding: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.json-area:focus {
+    outline: 1px solid var(--ui-accent);
+}
+.button-group { text-align: right; margin-top: 15px; }
+button {
+    background: #1a1a1a;
+    color: var(--ui-accent);
+    border: 1px solid var(--ui-accent);
+    padding: 8px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+button:hover {
+    background: var(--ui-accent);
+    color: #000;
+}
+button:active {
+    transform: translateY(1px);
+}
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\css\tiles.css
+----------------------------------------
+
+/* --- БАЗОВЫЙ ТАЙЛ --- */
+.tile {
+    width: 48px;
+    height: 48px;
+    box-sizing: border-box;
+    cursor: crosshair;
+    position: relative;
+    transition: filter 0.2s;
+}
+.tile:hover::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 40;
+}
+.tile.selected::after {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid #8b6b4a;
+    background: rgba(139, 107, 74, 0.2);
+    z-index: 40;
+}
+
+/* --- ПУСТОТА / ТЬМА --- */
+.type-void { background-color: #000000; }
+
+/* --- ПРИРОДА И ЛАНДШАФТ --- */
+.type-dirt {
+    background-color: #1c1714;
+    background-image: radial-gradient(#26201c 15%, transparent 16%);
+    background-size: 8px 8px;
+}
+.type-grass_dead {
+    background-color: #24261c;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+.type-mud {
+    background-color: #171311;
+    background-image: radial-gradient(circle at 30% 30%, #1f1916 2px, transparent 3px), radial-gradient(circle at 70% 60%, #120f0d 3px, transparent 4px);
+    box-shadow: inset 0 0 15px #0a0807;
+}
+.type-water_deep {
+    background-color: #070b12;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 10px);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+
+/* --- РАСТИТЕЛЬНОСТЬ --- */
+.type-tree_dead {
+    background-color: #24261c;
+    position: relative;
+}
+.type-tree_dead::before {
+    content: ''; position: absolute; bottom: 8px; left: 20px; width: 8px; height: 24px;
+    background: #1a1614; border-radius: 2px;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.5);
+}
+.type-tree_dead::after {
+    content: ''; position: absolute; top: 10px; left: 10px; width: 28px; height: 1px;
+    background: #1a1614; transform: rotate(25deg);
+}
+.type-tree_pine_dark {
+    background-color: #24261c;
+    position: relative;
+}
+.type-tree_pine_dark::after {
+    content: ''; position: absolute; bottom: 8px; left: 8px; width: 32px; height: 36px;
+    background: linear-gradient(135deg, #162117, #0a120b);
+    clip-path: polygon(50% 0%, 10% 100%, 90% 100%);
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6));
+}
+.type-bush_dry {
+    background-color: #1c1714;
+    position: relative;
+}
+.type-bush_dry::after {
+    content: ''; position: absolute; bottom: 12px; left: 12px; width: 24px; height: 20px;
+    background: radial-gradient(circle, #2a241b, #14110d);
+    border-radius: 40% 60% 50% 40%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+}
+
+/* --- ПОЛЫ И ДОРОГИ --- */
+.type-stone_floor {
+    background-color: #1f1f1f;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 23px, #141414 23px, #141414 24px), repeating-linear-gradient(0deg, transparent, transparent 23px, #141414 23px, #141414 24px);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+}
+.type-wood_floor {
+    background-color: #211812;
+    background-image: repeating-linear-gradient(90deg, transparent, transparent 11px, #120d0a 11px, #120d0a 12px);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+
+/* --- СТЕНЫ И ПРЕГРАДЫ --- */
+.type-wall_stone {
+    background-color: #2a2a2a;
+    background-image: repeating-linear-gradient(0deg, #1a1a1a, #1a1a1a 2px, transparent 2px, transparent 12px), repeating-linear-gradient(90deg, #1a1a1a, #1a1a1a 2px, transparent 2px, transparent 16px);
+    border-top: 4px solid #3d3d3d;
+    border-bottom: 8px solid #0a0a0a;
+    box-shadow: 0 8px 10px rgba(0,0,0,0.8);
+    z-index: 10;
+}
+.type-wall_cave {
+    background-color: #141414;
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px #000, 0 5px 15px rgba(0,0,0,0.9);
+    border-top: 2px solid #2a2a2a;
+    z-index: 10;
+}
+.type-wall_wood {
+    background-color: #1c120c;
+    background-image: repeating-linear-gradient(90deg, #120b07, #120b07 4px, transparent 4px, transparent 8px);
+    border-top: 4px solid #2e1e14;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.8);
+    z-index: 10;
+}
+.type-door_wood {
+    background-color: #1f1f1f;
+    position: relative;
+}
+.type-door_wood::after {
+    content: ''; position: absolute; top: 16px; bottom: 16px; left: 8px; right: 8px;
+    background: #26170f;
+    border: 2px solid #120b07;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+    z-index: 5;
+}
+
+/* --- ИНТЕРАКТИВ И ДЕКОР --- */
+@keyframes fire-pulse {
+    0% { box-shadow: 0 0 15px 5px rgba(200, 80, 0, 0.4), inset 0 0 10px rgba(255,50,0,0.2); }
+    50% { box-shadow: 0 0 25px 8px rgba(220, 100, 0, 0.6), inset 0 0 15px rgba(255,80,0,0.4); }
+    100% { box-shadow: 0 0 15px 5px rgba(200, 80, 0, 0.4), inset 0 0 10px rgba(255,50,0,0.2); }
+}
+.type-campfire {
+    background-color: #1c1714;
+    position: relative;
+    animation: fire-pulse 2s infinite alternate;
+    z-index: 20;
+}
+.type-campfire::before {
+    content: ''; position: absolute; top: 20px; left: 16px; width: 16px; height: 16px;
+    background: radial-gradient(circle, #ff5722, #bf360c 60%, transparent);
+    border-radius: 50%;
+}
+.type-campfire::after {
+    content: ''; position: absolute; top: 24px; left: 14px; width: 20px; height: 4px;
+    background: #120b07; transform: rotate(45deg);
+}
+.type-torch {
+    background-color: #1f1f1f;
+    position: relative;
+    animation: fire-pulse 1.5s infinite alternate;
+}
+.type-torch::after {
+    content: ''; position: absolute; top: 8px; left: 20px; width: 8px; height: 8px;
+    background: #ff9800; border-radius: 50%;
+    box-shadow: 0 0 10px #ff5722;
+}
+.type-chest {
+    background-color: #211812;
+    position: relative;
+}
+.type-chest::after {
+    content: ''; position: absolute; top: 16px; left: 12px; width: 24px; height: 16px;
+    background: #3d2616; border: 2px solid #1a1a1a;
+    border-top: 4px solid #4a4a4a;
+    border-radius: 2px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.8);
+}
+.type-table {
+    background-color: #211812;
+    position: relative;
+}
+.type-table::after {
+    content: ''; position: absolute; top: 12px; left: 8px; width: 32px; height: 24px;
+    background: #2e1e14; border: 1px solid #120b07;
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.7);
+}
+.type-bones {
+    background-color: #1c1714;
+    position: relative;
+}
+.type-bones::after {
+    content: ''; position: absolute; top: 20px; left: 16px; width: 12px; height: 4px;
+    background: #a39b8e; transform: rotate(30deg);
+    box-shadow: 4px -4px 0 -1px #a39b8e;
+}
+.type-blood {
+    background-color: #1f1f1f;
+    position: relative;
+}
+.type-blood::after {
+    content: ''; position: absolute; top: 14px; left: 14px; width: 20px; height: 16px;
+    background: #4a0c0c;
+    border-radius: 40% 60% 70% 30%;
+    opacity: 0.8;
+    filter: blur(1px);
+}
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\js\main.js
+----------------------------------------
+
+const typeDictionary = {
+    void: "Неизведанная тьма",
+    dirt: "Сырая земля",
+    grass_dead: "Мертвая трава",
+    mud: "Вязкая грязь",
+    water_deep: "Глубокая темная вода",
+    tree_dead: "Мертвое дерево",
+    tree_pine_dark: "Мрачная сосна",
+    bush_dry: "Колючий кустарник",
+    stone_floor: "Каменный пол",
+    wood_floor: "Сгнившие доски",
+    wall_stone: "Каменная кладка",
+    wall_cave: "Стена пещеры",
+    wall_wood: "Деревянный частокол",
+    door_wood: "Тяжелая дверь",
+    campfire: "Костер",
+    torch: "Настенный факел",
+    chest: "Старый сундук",
+    table: "Грубый стол",
+    bones: "Останки",
+    blood: "Запекшаяся кровь"
+};
+
+let selectedElement = null;
+
+window.onload = () => {
+    document.getElementById('jsonInput').value = JSON.stringify(window.INITIAL_DATA, null, 2);
+    buildMap(window.INITIAL_DATA);
+};
+
+function generateFromInput() {
+    try {
+        const data = JSON.parse(document.getElementById('jsonInput').value);
+        buildMap(data);
+    } catch (e) {
+        alert("ОШИБКА АУГУРА: Искажение данных (Неверный JSON)\n" + e.message);
+    }
+}
+
+function buildMap(data) {
+    const args = data.args;
+    const gridContainer = document.getElementById('mapGrid');
+    const [width, height] = args.size.split('x').map(Number);
+
+    gridContainer.style.gridTemplateColumns = `repeat(${width}, 48px)`;
+    gridContainer.style.gridTemplateRows = `repeat(${height}, 48px)`;
+    gridContainer.innerHTML = ''; 
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const plotData = args.plots.find(p => p.x === x && p.y === y);
+            const cell = document.createElement('div');
+            
+            let typeClass = "type-void";
+            let tileData = { name: "Пустота", type: "void", x: x, y: y };
+
+            if (plotData) {
+                typeClass = `type-${plotData.type}`;
+                tileData = plotData;
+            }
+
+            cell.className = `tile ${typeClass}`;
+            cell.onclick = () => selectPlot(cell, tileData);
+            
+            gridContainer.appendChild(cell);
+        }
+    }
+}
+
+function selectPlot(element, data) {
+    if (selectedElement) selectedElement.classList.remove('selected');
+    
+    element.classList.add('selected');
+    selectedElement = element;
+
+    document.getElementById('infoName').innerText = `[ ${data.name || "Неизвестно"} ]`;
+    
+    let detailsHtml = `
+        <div class="info-row"><span class="info-label">Объект:</span> ${typeDictionary[data.type] || data.type}</div>
+        <div class="info-row"><span class="info-label">Позиция:</span> [X:${data.x} | Y:${data.y}]</div>
+    `;
+
+    if (data.desc) detailsHtml += `<div class="info-row" style="margin-top: 10px; font-style: italic; color: #a0a0a0;">"${data.desc}"</div>`;
+    if (data.loot) detailsHtml += `<div class="info-row" style="margin-top: 10px; color: #8b6b4a;"><span class="info-label">Замечено:</span> ${data.loot}</div>`;
+    if (data.id) detailsHtml += `<div class="info-row" style="color: #444; margin-top: 15px; font-size: 10px;"><span class="info-label">SYS_ID:</span> ${data.id}</div>`;
+
+    document.getElementById('infoDetails').innerHTML = detailsHtml;
+}
+
+----------------------------------------
+Файл: C:\Users\user\Desktop\projects\metera_d25_cp3-01 — копия — копия\ProtoSystem\СityGen\js\test_data.js
+----------------------------------------
+
+window.INITIAL_DATA = {
+  "command": "renderLocation",
+  "args": {
+    "locationId": "ruined_crypt_camp",
+    "size": "12x10",
+    "plots": [
+      { "x": 0, "y": 0, "type": "tree_pine_dark", "name": "Густая чаща" },
+      { "x": 1, "y": 0, "type": "tree_pine_dark", "name": "Густая чаща" },
+      { "x": 2, "y": 0, "type": "tree_dead", "name": "Гнилое дерево" },
+      { "x": 3, "y": 0, "type": "grass_dead", "name": "Опушка" },
+      { "x": 4, "y": 0, "type": "grass_dead", "name": "Опушка" },
+      { "x": 5, "y": 0, "type": "dirt", "name": "Тропа" },
+      { "x": 6, "y": 0, "type": "dirt", "name": "Тропа" },
+      { "x": 7, "y": 0, "type": "grass_dead", "name": "Опушка" },
+      { "x": 8, "y": 0, "type": "tree_pine_dark", "name": "Густая чаща" },
+      
+      { "x": 0, "y": 1, "type": "tree_pine_dark", "name": "Густая чаща" },
+      { "x": 1, "y": 1, "type": "grass_dead", "name": "Опушка" },
+      { "x": 2, "y": 1, "type": "grass_dead", "name": "Опушка" },
+      { "x": 3, "y": 1, "type": "bush_dry", "name": "Заросли" },
+      { "x": 4, "y": 1, "type": "dirt", "name": "Тропа" },
+      { "x": 5, "y": 1, "type": "mud", "name": "Грязь" },
+      { "x": 6, "y": 1, "type": "dirt", "name": "Тропа" },
+      { "x": 7, "y": 1, "type": "grass_dead", "name": "Опушка" },
+      { "x": 8, "y": 1, "type": "tree_dead", "name": "Гнилое дерево" },
+
+      { "x": 1, "y": 2, "type": "grass_dead", "name": "Опушка" },
+      { "x": 2, "y": 2, "type": "dirt", "name": "Место привала" },
+      { "x": 3, "y": 2, "type": "campfire", "name": "Тлеющий костер", "desc": "Угли еще горячие. Кто-то был здесь недавно." },
+      { "x": 4, "y": 2, "type": "dirt", "name": "Место привала" },
+      { "x": 5, "y": 2, "type": "dirt", "name": "Тропа" },
+      { "x": 6, "y": 2, "type": "blood", "name": "Свежая кровь", "desc": "След ведет к руинам." },
+      { "x": 7, "y": 2, "type": "grass_dead", "name": "Опушка" },
+
+      { "x": 2, "y": 3, "type": "wood_floor", "name": "Брошенный спальник" },
+      { "x": 3, "y": 3, "type": "dirt", "name": "Место привала" },
+      { "x": 4, "y": 3, "type": "chest", "name": "Вскрытый мешок", "loot": "Пусто" },
+      { "x": 5, "y": 3, "type": "dirt", "name": "Тропа" },
+      { "x": 6, "y": 3, "type": "dirt", "name": "Тропа" },
+      { "x": 7, "y": 3, "type": "wall_stone", "name": "Разрушенная стена" },
+      { "x": 8, "y": 3, "type": "wall_stone", "name": "Разрушенная стена" },
+      { "x": 9, "y": 3, "type": "wall_stone", "name": "Разрушенная стена" },
+
+      { "x": 5, "y": 4, "type": "dirt", "name": "Тропа" },
+      { "x": 6, "y": 4, "type": "stone_floor", "name": "Вход в крипту" },
+      { "x": 7, "y": 4, "type": "door_wood", "name": "Выбитая дверь", "desc": "Сорвана с петель грубой силой." },
+      { "x": 8, "y": 4, "type": "stone_floor", "name": "Коридор крипты" },
+      { "x": 9, "y": 4, "type": "wall_stone", "name": "Стена крипты" },
+
+      { "x": 6, "y": 5, "type": "wall_stone", "name": "Стена крипты" },
+      { "x": 7, "y": 5, "type": "wall_stone", "name": "Стена крипты" },
+      { "x": 8, "y": 5, "type": "stone_floor", "name": "Коридор крипты" },
+      { "x": 9, "y": 5, "type": "wall_stone", "name": "Стена крипты" },
+
+      { "x": 7, "y": 6, "type": "wall_cave", "name": "Обвал" },
+      { "x": 8, "y": 6, "type": "stone_floor", "name": "Зал крипты" },
+      { "x": 9, "y": 6, "type": "stone_floor", "name": "Зал крипты" },
+      { "x": 10, "y": 6, "type": "torch", "name": "Факел", "desc": "Горит неестественным синим пламенем." },
+      { "x": 11, "y": 6, "type": "wall_stone", "name": "Стена крипты" },
+
+      { "x": 7, "y": 7, "type": "wall_cave", "name": "Обвал" },
+      { "x": 8, "y": 7, "type": "stone_floor", "name": "Зал крипты" },
+      { "x": 9, "y": 7, "type": "bones", "name": "Груда костей", "desc": "На костях видны следы зубов." },
+      { "x": 10, "y": 7, "type": "stone_floor", "name": "Зал крипты" },
+      { "x": 11, "y": 7, "type": "wall_stone", "name": "Стена крипты" },
+
+      { "x": 8, "y": 8, "type": "wall_stone", "name": "Стена крипты" },
+      { "x": 9, "y": 8, "type": "wall_stone", "name": "Стена крипты" },
+      { "x": 10, "y": 8, "type": "wall_stone", "name": "Стена крипты" },
+      { "x": 11, "y": 8, "type": "wall_stone", "name": "Стена крипты" }
+    ]
+  }
+};
+

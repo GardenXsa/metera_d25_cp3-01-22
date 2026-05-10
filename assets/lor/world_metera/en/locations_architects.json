@@ -1,0 +1,17 @@
+{
+  "nexus_prime": { "name": "Nexus Prime (Capital)", "type": "city", "description": "A floating megacity, the control center of the planetary Aether Network.", "placement": "center", "x": 0, "y": 0 },
+  "aethel_spires": { "name": "Spires of Aethel (City)", "type": "city", "description": "A complex of floating laboratories where new lifeforms are engineered.", "placement": "mountain", "x": -150, "y": 100 },
+  "arcanum_archive": { "name": "Grand Archive of Arcanum (City)", "type": "city", "description": "The repository of all world knowledge, maintained by millions of constructs.", "placement": "desert", "x": -100, "y": -50 },
+  "crystal_matrix": { "name": "Crystal Matrix (Cave)", "type": "city", "description": "A planetary-scale underground computing center.", "placement": "mountain", "x": 50, "y": -120 },
+  "sky_harbor": { "name": "Sky Harbor (City)", "type": "city", "description": "The main trading hub for giant transport Aerowhales.", "placement": "coast", "x": 120, "y": 80 },
+  "bio_forge": { "name": "Bio-Forge (Citadel)", "type": "fort", "description": "A massive industrial complex for producing combat organisms.", "placement": "forest", "x": -50, "y": -150 },
+  "solar_citadel": { "name": "Solar Citadel (City)", "type": "fort", "description": "A complex of mirrors and lenses harvesting stellar energy for shields.", "placement": "desert", "x": 200, "y": 50 },
+  "whispering_gardens": { "name": "Whispering Gardens (Forest)", "type": "anomaly", "description": "A perfectly engineered biome where plants sing in unison with the Aether.", "placement": "forest", "x": 80, "y": -20 },
+  "obsidian_wall": { "name": "Obsidian Wall (Fort)", "type": "fort", "description": "An impenetrable barrier protecting the central regions from wild zones.", "placement": "mountain", "x": 150, "y": -150 },
+  "deep_sea_obs": { "no_road": true, "name": "Deep-Sea Observatory (Settlement)", "type": "observatory", "description": "An underwater dome for studying oceanic mana currents.", "placement": "water", "x": -35, "y": 160 },
+  "resonance_pits": { "name": "Resonance Pits (Mountains)", "type": "camp", "description": "Mines where the purest quartz is extracted using acoustic waves.", "placement": "mountain", "x": 20, "y": -100 },
+  "cloud_piercer": { "name": "Cloud-Piercer Academy (Citadel)", "type": "observatory", "description": "Training grounds for elite Reality Weavers and Synchronizers.", "placement": "mountain", "x": -80, "y": 50 },
+  "silver_conduits": { "name": "Silver Conduits (Haven)", "type": "city", "description": "A distribution hub for liquid ether across the continent.", "placement": "center", "x": -30, "y": 120 },
+  "void_bastion": { "name": "Void Bastion (Fort)", "type": "fort", "description": "An outpost of the Border Guards monitoring rifts in reality.", "placement": "mountain", "x": 180, "y": -180 },
+  "genesis_craters": { "name": "Genesis Craters (Plains)", "type": "anomaly", "description": "Proving grounds for terraforming and testing new ecosystems.", "placement": "desert", "x": -250, "y": -100 }
+}

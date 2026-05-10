@@ -1,0 +1,225 @@
+[
+  {
+    "id": "wooden_chair_common",
+    "name": "Wooden Chair",
+    "description": "A simple but surprisingly sturdy wooden chair. You can sit on it, or throw it at someone (1d3 bludgeoning damage).",
+    "rarity": "Common",
+    "itemType": "misc",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 1
+  },
+  {
+    "id": "apple_red_common",
+    "name": "Red Apple",
+    "description": "A juicy red apple. Slightly satisfies hunger (restores 1 HP).",
+    "rarity": "Common",
+    "itemType": "food",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 2
+  },
+  {
+    "id": "potion_heal_small_common",
+    "name": "Minor Health Potion",
+    "description": "A vial with a red liquid smelling of herbs. Restores a small amount of health (2d4 + 2 HP).",
+    "rarity": "Common",
+    "itemType": "potion",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 25
+  },
+  {
+    "id": "dagger_rusty_common",
+    "name": "Rusty Dagger",
+    "description": "An old rusty dagger. Better than nothing. Damage: 1d4 piercing.",
+    "rarity": "Common",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [],
+    "value": 5
+  },
+  {
+    "id": "sword_short_common",
+    "name": "Short Sword",
+    "description": "A reliable short sword, the standard weapon of many adventurers. Damage: 1d6 slashing/piercing.",
+    "rarity": "Common",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "str", "change": 1 }],
+    "tags": ["Sharp", "Metal"],
+    "durability": 10,
+    "value": 10
+  },
+  {
+    "id": "shield_wooden_common",
+    "name": "Wooden Shield",
+    "description": "A simple round wooden shield, bound with iron along the edge.",
+    "rarity": "Common",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "con", "change": 1 }],
+    "value": 8
+  },
+  {
+    "id": "staff_simple_common",
+    "name": "Simple Staff",
+    "description": "A smooth wooden staff, useful for walking and as a simple weapon. Damage: 1d4 bludgeoning.",
+    "rarity": "Common",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "int", "change": 1 }],
+    "value": 3
+  },
+  {
+    "id": "robe_novice_common",
+    "name": "Novice Robe",
+    "description": "A simple woven robe worn by novice magic students.",
+    "rarity": "Common",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 2
+  },
+  {
+    "id": "mana_potion_small_common",
+    "name": "Minor Mana Potion",
+    "description": "A vial with a shimmering blue liquid. Restores a small amount of mana (10 MP).",
+    "rarity": "Common",
+    "itemType": "potion",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 30
+  },
+  {
+    "id": "leather_armor_light_common",
+    "name": "Light Leather Armor",
+    "description": "Armor made of several layers of treated leather. Provides basic protection without hindering movement.",
+    "rarity": "Common",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "dex", "change": 1 }],
+    "tags": ["Light", "Leather"],
+    "durability": 15,
+    "value": 20
+  },
+  {
+    "id": "lockpicks_common",
+    "name": "Lockpicks",
+    "description": "A set of thin metal tools for picking locks.",
+    "rarity": "Common",
+    "itemType": "tool",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 15
+  },
+  {
+    "id": "lute_simple_common",
+    "name": "Simple Lute",
+    "description": "A modest but functional lute. Suitable for a beginner bard.",
+    "rarity": "Common",
+    "itemType": "tool",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 12
+  },
+  {
+    "id": "elven_longbow_uncommon",
+    "name": "Elven Longbow",
+    "description": "An elegant and powerful bow crafted by elven masters. Light and accurate. Damage: 1d8 piercing.",
+    "rarity": "Uncommon",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "dex", "change": 2 }],
+    "value": 75
+  },
+  {
+    "id": "ancient_tome_rare",
+    "name": "Ancient Tome",
+    "description": "A battered leather-bound book inscribed with strange symbols. Seems to contain long-forgotten knowledge.",
+    "rarity": "Rare",
+    "itemType": "book",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 200
+  },
+  {
+    "id": "dragonscale_shield_epic",
+    "name": "Dragonscale Shield",
+    "description": "A massive shield crafted from the toughest scales of an ancient dragon. Nearly indestructible and offers magical protection.",
+    "rarity": "Epic",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "con", "change": 3 }],
+    "value": 5000
+  },
+  {
+    "id": "artifact_sunblade_legendary",
+    "name": "Sunblade of Aetherius",
+    "description": "A legendary sword forged from the heart of a fallen star. Shines with a light that dispels darkness and brings doom to evil. Damage: 2d8 slashing + 1d8 radiant.",
+    "rarity": "Legendary",
+    "itemType": "weapon",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "legs", "feet"],
+    "effects": [
+      { "type": "modify_stat", "stat": "str", "change": 5 },
+      { "type": "modify_stat", "stat": "cha", "change": 2 }
+    ],
+    "value": 0
+  },
+  {
+    "id": "amulet_of_kings_legendary",
+    "name": "Amulet of Kings",
+    "description": "A sacred amulet, symbol of the emperors' power. Protects the wearer from evil and allows the lighting of the Dragonfires.",
+    "rarity": "Legendary",
+    "itemType": "amulet",
+    "restrictedSlots": ["head", "face", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "isQuestItem": true,
+    "effects": [
+      { "type": "modify_stat", "stat": "cha", "change": 4 },
+      { "type": "modify_stat", "stat": "con", "change": 2 }
+    ],
+    "value": 0
+  },
+  {
+    "id": "raw_iron_ore",
+    "name": "Raw Iron Ore",
+    "description": "An unprocessed chunk of iron ore. Requires smelting in a forge.",
+    "rarity": "Common",
+    "itemType": "raw_material",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 5
+  },
+  {
+    "id": "steel_ingot",
+    "name": "Steel Ingot",
+    "description": "A heavy ingot of high-quality steel. The foundation for crafting weapons and armor.",
+    "rarity": "Uncommon",
+    "itemType": "industrial_good",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 25
+  },
+  {
+    "id": "raw_ether_dust",
+    "name": "Aether Dust",
+    "description": "Glowing dust collected in anomaly zones. Used in alchemy and artificing.",
+    "rarity": "Rare",
+    "itemType": "magical_material",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "torso", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [],
+    "value": 100
+  },
+  {
+    "id": "colorful_clothes_common",
+    "name": "Colorful Clothes",
+    "description": "Bright and comfortable clothes, suitable for performances. Attracts attention.",
+    "rarity": "Common",
+    "itemType": "armor",
+    "restrictedSlots": ["head", "face", "neck", "shoulders", "right_hand", "left_hand", "legs", "feet"],
+    "effects": [{ "type": "modify_stat", "stat": "cha", "change": 1 }],
+    "tags": ["Light", "Cloth"],
+    "durability": 10,
+    "value": 15
+  }
+]

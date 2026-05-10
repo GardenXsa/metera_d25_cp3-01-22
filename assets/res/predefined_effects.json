@@ -1,0 +1,1424 @@
+[
+  {
+    "id": "bulls_strength",
+    "name": "Сила быка",
+    "description": "Вы чувствуете прилив невероятной силы.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "cats_grace",
+    "name": "Кошачья грация",
+    "description": "Ваши движения становятся более ловкими и точными.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "owls_wisdom",
+    "name": "Мудрость совы",
+    "description": "Ваш разум проясняется, интеллект обостряется.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "foxs_cunning",
+    "name": "Хитрость лисы",
+    "description": "Вы становитесь более обаятельным и убедительным.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "bears_endurance",
+    "name": "Выносливость медведя",
+    "description": "Увеличивает ваше телосложение и запас здоровья.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "clumsiness",
+    "name": "Неуклюжесть",
+    "description": "Ваши движения становятся неловкими и скованными.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "feeblemind",
+    "name": "Слабоумие",
+    "description": "Ваши мысли путаются, а способность к рассуждению снижается.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "weakness",
+    "name": "Слабость",
+    "description": "Ваши мышцы ослабевают.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "social_awkwardness",
+    "name": "Социальная неловкость",
+    "description": "Вам становится труднее общаться с другими.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "frailty",
+    "name": "Хрупкость",
+    "description": "Вы становитесь более уязвимы к физическим недугам.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "weak_poison_dot",
+    "name": "Слабый яд",
+    "description": "Яд медленно действует в ваших жилах. Наносит урон и ослабляет.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "moderate_poison_dot",
+    "name": "Умеренный яд",
+    "description": "Токсины распространяются по телу, нанося ощутимый урон.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "strong_poison_dot",
+    "name": "Сильный яд",
+    "description": "Смертельный яд быстро разрушает вас изнутри.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-10}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "bleeding_dot",
+    "name": "Кровотечение",
+    "description": "Вы истекаете кровью, теряя жизненные силы.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}}]"
+  },
+  {
+    "id": "deep_wound_dot",
+    "name": "Глубокая рана",
+    "description": "Серьезная рана вызывает сильное кровотечение и боль.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "burning_dot",
+    "name": "Горение",
+    "description": "Пламя пожирает вашу плоть.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}}]"
+  },
+  {
+    "id": "immolation_dot",
+    "name": "Самосожжение",
+    "description": "Вы охвачены магическим пламенем, которое сжигает и вас, и врагов поблизости.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-8}}]"
+  },
+  {
+    "id": "acid_burn_dot",
+    "name": "Кислотный ожог",
+    "description": "Едкая кислота разъедает вашу броню и плоть.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "necrotic_decay_dot",
+    "name": "Некротический распад",
+    "description": "Темная энергия высасывает из вас жизнь.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-7}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"max_hp\"}}]"
+  },
+  {
+    "id": "frostbite_dot",
+    "name": "Обморожение",
+    "description": "Ледяной холод сковывает ваши конечности, нанося урон и замедляя вас.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "weak_regeneration_hot",
+    "name": "Слабая регенерация",
+    "description": "Ваши раны медленно затягиваются.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":2}}]"
+  },
+  {
+    "id": "moderate_regeneration_hot",
+    "name": "Умеренная регенерация",
+    "description": "Ваше тело быстро восстанавливается.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":5}}]"
+  },
+  {
+    "id": "strong_regeneration_hot",
+    "name": "Сильная регенерация",
+    "description": "Раны затягиваются прямо на глазах.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":10}}]"
+  },
+  {
+    "id": "divine_blessing_hot",
+    "name": "Божественное благословение",
+    "description": "Святая энергия исцеляет вас и укрепляет дух.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":4}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "soothing_aura_hot",
+    "name": "Успокаивающая аура",
+    "description": "Мягкое сияние вокруг вас лечит раны и успокаивает разум.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":3}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":1}}]"
+  },
+  {
+    "id": "stunned",
+    "name": "Оглушение",
+    "description": "Вы дезориентированы и не можете действовать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sleeping",
+    "name": "Сон",
+    "description": "Вы погружены в глубокий сон и беззащитны. Эффект прерывается при получении урона.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "paralyzed",
+    "name": "Паралич",
+    "description": "Вы полностью обездвижены и не можете действовать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "feared",
+    "name": "Страх",
+    "description": "Вас охватил панический ужас, и вы не можете контролировать свои действия.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "charmed",
+    "name": "Очарование",
+    "description": "Вы считаете заклинателя своим лучшим другом и будете выполнять его просьбы.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "confused",
+    "name": "Замешательство",
+    "description": "Вы не понимаете, где друг, а где враг, и можете атаковать случайные цели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "silenced",
+    "name": "Безмолвие",
+    "description": "Вы не можете произносить заклинания.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rooted",
+    "name": "Обездвиженность",
+    "description": "Вы не можете двигаться с места, но все еще можете атаковать и использовать способности.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "darkvision",
+    "name": "Ночное зрение",
+    "description": "Вы прекрасно видите в полной темноте.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "water_walking",
+    "name": "Хождение по воде",
+    "description": "Вы можете ходить по поверхности воды, как по твердой земле.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "invisibility",
+    "name": "Невидимость",
+    "description": "Вас невозможно увидеть обычным зрением. Эффект пропадает после атаки или использования заклинания.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "haste",
+    "name": "Ускорение",
+    "description": "Вы двигаетесь и действуете в два раза быстрее.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "slow",
+    "name": "Замедление",
+    "description": "Ваши движения и скорость атаки значительно снижены.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "levitation",
+    "name": "Левитация",
+    "description": "Вы парите над землей, игнорируя большинство наземных препятствий и ловушек.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_verbosity",
+    "name": "Проклятие болтливости",
+    "description": "Вы не можете говорить кратко, постоянно пускаясь в ненужные подробности.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "aura_of_truth",
+    "name": "Аура правды",
+    "description": "В радиусе этой ауры невозможно солгать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mirrorskin",
+    "name": "Зеркальная кожа",
+    "description": "Ваша кожа отражает часть входящего урона обратно в атакующего.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "berserker_rage",
+    "name": "Ярость берсерка",
+    "description": "Вы впадаете в боевое безумие, увеличивая силу, но снижая защиту и теряя контроль.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "ethereal_form",
+    "name": "Эфирная форма",
+    "description": "Вы становитесь бесплотным, проходя сквозь врагов и стены, но не можете взаимодействовать с физическим миром.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "petrification",
+    "name": "Окаменение",
+    "description": "Ваше тело превращается в камень. Вы полностью неуязвимы, но не можете действовать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blood_frenzy",
+    "name": "Кровавое бешенство",
+    "description": "Каждый нанесенный удар лечит вас на небольшую величину.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_shield",
+    "name": "Магический щит",
+    "description": "Поглощает определенное количество магического урона.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":25}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "iron_skin",
+    "name": "Железная кожа",
+    "description": "Ваша кожа становится твердой, как железо, значительно увеличивая физическую защиту.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "mana_burn",
+    "name": "Сжигание маны",
+    "description": "Каждый ход вы теряете часть своей маны.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":-5}}]"
+  },
+  {
+    "id": "mana_regeneration",
+    "name": "Регенерация маны",
+    "description": "Ваш запас маны медленно восстанавливается.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":3}}]"
+  },
+  {
+    "id": "vampiric_touch",
+    "name": "Прикосновение вампира",
+    "description": "Ваши атаки ближнего боя похищают жизнь у цели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_ages",
+    "name": "Проклятие веков",
+    "description": "Вы стремительно стареете, теряя физические силы, но обретая мудрость.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "ghostly_shroud",
+    "name": "Призрачный саван",
+    "description": "Дает шанс избежать физической атаки.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"evasion\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"evasion\"}}]"
+  },
+  {
+    "id": "sun_sickness",
+    "name": "Солнечная болезнь",
+    "description": "Находясь под прямыми солнечными лучами, вы чувствуете слабость и получаете урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rooted_in_place",
+    "name": "Укоренение",
+    "description": "Вы врастаете в землю, получая бонус к защите, но теряя возможность двигаться.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "thorn_aura",
+    "name": "Аура шипов",
+    "description": "Любой, кто атакует вас в ближнем бою, получает ответный урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shadow_blend",
+    "name": "Слияние с тенью",
+    "description": "Находясь в тени, вы становитесь практически невидимы.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "enlightenment",
+    "name": "Просветление",
+    "description": "Вы получаете значительный бонус к интеллекту и сопротивлению магии.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":20}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "dread",
+    "name": "Ужас",
+    "description": "Снижает боевой дух и эффективность противников рядом с вами.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "marked_for_death",
+    "name": "Метка смерти",
+    "description": "Вы становитесь приоритетной целью для врагов и получаете больше урона.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "soul_link",
+    "name": "Связь душ",
+    "description": "Часть получаемого вами урона перенаправляется на связанную цель.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "divine_intervention",
+    "name": "Божественное вмешательство",
+    "description": "Вы находитесь под защитой высших сил, которая может спасти вас от верной смерти один раз.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chaos_brand",
+    "name": "Клеймо хаоса",
+    "description": "Каждый ход на вас накладывается случайный позитивный или негативный эффект.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_instability",
+    "name": "Магическая нестабильность",
+    "description": "Ваши заклинания могут иметь непредсказуемые побочные эффекты.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "hunters_mark",
+    "name": "Метка охотника",
+    "description": "Вы наносите дополнительный урон по отмеченной цели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blessed_weapon",
+    "name": "Благословенное оружие",
+    "description": "Ваше оружие наносит дополнительный урон светом.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "poisoned_weapon",
+    "name": "Отравленное оружие",
+    "description": "Ваше оружие с некоторой вероятностью отравляет цель при ударе.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "flaming_weapon",
+    "name": "Пылающее оружие",
+    "description": "Ваше оружие наносит дополнительный урон огнем.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chilling_weapon",
+    "name": "Леденящее оружие",
+    "description": "Ваше оружие наносит дополнительный урон холодом и может замедлить цель.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "gravity_well",
+    "name": "Гравитационный колодец",
+    "description": "Вас притягивает к центру эффекта, а скорость передвижения снижена.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "righteous_fury",
+    "name": "Праведный гнев",
+    "description": "Чем меньше у вас здоровья, тем больше урона вы наносите.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spell_reflection",
+    "name": "Отражение заклинаний",
+    "description": "Дает шанс отразить направленное на вас заклинание обратно в колдующего.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unwavering_focus",
+    "name": "Непоколебимый фокус",
+    "description": "Вы получаете иммунитет к эффектам страха и очарования.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_attunement_fire",
+    "name": "Единение с огнем",
+    "description": "Вы получаете сопротивление урону от огня и усиливаете свои огненные заклинания.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"fire_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"fire_resist\"}}]"
+  },
+  {
+    "id": "elemental_attunement_frost",
+    "name": "Единение со льдом",
+    "description": "Вы получаете сопротивление урону от холода и усиливаете свои ледяные заклинания.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"frost_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"frost_resist\"}}]"
+  },
+  {
+    "id": "elemental_attunement_lightning",
+    "name": "Единение с молнией",
+    "description": "Вы получаете сопротивление урону от электричества и усиливаете свои заклинания молний.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"lightning_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"lightning_resist\"}}]"
+  },
+  {
+    "id": "plague_carrier",
+    "name": "Носитель чумы",
+    "description": "Вы медленно теряете здоровье и можете заразить других существ при контакте.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}}]"
+  },
+  {
+    "id": "giants_strength",
+    "name": "Сила гиганта",
+    "description": "Вы обретаете невероятную силу, способную крушить камни.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":8}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "mind_fog",
+    "name": "Ментальный туман",
+    "description": "Снижает интеллект и волю, затрудняя концентрацию.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "stoneform",
+    "name": "Каменная форма",
+    "description": "Превращает вашу кожу в камень, даруя огромную защиту, но сильно замедляя.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":25}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "aquatic_adaptation",
+    "name": "Водная адаптация",
+    "description": "Вы можете дышать под водой и быстрее плавать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "last_stand",
+    "name": "Последний рубеж",
+    "description": "Когда ваше здоровье опускается до критического уровня, вы получаете временный бонус к урону и защите.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "reckless_attack",
+    "name": "Безрассудная атака",
+    "description": "Вы получаете бонус к атаке, но все атаки по вам также получают преимущество.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_silence",
+    "name": "Проклятие безмолвия",
+    "description": "Вы не можете издавать ни звука, что делает невозможным использование заклинаний и общение.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "maddening_whispers",
+    "name": "Сводящий с ума шепот",
+    "description": "Вы слышите голоса, которые сводят вас с ума, снижая волю и нанося ментальный урон.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "overcharge",
+    "name": "Перегрузка",
+    "description": "Ваши атаки и способности наносят больше урона, но вы также получаете часть этого урона.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "phantom_pain",
+    "name": "Фантомная боль",
+    "description": "Вы чувствуете боль от давно заживших ран, что отвлекает и снижает характеристики.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-1}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "slippery_mind",
+    "name": "Скользкий ум",
+    "description": "Дает преимущество в спасбросках против ментальных атак и очарования.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "static_charge",
+    "name": "Статический заряд",
+    "description": "Вокруг вас потрескивает электричество. При получении удара в ближнем бою атакующий получает урон молнией.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "temporal_displacement",
+    "name": "Временное смещение",
+    "description": "Вы слегка смещены во времени, что дает вам шанс полностью избежать атаки.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unstable_mutation",
+    "name": "Нестабильная мутация",
+    "description": "Ваше тело постоянно меняется, давая случайные бонусы и штрафы к характеристикам каждый ход.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "void_touched",
+    "name": "Коснувшийся пустоты",
+    "description": "Вы получаете сопротивление к некротической энергии, но уязвимость к святому урону.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "withering_curse",
+    "name": "Иссушающее проклятие",
+    "description": "Постепенно снижает максимальный запас здоровья цели.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":-2}}]"
+  },
+  {
+    "id": "zealots_fervor",
+    "name": "Рвение фанатика",
+    "description": "Вы не можете быть очарованы или напуганы.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "minor_strength_buff",
+    "name": "Малое усиление",
+    "description": "Вы чувствуете легкий прилив сил.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "minor_dexterity_buff",
+    "name": "Малая ловкость",
+    "description": "Ваши движения становятся чуть более проворными.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "minor_intellect_buff",
+    "name": "Малая мудрость",
+    "description": "Ваш ум становится немного острее.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "minor_charisma_buff",
+    "name": "Малое обаяние",
+    "description": "Вы становитесь немного убедительнее.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "minor_constitution_buff",
+    "name": "Малая стойкость",
+    "description": "Вы чувствуете себя немного выносливее.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "minor_weakness_debuff",
+    "name": "Легкая слабость",
+    "description": "Вы чувствуете легкую усталость.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "minor_clumsiness_debuff",
+    "name": "Легкая неуклюжесть",
+    "description": "Вы стали немного более неловким.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "minor_dullness_debuff",
+    "name": "Легкое отупение",
+    "description": "Вам немного сложнее соображать.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "minor_shyness_debuff",
+    "name": "Легкая застенчивость",
+    "description": "Вы стали чуть менее уверенным в себе.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "minor_illness_debuff",
+    "name": "Легкое недомогание",
+    "description": "Вы чувствуете себя не очень хорошо.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "hemorrhage_dot",
+    "name": "Кровоизлияние",
+    "description": "Вы теряете здоровье каждый раз, когда совершаете действие.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "soul_rot_dot",
+    "name": "Гниение души",
+    "description": "Ваша душа медленно угасает, уменьшая максимальный запас маны и нанося урон.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_mana\",\"change\":-2}}]"
+  },
+  {
+    "id": "healing_light_hot",
+    "name": "Исцеляющий свет",
+    "description": "Поток святой энергии восстанавливает ваше здоровье.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":6}}]"
+  },
+  {
+    "id": "tranquility_hot",
+    "name": "Спокойствие",
+    "description": "Вы входите в состояние медитации, восстанавливая здоровье и ману, но не можете атаковать.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":8}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":5}}]"
+  },
+  {
+    "id": "disarmed",
+    "name": "Обезоружен",
+    "description": "Вы уронили свое оружие и не можете атаковать им.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "taunted",
+    "name": "Провокация",
+    "description": "Вы можете атаковать только спровоцировавшую вас цель.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "polymorphed",
+    "name": "Превращение",
+    "description": "Вы превращены в безобидное существо и не можете использовать свои способности.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "feather_fall",
+    "name": "Плавное падение",
+    "description": "Вы падаете медленно и не получаете урона от падения.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spider_climb",
+    "name": "Паучье лазание",
+    "description": "Вы можете передвигаться по стенам и потолкам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "freedom_of_movement",
+    "name": "Свобода движений",
+    "description": "Вы невосприимчивы к эффектам паралича, замедления и обездвиживания.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "see_invisible",
+    "name": "Видеть невидимое",
+    "description": "Вы можете видеть невидимых существ и объекты.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "aura_of_cowardice",
+    "name": "Аура трусости",
+    "description": "Враги рядом с вами с большей вероятностью попытаются сбежать из боя.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blood_pact",
+    "name": "Кровавый договор",
+    "description": "Вы жертвуете частью здоровья, чтобы значительно увеличить силу на короткое время.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chronoshift",
+    "name": "Хроносдвиг",
+    "description": "Вы возвращаетесь в состояние, в котором были несколько ходов назад, включая здоровье и положение.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_clumsy_fingers",
+    "name": "Проклятие кривых пальцев",
+    "description": "У вас есть шанс уронить предмет при использовании.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "dimensional_anchor",
+    "name": "Якорь измерений",
+    "description": "Вы не можете быть телепортированы или перемещены магическим образом против своей воли.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "magnetic_field",
+    "name": "Магнитное поле",
+    "description": "Существа в металлической броне притягиваются к вам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "perfect_clarity",
+    "name": "Идеальная ясность",
+    "description": "Ваша следующая атака или заклинание гарантированно попадет и нанесет критический урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "photosynthesis",
+    "name": "Фотосинтез",
+    "description": "Находясь на солнце, вы медленно восстанавливаете здоровье.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "psychic_scream",
+    "name": "Психический крик",
+    "description": "Наносит урон интеллекту и воле ближайших существ.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-1}}]"
+  },
+  {
+    "id": "shared_fate",
+    "name": "Общая судьба",
+    "description": "Любое исцеление, которое вы получаете, также лечит связанную цель.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sound_dampening_field",
+    "name": "Поле звукопоглощения",
+    "description": "Внутри этого поля не распространяются звуки.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "stolen_time",
+    "name": "Украденное время",
+    "description": "Вы похищаете скорость у цели, ускоряя себя и замедляя ее.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "synesthesia",
+    "name": "Синестезия",
+    "description": "Ваши чувства смешались. Вы можете 'видеть' звуки и 'слышать' цвета. Это дезориентирует.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "target_fixation",
+    "name": "Фиксация на цели",
+    "description": "Вы получаете бонус к урону по одной цели, но получаете штраф к урону по всем остальным.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "gravity_shift",
+    "name": "Сдвиг гравитации",
+    "description": "Гравитация для вас изменена. Вы можете ходить по стенам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "corrosive_aura",
+    "name": "Коррозийная аура",
+    "description": "Снаряжение существ рядом с вами медленно разрушается.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mana_vampirism",
+    "name": "Вампиризм маны",
+    "description": "Ваши атаки похищают ману у цели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_the_miser",
+    "name": "Проклятие скупца",
+    "description": "Вы не можете расстаться со своим золотом, даже если это необходимо.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blinding_light",
+    "name": "Ослепляющий свет",
+    "description": "Вы временно ослеплены и имеете большой шанс промахнуться.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "deafened",
+    "name": "Оглушен (звук)",
+    "description": "Вы ничего не слышите.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "adaptive_resistance",
+    "name": "Адаптивное сопротивление",
+    "description": "После получения урона от определенного элемента, вы получаете временное сопротивление к нему.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "death_throes",
+    "name": "Предсмертная агония",
+    "description": "После смерти вы взрываетесь, нанося урон окружающим.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "echoing_pain",
+    "name": "Отраженная боль",
+    "description": "Каждый ход вы снова получаете часть урона, полученного в предыдущем ходу.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "flickering_presence",
+    "name": "Мерцающее присутствие",
+    "description": "Вы периодически случайно телепортируетесь на короткое расстояние.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "glass_cannon",
+    "name": "Стеклянная пушка",
+    "description": "Вы наносите значительно больше урона, но и получаете тоже.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "liquid_form",
+    "name": "Жидкая форма",
+    "description": "Ваше тело становится жидким. Вы можете просачиваться сквозь щели, но уязвимы к холоду.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "momentum",
+    "name": "Импульс",
+    "description": "Чем дольше вы двигаетесь без остановки, тем выше становится ваша скорость.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "oath_of_vengeance",
+    "name": "Клятва мести",
+    "description": "Вы наносите дополнительный урон существам того же типа, что и ваш заклятый враг.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "phase_walker",
+    "name": "Фазовый ходок",
+    "description": "Вы можете один раз за ход пройти сквозь одно препятствие или врага.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "protective_blessing",
+    "name": "Защитное благословение",
+    "description": "Снижает весь получаемый урон на небольшую величину.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"damage_reduction\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"damage_reduction\"}}]"
+  },
+  {
+    "id": "rattled",
+    "name": "Потрясение",
+    "description": "Вы напуганы и получаете штраф к атакам и спасброскам.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"attack_roll\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"saving_throw\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"attack_roll\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"saving_throw\"}}]"
+  },
+  {
+    "id": "rebound",
+    "name": "Отскок",
+    "description": "Следующая атака дальнего боя по вам будет отражена в случайном направлении.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sacrificial_pact",
+    "name": "Жертвенный пакт",
+    "description": "Вы постоянно теряете здоровье, но значительно усиливаете своего призванного союзника.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}}]"
+  },
+  {
+    "id": "scent_of_blood",
+    "name": "Запах крови",
+    "description": "Хищники будут преследовать вас с большим рвением.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shield_of_faith",
+    "name": "Щит веры",
+    "description": "Божественная сила защищает вас, увеличивая броню.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "spiritual_weapon",
+    "name": "Духовное оружие",
+    "description": "Рядом с вами сражается призрачное оружие, которое атакует ваших врагов.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "static_shock",
+    "name": "Статический шок",
+    "description": "Периодически наносит небольшой урон электричеством вам и всем вокруг.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":2},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}}]"
+  },
+  {
+    "id": "steadfast",
+    "name": "Стойкость",
+    "description": "Вас невозможно сбить с ног.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "storm_aura",
+    "name": "Аура бури",
+    "description": "Вокруг вас бушует миниатюрный шторм, который периодически поражает врагов молниями.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tangled",
+    "name": "Запутанность",
+    "description": "Вы запутались в сетях или растениях, что сильно снижает вашу скорость и ловкость.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "thirst",
+    "name": "Жажда",
+    "description": "Вы обезвожены. Ваши характеристики снижены, пока не попьете.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "tinnitus",
+    "name": "Звон в ушах",
+    "description": "Постоянный звон в ушах мешает концентрироваться, снижая интеллект.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "touch_of_rust",
+    "name": "Прикосновение ржавчины",
+    "description": "Ваше металлическое снаряжение быстро приходит в негодность.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "true_strike",
+    "name": "Верный удар",
+    "description": "Ваша следующая атака имеет значительно повышенный шанс попадания.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unseen_servant",
+    "name": "Невидимый слуга",
+    "description": "Невидимая сила выполняет ваши простые команды.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "venomous_blood",
+    "name": "Ядовитая кровь",
+    "description": "Любой, кто ранит вас в ближнем бою, рискует отравиться.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "vertigo",
+    "name": "Головокружение",
+    "description": "Вы чувствуете головокружение. Есть шанс, что вы потеряете равновесие и упадете.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "vigilance",
+    "name": "Бдительность",
+    "description": "Вас невозможно застать врасплох.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "vile_stench",
+    "name": "Мерзкое зловоние",
+    "description": "От вас исходит ужасный запах, который отравляет и ослабляет существ рядом.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "voice_of_command",
+    "name": "Командный голос",
+    "description": "Ваши союзники получают бонус к атаке и воле.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "volatile",
+    "name": "Нестабильность",
+    "description": "При получении критического урона вы взрываетесь.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "warding_bond",
+    "name": "Охранные узы",
+    "description": "Вы получаете бонус к броне и спасброскам, пока находитесь рядом со связанной целью.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "weight_of_the_world",
+    "name": "Тяжесть мира",
+    "description": "Вы чувствуете невероятную тяжесть. Ваша скорость и грузоподъемность снижены.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "wild_magic_surge",
+    "name": "Всплеск дикой магии",
+    "description": "Вы переполнены неконтролируемой магией, которая может вызвать случайный эффект в любой момент.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wind_wall",
+    "name": "Стена ветра",
+    "description": "Стена из сильного ветра защищает вас от стрел и других снарядов.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wings_of_asmodeus",
+    "name": "Крылья Асмодея",
+    "description": "У вас вырастают демонические крылья, позволяющие летать.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "winters_grasp",
+    "name": "Хватка зимы",
+    "description": "Ледяной холод сковывает цель, нанося урон и сильно замедляя.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "word_of_recall",
+    "name": "Слово возврата",
+    "description": "Позволяет мгновенно телепортироваться в заранее отмеченное безопасное место.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wrath_of_the_storm",
+    "name": "Гнев бури",
+    "description": "При получении урона вы можете в ответ ударить обидчика молнией.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "zombie_plague",
+    "name": "Зомби-чума",
+    "description": "Болезнь медленно превращает вас в нежить. Если вы умрете под действием этого эффекта, то восстанете как зомби.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-1}}]"
+  },
+  {
+    "id": "zone_of_truth",
+    "name": "Зона правды",
+    "description": "Вы не можете намеренно лгать, находясь в этой зоне.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "greater_invisibility",
+    "name": "Высшая невидимость",
+    "description": "Вы остаетесь невидимым даже после атаки или использования заклинания.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "farsight",
+    "name": "Дальнозоркость",
+    "description": "Увеличивает дальность ваших атак и заклинаний.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "magic_resistance",
+    "name": "Сопротивление магии",
+    "description": "Вы получаете преимущество в спасбросках против заклинаний.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "magic_vulnerability",
+    "name": "Уязвимость к магии",
+    "description": "Вы получаете штраф в спасбросках против заклинаний и получаете больше урона от них.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":-15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "fire_vulnerability",
+    "name": "Уязвимость к огню",
+    "description": "Вы получаете двойной урон от огня.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "frost_vulnerability",
+    "name": "Уязвимость ко льду",
+    "description": "Вы получаете двойной урон от холода.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_1",
+    "name": "Истощение (Уровень 1)",
+    "description": "Вы немного устали. Небольшой штраф ко всем проверкам характеристик.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_2",
+    "name": "Истощение (Уровень 2)",
+    "description": "Вы сильно устали. Ваша скорость уменьшена вдвое.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_3",
+    "name": "Истощение (Уровень 3)",
+    "description": "Вы на пределе. Штраф к атакам и спасброскам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_4",
+    "name": "Истощение (Уровень 4)",
+    "description": "Ваш максимальный запас здоровья уменьшен.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_5",
+    "name": "Истощение (Уровень 5)",
+    "description": "Вы не можете двигаться.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_6",
+    "name": "Истощение (Уровень 6)",
+    "description": "Вы умираете.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "battle_trance",
+    "name": "Боевой транс",
+    "description": "Вы фокусируетесь на битве, получая бонус к урону, но игнорируя все остальное.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"damage\",\"change\":3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"damage\"}}]"
+  },
+  {
+    "id": "bloodlust",
+    "name": "Жажда крови",
+    "description": "После убийства врага вы впадаете в ярость, получая временный бонус к скорости и урону.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tunnel_vision",
+    "name": "Туннельное зрение",
+    "description": "Вы настолько сосредоточены на своей цели, что получаете штраф к защите от атак других врагов.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "amnesia",
+    "name": "Амнезия",
+    "description": "Вы забыли свои самые мощные способности.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "inner_fire",
+    "name": "Внутренний огонь",
+    "description": "Вы чувствуете прилив жизненной энергии. Увеличивает максимальное здоровье.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"max_hp\"}}]"
+  },
+  {
+    "id": "enfeebled",
+    "name": "Обессиливание",
+    "description": "Вы наносите вдвое меньше физического урона.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spell_plague",
+    "name": "Магическая чума",
+    "description": "Магия в ваших жилах нестабильна. Каждое сотворенное заклинание наносит вам урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blessed_by_the_sea",
+    "name": "Благословение моря",
+    "description": "Вы чувствуете себя как дома в воде. Сопротивление холоду и возможность дышать под водой.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "cursed_by_the_desert",
+    "name": "Проклятие пустыни",
+    "description": "Вы постоянно чувствуете жажду и уязвимы к огню.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mountain_born",
+    "name": "Дитя гор",
+    "description": "Вы привыкли к разреженному воздуху и не получаете штрафов на большой высоте. Бонус к телосложению.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "swamp_stamina",
+    "name": "Болотная выносливость",
+    "description": "Вы невосприимчивы к болезням и ядам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "urban_survivor",
+    "name": "Городской выживальщик",
+    "description": "Вы мастерски ориентируетесь в городах. Бонус к харизме и ловкости.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":1}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "forest_dweller",
+    "name": "Лесной житель",
+    "description": "Вы можете передвигаться по лесу безшумно.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "celestial_pact",
+    "name": "Небесный договор",
+    "description": "Вы заключили сделку с небожителем. Вы наносите дополнительный святой урон, но должны следовать строгим правилам.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "fiendish_pact",
+    "name": "Дьявольский договор",
+    "description": "Вы заключили сделку с демоном. Вы получаете доступ к темной магии, но ваша душа в опасности.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "aberrant_mind",
+    "name": "Искаженный разум",
+    "description": "Ваш разум коснулось нечто из другого мира. Вы можете использовать псионические способности, но рискуете сойти с ума.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "dragon_spirit",
+    "name": "Дух дракона",
+    "description": "В вас течет драконья кровь. Вы получаете сопротивление к одному элементу и устрашающий вид.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "fey_presence",
+    "name": "Присутствие фей",
+    "description": "Вы можете очаровать или напугать существ рядом с вами.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "undead_fortitude",
+    "name": "Стойкость нежити",
+    "description": "Если урон не убивает вас мгновенно, вы можете сделать спасбросок, чтобы остаться с 1 хитом.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "construct_nature",
+    "name": "Природа конструкта",
+    "description": "Вы - конструкт. Иммунитет к яду, болезням, очарованию и страху. Но вас нельзя излечить обычной магией.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "plant_affinity",
+    "name": "Родство с растениями",
+    "description": "Вы можете общаться с растениями и невосприимчивы к обездвиживанию от них.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_fire",
+    "name": "Тело элементаля (Огонь)",
+    "description": "Вы состоите из огня. Иммунитет к огню, уязвимость к холоду. Поджигаете врагов прикосновением.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_water",
+    "name": "Тело элементаля (Вода)",
+    "description": "Вы состоите из воды. Сопротивление кислоте, уязвимость к электричеству. Можете проходить сквозь узкие щели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_earth",
+    "name": "Тело элементаля (Земля)",
+    "description": "Вы состоите из земли и камня. Сопротивление физическому урону, но низкая скорость.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_air",
+    "name": "Тело элементаля (Воздух)",
+    "description": "Вы состоите из воздуха. Сопротивление урону от молний, можете летать, но уязвимы к силовым полям.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shadow_form",
+    "name": "Теневая форма",
+    "description": "Вы становитесь тенью. Сопротивление не-магическому урону, но уязвимость к свету.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "radiant_soul",
+    "name": "Сияющая душа",
+    "description": "От вас исходит божественное сияние. Вы наносите урон светом нежити и демонам поблизости.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "corrupted_blood",
+    "name": "Испорченная кровь",
+    "description": "Ваша кровь проклята. Вы получаете периодический урон, и обычное лечение менее эффективно.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-1}}]"
+  },
+  {
+    "id": "heroic_resolve",
+    "name": "Героическая решимость",
+    "description": "Один раз в день вы можете перебросить проваленный спасбросок.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "cowards_penalty",
+    "name": "Штраф труса",
+    "description": "Если вы пытаетесь сбежать из боя, вы получаете урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "acrobatic_grace",
+    "name": "Акробатическая грация",
+    "description": "Увеличивает шанс уклонения от атак.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"evasion\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"evasion\"}}]"
+  },
+  {
+    "id": "intellectual_fortitude",
+    "name": "Интеллектуальная стойкость",
+    "description": "Вы можете использовать свой интеллект вместо телосложения для спасбросков на концентрацию.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "charismatic_leader",
+    "name": "Харизматичный лидер",
+    "description": "Ваши союзники получают бонус к боевому духу, пока вы живы.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "brutal_strength",
+    "name": "Жестокая сила",
+    "description": "Ваши критические удары наносят дополнительный урон.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "quick_fingers",
+    "name": "Быстрые пальцы",
+    "description": "Увеличивает вашу скорость взаимодействия с предметами и ловушками.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "steadfast_will",
+    "name": "Непоколебимая воля",
+    "description": "Увеличивает ваше сопротивление ментальным атакам.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "life_drain",
+    "name": "Вытягивание жизни",
+    "description": "Вы высасываете жизненную энергию из цели, нанося ей урон и исцеляя себя.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_feedback",
+    "name": "Магическая отдача",
+    "description": "Когда вы получаете урон от заклинания, вы восстанавливаете небольшое количество маны.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "time_warp",
+    "name": "Искажение времени",
+    "description": "Вы получаете дополнительный ход, но затем пропускаете следующий.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mirror_image",
+    "name": "Зеркальное отражение",
+    "description": "Вы создаете несколько иллюзорных копий себя, чтобы запутать врагов.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "entropic_touch",
+    "name": "Энтропийное касание",
+    "description": "Ваши атаки ускоряют распад, снижая максимальное здоровье цели.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "null_field",
+    "name": "Нулевое поле",
+    "description": "В области вокруг вас подавляется вся магия.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rage_of_the_ancients",
+    "name": "Гнев древних",
+    "description": "Наполняет вас первобытной яростью, значительно увеличивая все физические характеристики.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":6}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "serenity",
+    "name": "Безмятежность",
+    "description": "Вы полностью защищены от ментальных атак и эмоциональных эффектов.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "black_plague",
+    "name": "Черная чума",
+    "description": "Смертельная болезнь, которая быстро истощает тело и душу, распространяясь на окружающих.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-12}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "elixir_of_speed",
+    "name": "Эликсир скорости",
+    "description": "Значительно увеличивает вашу скорость и количество действий в ход.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":10}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "potion_of_invulnerability",
+    "name": "Зелье неуязвимости",
+    "description": "Вы становитесь неуязвимы к любому урону на короткое время.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tincture_of_clear_thought",
+    "name": "Настойка ясной мысли",
+    "description": "Ваш разум кристально чист. Иммунитет к замешательству и ментальным атакам, бонус к интеллекту.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "instant_healing_minor",
+    "name": "Малое мгновенное исцеление",
+    "description": "Раны затягиваются магическим образом.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":15}}]"
+  }
+]

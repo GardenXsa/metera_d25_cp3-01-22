@@ -1,0 +1,47 @@
+{
+  "name": "chronicles-of-meterea",
+  "version": "0.4.0",
+  "description": "AI Text RPG Adventure",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "author": "MrKins_XP",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.0"
+  },
+  "build": {
+    "appId": "com.mrkins.meterea",
+    "productName": "Chronicles of Meterea",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Chronicles of Meterea",
+      "runAfterFinish": true
+    },
+    "asarUnpack": [
+      "assets/tts/**/*"
+    ],
+    "extraResources": [
+      "engine/meterea_engine.exe",
+      "engine/meterea_engine"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}

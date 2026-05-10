@@ -1,0 +1,1424 @@
+[
+  {
+    "id": "bulls_strength",
+    "name": "Bull's Strength",
+    "description": "You feel a surge of incredible strength.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "cats_grace",
+    "name": "Cat's Grace",
+    "description": "Your movements become more agile and precise.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "owls_wisdom",
+    "name": "Owl's Wisdom",
+    "description": "Your mind clears, your intellect sharpens.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "foxs_cunning",
+    "name": "Fox's Cunning",
+    "description": "You become more charming and persuasive.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "bears_endurance",
+    "name": "Bear's Endurance",
+    "description": "Increases your constitution and health pool.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "clumsiness",
+    "name": "Clumsiness",
+    "description": "Your movements become awkward and stiff.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "feeblemind",
+    "name": "Feeblemind",
+    "description": "Your thoughts are tangled, and your reasoning ability is reduced.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "weakness",
+    "name": "Weakness",
+    "description": "Your muscles weaken.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "social_awkwardness",
+    "name": "Social Awkwardness",
+    "description": "It becomes harder for you to communicate with others.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "frailty",
+    "name": "Frailty",
+    "description": "You become more vulnerable to physical ailments.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "weak_poison_dot",
+    "name": "Weak Poison",
+    "description": "Poison slowly acts in your veins. Deals damage and weakens.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "moderate_poison_dot",
+    "name": "Moderate Poison",
+    "description": "Toxins spread through your body, dealing significant damage.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "strong_poison_dot",
+    "name": "Strong Poison",
+    "description": "A deadly poison rapidly destroys you from the inside.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-10}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "bleeding_dot",
+    "name": "Bleeding",
+    "description": "You are bleeding out, losing your life force.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}}]"
+  },
+  {
+    "id": "deep_wound_dot",
+    "name": "Deep Wound",
+    "description": "A severe wound causes heavy bleeding and pain.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "burning_dot",
+    "name": "Burning",
+    "description": "Flames consume your flesh.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}}]"
+  },
+  {
+    "id": "immolation_dot",
+    "name": "Immolation",
+    "description": "You are engulfed in magical flames that burn both you and nearby enemies.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-8}}]"
+  },
+  {
+    "id": "acid_burn_dot",
+    "name": "Acid Burn",
+    "description": "Caustic acid eats away at your armor and flesh.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "necrotic_decay_dot",
+    "name": "Necrotic Decay",
+    "description": "Dark energy drains the life from you.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-7}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"max_hp\"}}]"
+  },
+  {
+    "id": "frostbite_dot",
+    "name": "Frostbite",
+    "description": "Icy cold binds your limbs, dealing damage and slowing you down.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "weak_regeneration_hot",
+    "name": "Weak Regeneration",
+    "description": "Your wounds slowly close.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":2}}]"
+  },
+  {
+    "id": "moderate_regeneration_hot",
+    "name": "Moderate Regeneration",
+    "description": "Your body rapidly heals.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":5}}]"
+  },
+  {
+    "id": "strong_regeneration_hot",
+    "name": "Strong Regeneration",
+    "description": "Wounds close right before your eyes.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":10}}]"
+  },
+  {
+    "id": "divine_blessing_hot",
+    "name": "Divine Blessing",
+    "description": "Holy energy heals you and strengthens your spirit.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":4}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "soothing_aura_hot",
+    "name": "Soothing Aura",
+    "description": "A soft glow around you heals wounds and calms the mind.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":3}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":1}}]"
+  },
+  {
+    "id": "stunned",
+    "name": "Stunned",
+    "description": "You are disoriented and cannot act.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sleeping",
+    "name": "Sleeping",
+    "description": "You are in a deep sleep and defenseless. The effect is broken upon taking damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "paralyzed",
+    "name": "Paralyzed",
+    "description": "You are completely immobilized and cannot act.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "feared",
+    "name": "Feared",
+    "description": "You are gripped by panic and cannot control your actions.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "charmed",
+    "name": "Charmed",
+    "description": "You consider the caster your best friend and will fulfill their requests.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "confused",
+    "name": "Confused",
+    "description": "You don't know who is friend or foe, and may attack random targets.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "silenced",
+    "name": "Silenced",
+    "description": "You cannot cast spells.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rooted",
+    "name": "Rooted",
+    "description": "You cannot move from your spot, but can still attack and use abilities.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "darkvision",
+    "name": "Darkvision",
+    "description": "You can see perfectly in complete darkness.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "water_walking",
+    "name": "Water Walking",
+    "description": "You can walk on the surface of water as if it were solid ground.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "invisibility",
+    "name": "Invisibility",
+    "description": "You cannot be seen by normal vision. The effect ends after attacking or casting a spell.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "haste",
+    "name": "Haste",
+    "description": "You move and act twice as fast.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "slow",
+    "name": "Slow",
+    "description": "Your movements and attack speed are significantly reduced.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "levitation",
+    "name": "Levitation",
+    "description": "You hover above the ground, ignoring most ground obstacles and traps.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_verbosity",
+    "name": "Curse of Verbosity",
+    "description": "You cannot speak briefly, constantly going into unnecessary details.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "aura_of_truth",
+    "name": "Aura of Truth",
+    "description": "It is impossible to lie within the radius of this aura.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mirrorskin",
+    "name": "Mirrorskin",
+    "description": "Your skin reflects a portion of incoming damage back to the attacker.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "berserker_rage",
+    "name": "Berserker Rage",
+    "description": "You fall into a battle frenzy, increasing strength but lowering defense and losing control.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "ethereal_form",
+    "name": "Ethereal Form",
+    "description": "You become incorporeal, passing through enemies and walls, but cannot interact with the physical world.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "petrification",
+    "name": "Petrification",
+    "description": "Your body turns to stone. You are completely invulnerable but cannot act.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blood_frenzy",
+    "name": "Blood Frenzy",
+    "description": "Every strike you land heals you for a small amount.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_shield",
+    "name": "Arcane Shield",
+    "description": "Absorbs a certain amount of magical damage.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":25}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "iron_skin",
+    "name": "Iron Skin",
+    "description": "Your skin becomes as hard as iron, significantly increasing physical defense.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "mana_burn",
+    "name": "Mana Burn",
+    "description": "You lose a portion of your mana every turn.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":-5}}]"
+  },
+  {
+    "id": "mana_regeneration",
+    "name": "Mana Regeneration",
+    "description": "Your mana pool slowly regenerates.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":3}}]"
+  },
+  {
+    "id": "vampiric_touch",
+    "name": "Vampiric Touch",
+    "description": "Your melee attacks steal life from the target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_ages",
+    "name": "Curse of Ages",
+    "description": "You age rapidly, losing physical strength but gaining wisdom.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "ghostly_shroud",
+    "name": "Ghostly Shroud",
+    "description": "Grants a chance to evade physical attacks.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"evasion\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"evasion\"}}]"
+  },
+  {
+    "id": "sun_sickness",
+    "name": "Sun Sickness",
+    "description": "While under direct sunlight, you feel weak and take damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rooted_in_place",
+    "name": "Rooted in Place",
+    "description": "You take root in the ground, gaining a bonus to defense but losing the ability to move.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "thorn_aura",
+    "name": "Thorn Aura",
+    "description": "Anyone who attacks you in melee takes retaliatory damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shadow_blend",
+    "name": "Shadow Blend",
+    "description": "While in shadows, you become practically invisible.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "enlightenment",
+    "name": "Enlightenment",
+    "description": "You gain a significant bonus to intellect and magic resistance.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":20}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "dread",
+    "name": "Dread",
+    "description": "Reduces the morale and effectiveness of enemies near you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "marked_for_death",
+    "name": "Marked for Death",
+    "description": "You become a priority target for enemies and take more damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "soul_link",
+    "name": "Soul Link",
+    "description": "A portion of the damage you take is redirected to the linked target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "divine_intervention",
+    "name": "Divine Intervention",
+    "description": "You are under the protection of higher powers, which can save you from certain death once.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chaos_brand",
+    "name": "Chaos Brand",
+    "description": "Every turn, a random positive or negative effect is applied to you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_instability",
+    "name": "Arcane Instability",
+    "description": "Your spells may have unpredictable side effects.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "hunters_mark",
+    "name": "Hunter's Mark",
+    "description": "You deal extra damage to the marked target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blessed_weapon",
+    "name": "Blessed Weapon",
+    "description": "Your weapon deals extra radiant damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "poisoned_weapon",
+    "name": "Poisoned Weapon",
+    "description": "Your weapon has a chance to poison the target on hit.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "flaming_weapon",
+    "name": "Flaming Weapon",
+    "description": "Your weapon deals extra fire damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chilling_weapon",
+    "name": "Chilling Weapon",
+    "description": "Your weapon deals extra cold damage and may slow the target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "gravity_well",
+    "name": "Gravity Well",
+    "description": "You are pulled towards the center of the effect, and your movement speed is reduced.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "righteous_fury",
+    "name": "Righteous Fury",
+    "description": "The less health you have, the more damage you deal.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spell_reflection",
+    "name": "Spell Reflection",
+    "description": "Grants a chance to reflect a spell targeted at you back at the caster.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unwavering_focus",
+    "name": "Unwavering Focus",
+    "description": "You gain immunity to fear and charm effects.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_attunement_fire",
+    "name": "Elemental Attunement (Fire)",
+    "description": "You gain resistance to fire damage and empower your fire spells.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"fire_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"fire_resist\"}}]"
+  },
+  {
+    "id": "elemental_attunement_frost",
+    "name": "Elemental Attunement (Frost)",
+    "description": "You gain resistance to cold damage and empower your frost spells.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"frost_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"frost_resist\"}}]"
+  },
+  {
+    "id": "elemental_attunement_lightning",
+    "name": "Elemental Attunement (Lightning)",
+    "description": "You gain resistance to lightning damage and empower your lightning spells.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"lightning_resist\",\"change\":50}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"lightning_resist\"}}]"
+  },
+  {
+    "id": "plague_carrier",
+    "name": "Plague Carrier",
+    "description": "You slowly lose health and can infect other creatures on contact.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}}]"
+  },
+  {
+    "id": "giants_strength",
+    "name": "Giant's Strength",
+    "description": "You gain incredible strength, capable of crushing stones.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":8}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "mind_fog",
+    "name": "Mind Fog",
+    "description": "Reduces intellect and willpower, making concentration difficult.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-3}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "stoneform",
+    "name": "Stoneform",
+    "description": "Turns your skin to stone, granting massive defense but heavily slowing you down.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":25}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "aquatic_adaptation",
+    "name": "Aquatic Adaptation",
+    "description": "You can breathe underwater and swim faster.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "last_stand",
+    "name": "Last Stand",
+    "description": "When your health drops to a critical level, you gain a temporary bonus to damage and defense.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "reckless_attack",
+    "name": "Reckless Attack",
+    "description": "You gain a bonus to attack, but all attacks against you also gain advantage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_silence",
+    "name": "Curse of Silence",
+    "description": "You cannot make a sound, making it impossible to cast spells or communicate.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "maddening_whispers",
+    "name": "Maddening Whispers",
+    "description": "You hear voices that drive you mad, reducing willpower and dealing mental damage.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "overcharge",
+    "name": "Overcharge",
+    "description": "Your attacks and abilities deal more damage, but you also take a portion of that damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "phantom_pain",
+    "name": "Phantom Pain",
+    "description": "You feel pain from long-healed wounds, distracting you and lowering your stats.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-1}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "slippery_mind",
+    "name": "Slippery Mind",
+    "description": "Grants advantage on saving throws against mental attacks and charm.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "static_shock",
+    "name": "Static Shock",
+    "description": "Electricity crackles around you. When hit in melee, the attacker takes lightning damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "temporal_displacement",
+    "name": "Temporal Displacement",
+    "description": "You are slightly displaced in time, giving you a chance to completely avoid an attack.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unstable_mutation",
+    "name": "Unstable Mutation",
+    "description": "Your body constantly changes, granting random bonuses and penalties to stats every turn.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "void_touched",
+    "name": "Void Touched",
+    "description": "You gain resistance to necrotic energy, but vulnerability to radiant damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "withering_curse",
+    "name": "Withering Curse",
+    "description": "Gradually reduces the target's maximum health.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":-2}}]"
+  },
+  {
+    "id": "zealots_fervor",
+    "name": "Zealot's Fervor",
+    "description": "You cannot be charmed or frightened.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "minor_strength_buff",
+    "name": "Minor Strength",
+    "description": "You feel a slight surge of power.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "minor_dexterity_buff",
+    "name": "Minor Dexterity",
+    "description": "Your movements become slightly more nimble.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "minor_intellect_buff",
+    "name": "Minor Intellect",
+    "description": "Your mind becomes slightly sharper.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "minor_charisma_buff",
+    "name": "Minor Charisma",
+    "description": "You become slightly more persuasive.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "minor_constitution_buff",
+    "name": "Minor Constitution",
+    "description": "You feel slightly more resilient.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "minor_weakness_debuff",
+    "name": "Minor Weakness",
+    "description": "You feel slightly tired.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}}]"
+  },
+  {
+    "id": "minor_clumsiness_debuff",
+    "name": "Minor Clumsiness",
+    "description": "You have become slightly clumsier.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "minor_dullness_debuff",
+    "name": "Minor Dullness",
+    "description": "It is slightly harder for you to think.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "minor_shyness_debuff",
+    "name": "Minor Shyness",
+    "description": "You have become slightly less confident.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}}]"
+  },
+  {
+    "id": "minor_illness_debuff",
+    "name": "Minor Illness",
+    "description": "You don't feel very well.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "hemorrhage_dot",
+    "name": "Hemorrhage",
+    "description": "You lose health every time you take an action.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "soul_rot_dot",
+    "name": "Soul Rot",
+    "description": "Your soul slowly fades, reducing maximum mana and dealing damage.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-3}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_mana\",\"change\":-2}}]"
+  },
+  {
+    "id": "healing_light_hot",
+    "name": "Healing Light",
+    "description": "A stream of holy energy restores your health.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":6}}]"
+  },
+  {
+    "id": "tranquility_hot",
+    "name": "Tranquility",
+    "description": "You enter a state of meditation, restoring health and mana, but cannot attack.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":8}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"mana\",\"change\":5}}]"
+  },
+  {
+    "id": "disarmed",
+    "name": "Disarmed",
+    "description": "You dropped your weapon and cannot attack with it.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "taunted",
+    "name": "Taunted",
+    "description": "You can only attack the target that provoked you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "polymorphed",
+    "name": "Polymorphed",
+    "description": "You are transformed into a harmless creature and cannot use your abilities.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "feather_fall",
+    "name": "Feather Fall",
+    "description": "You fall slowly and take no falling damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spider_climb",
+    "name": "Spider Climb",
+    "description": "You can move along walls and ceilings.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "freedom_of_movement",
+    "name": "Freedom of Movement",
+    "description": "You are immune to paralysis, slow, and root effects.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "see_invisible",
+    "name": "See Invisible",
+    "description": "You can see invisible creatures and objects.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "aura_of_cowardice",
+    "name": "Aura of Cowardice",
+    "description": "Enemies near you are more likely to try to flee from battle.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blood_pact",
+    "name": "Blood Pact",
+    "description": "You sacrifice a portion of your health to significantly increase your strength for a short time.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "chronoshift",
+    "name": "Chronoshift",
+    "description": "You return to the state you were in a few turns ago, including health and position.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_clumsy_fingers",
+    "name": "Curse of Clumsy Fingers",
+    "description": "You have a chance to drop an item when using it.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "dimensional_anchor",
+    "name": "Dimensional Anchor",
+    "description": "You cannot be teleported or moved magically against your will.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "magnetic_field",
+    "name": "Magnetic Field",
+    "description": "Creatures in metal armor are pulled towards you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "perfect_clarity",
+    "name": "Perfect Clarity",
+    "description": "Your next attack or spell is guaranteed to hit and deal critical damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "photosynthesis",
+    "name": "Photosynthesis",
+    "description": "While in the sun, you slowly restore health.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "psychic_scream",
+    "name": "Psychic Scream",
+    "description": "Deals damage to the intellect and willpower of nearby creatures.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":-1}}]"
+  },
+  {
+    "id": "shared_fate",
+    "name": "Shared Fate",
+    "description": "Any healing you receive also heals the linked target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sound_dampening_field",
+    "name": "Sound Dampening Field",
+    "description": "Sounds do not propagate within this field.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "stolen_time",
+    "name": "Stolen Time",
+    "description": "You steal speed from the target, hastening yourself and slowing them.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "synesthesia",
+    "name": "Synesthesia",
+    "description": "Your senses are mixed. You can 'see' sounds and 'hear' colors. This is disorienting.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "target_fixation",
+    "name": "Target Fixation",
+    "description": "You gain a bonus to damage against one target, but take a penalty to damage against all others.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "gravity_shift",
+    "name": "Gravity Shift",
+    "description": "Gravity is altered for you. You can walk on walls.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "corrosive_aura",
+    "name": "Corrosive Aura",
+    "description": "The equipment of creatures near you slowly degrades.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mana_vampirism",
+    "name": "Mana Vampirism",
+    "description": "Your attacks steal mana from the target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "curse_of_the_miser",
+    "name": "Curse of the Miser",
+    "description": "You cannot part with your gold, even if necessary.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blinding_light",
+    "name": "Blinding Light",
+    "description": "You are temporarily blinded and have a high chance to miss.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "deafened",
+    "name": "Deafened",
+    "description": "You cannot hear anything.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "adaptive_resistance",
+    "name": "Adaptive Resistance",
+    "description": "After taking damage from a specific element, you gain temporary resistance to it.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "death_throes",
+    "name": "Death Throes",
+    "description": "Upon death, you explode, dealing damage to those around you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "echoing_pain",
+    "name": "Echoing Pain",
+    "description": "Every turn, you take a portion of the damage received in the previous turn again.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "flickering_presence",
+    "name": "Flickering Presence",
+    "description": "You periodically teleport a short distance randomly.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "glass_cannon",
+    "name": "Glass Cannon",
+    "description": "You deal significantly more damage, but also take more.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "liquid_form",
+    "name": "Liquid Form",
+    "description": "Your body becomes liquid. You can seep through cracks but are vulnerable to cold.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "momentum",
+    "name": "Momentum",
+    "description": "The longer you move without stopping, the higher your speed becomes.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "oath_of_vengeance",
+    "name": "Oath of Vengeance",
+    "description": "You deal extra damage to creatures of the same type as your sworn enemy.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "phase_walker",
+    "name": "Phase Walker",
+    "description": "You can pass through one obstacle or enemy once per turn.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "protective_blessing",
+    "name": "Protective Blessing",
+    "description": "Reduces all incoming damage by a small amount.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"damage_reduction\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"damage_reduction\"}}]"
+  },
+  {
+    "id": "rattled",
+    "name": "Rattled",
+    "description": "You are frightened and take a penalty to attacks and saving throws.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"attack_roll\",\"change\":-2}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"saving_throw\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"attack_roll\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"saving_throw\"}}]"
+  },
+  {
+    "id": "rebound",
+    "name": "Rebound",
+    "description": "The next ranged attack against you will be reflected in a random direction.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "sacrificial_pact",
+    "name": "Sacrificial Pact",
+    "description": "You constantly lose health, but significantly empower your summoned ally.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-5}}]"
+  },
+  {
+    "id": "scent_of_blood",
+    "name": "Scent of Blood",
+    "description": "Predators will pursue you with greater zeal.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shield_of_faith",
+    "name": "Shield of Faith",
+    "description": "Divine power protects you, increasing your armor.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"armor\",\"change\":4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"armor\"}}]"
+  },
+  {
+    "id": "spiritual_weapon",
+    "name": "Spiritual Weapon",
+    "description": "A spectral weapon fights alongside you, attacking your enemies.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "static_shock",
+    "name": "Static Shock",
+    "description": "Periodically deals minor lightning damage to you and everyone around you.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":2},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-2}}]"
+  },
+  {
+    "id": "steadfast",
+    "name": "Steadfast",
+    "description": "You cannot be knocked down.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "storm_aura",
+    "name": "Storm Aura",
+    "description": "A miniature storm rages around you, periodically striking enemies with lightning.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tangled",
+    "name": "Tangled",
+    "description": "You are entangled in nets or plants, heavily reducing your speed and dexterity.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-5}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "thirst",
+    "name": "Thirst",
+    "description": "You are dehydrated. Your stats are reduced until you drink.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "tinnitus",
+    "name": "Tinnitus",
+    "description": "A constant ringing in your ears makes it hard to concentrate, reducing intellect.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":-1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "touch_of_rust",
+    "name": "Touch of Rust",
+    "description": "Your metal equipment rapidly deteriorates.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "true_strike",
+    "name": "True Strike",
+    "description": "Your next attack has a significantly increased chance to hit.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "unseen_servant",
+    "name": "Unseen Servant",
+    "description": "An invisible force performs your simple commands.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "venomous_blood",
+    "name": "Venomous Blood",
+    "description": "Anyone who wounds you in melee risks being poisoned.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "vertigo",
+    "name": "Vertigo",
+    "description": "You feel dizzy. There is a chance you will lose your balance and fall.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "vigilance",
+    "name": "Vigilance",
+    "description": "You cannot be caught off guard.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "vile_stench",
+    "name": "Vile Stench",
+    "description": "You emit a terrible odor that poisons and weakens nearby creatures.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "voice_of_command",
+    "name": "Voice of Command",
+    "description": "Your allies gain a bonus to attack and willpower.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "volatile",
+    "name": "Volatile",
+    "description": "Upon taking critical damage, you explode.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "warding_bond",
+    "name": "Warding Bond",
+    "description": "You gain a bonus to armor and saving throws while near the linked target.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "weight_of_the_world",
+    "name": "Weight of the World",
+    "description": "You feel an incredible weight. Your speed and carrying capacity are reduced.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "wild_magic_surge",
+    "name": "Wild Magic Surge",
+    "description": "You are overflowing with uncontrollable magic that can cause a random effect at any moment.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wind_wall",
+    "name": "Wind Wall",
+    "description": "A wall of strong wind protects you from arrows and other projectiles.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wings_of_asmodeus",
+    "name": "Wings of Asmodeus",
+    "description": "You sprout demonic wings, allowing you to fly.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "winters_grasp",
+    "name": "Winter's Grasp",
+    "description": "Icy cold binds the target, dealing damage and heavily slowing them.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-4}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":-4}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}}]"
+  },
+  {
+    "id": "word_of_recall",
+    "name": "Word of Recall",
+    "description": "Allows you to instantly teleport to a previously marked safe location.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "wrath_of_the_storm",
+    "name": "Wrath of the Storm",
+    "description": "When taking damage, you can strike the attacker with lightning in return.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "zombie_plague",
+    "name": "Zombie Plague",
+    "description": "A disease slowly turns you into the undead. If you die under this effect, you will rise as a zombie.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-1}}]"
+  },
+  {
+    "id": "zone_of_truth",
+    "name": "Zone of Truth",
+    "description": "You cannot intentionally lie while in this zone.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "greater_invisibility",
+    "name": "Greater Invisibility",
+    "description": "You remain invisible even after attacking or casting a spell.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "farsight",
+    "name": "Farsight",
+    "description": "Increases the range of your attacks and spells.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "magic_resistance",
+    "name": "Magic Resistance",
+    "description": "You gain advantage on saving throws against spells.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "magic_vulnerability",
+    "name": "Magic Vulnerability",
+    "description": "You take a penalty to saving throws against spells and take more damage from them.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"magic_resist\",\"change\":-15}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"magic_resist\"}}]"
+  },
+  {
+    "id": "fire_vulnerability",
+    "name": "Fire Vulnerability",
+    "description": "You take double damage from fire.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "frost_vulnerability",
+    "name": "Frost Vulnerability",
+    "description": "You take double damage from cold.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_1",
+    "name": "Exhaustion (Level 1)",
+    "description": "You are slightly tired. A small penalty to all ability checks.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_2",
+    "name": "Exhaustion (Level 2)",
+    "description": "You are very tired. Your speed is halved.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_3",
+    "name": "Exhaustion (Level 3)",
+    "description": "You are at your limit. Penalty to attacks and saving throws.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_4",
+    "name": "Exhaustion (Level 4)",
+    "description": "Your maximum health pool is reduced.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_5",
+    "name": "Exhaustion (Level 5)",
+    "description": "You cannot move.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "exhaustion_6",
+    "name": "Exhaustion (Level 6)",
+    "description": "You are dying.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "battle_trance",
+    "name": "Battle Trance",
+    "description": "You focus on the battle, gaining a bonus to damage but ignoring everything else.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"damage\",\"change\":3}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"damage\"}}]"
+  },
+  {
+    "id": "bloodlust",
+    "name": "Bloodlust",
+    "description": "After killing an enemy, you fly into a rage, gaining a temporary bonus to speed and damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tunnel_vision",
+    "name": "Tunnel Vision",
+    "description": "You are so focused on your target that you take a penalty to defense against attacks from other enemies.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "amnesia",
+    "name": "Amnesia",
+    "description": "You have forgotten your most powerful abilities.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "inner_fire",
+    "name": "Inner Fire",
+    "description": "You feel a surge of life energy. Increases maximum health.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"max_hp\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"max_hp\"}}]"
+  },
+  {
+    "id": "enfeebled",
+    "name": "Enfeebled",
+    "description": "You deal half as much physical damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "spell_plague",
+    "name": "Spell Plague",
+    "description": "The magic in your veins is unstable. Every spell cast damages you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "blessed_by_the_sea",
+    "name": "Blessed by the Sea",
+    "description": "You feel at home in the water. Resistance to cold and the ability to breathe underwater.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "cursed_by_the_desert",
+    "name": "Cursed by the Desert",
+    "description": "You constantly feel thirsty and are vulnerable to fire.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mountain_born",
+    "name": "Mountain Born",
+    "description": "You are accustomed to thin air and take no penalties at high altitudes. Bonus to constitution.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "swamp_stamina",
+    "name": "Swamp Stamina",
+    "description": "You are immune to diseases and poisons.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "urban_survivor",
+    "name": "Urban Survivor",
+    "description": "You navigate cities masterfully. Bonus to charisma and dexterity.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"cha\",\"change\":1}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":1}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"cha\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}}]"
+  },
+  {
+    "id": "forest_dweller",
+    "name": "Forest Dweller",
+    "description": "You can move silently through the forest.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "celestial_pact",
+    "name": "Celestial Pact",
+    "description": "You made a deal with a celestial. You deal extra radiant damage but must follow strict rules.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "fiendish_pact",
+    "name": "Fiendish Pact",
+    "description": "You made a deal with a demon. You gain access to dark magic, but your soul is in danger.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "aberrant_mind",
+    "name": "Aberrant Mind",
+    "description": "Your mind was touched by something from another world. You can use psionic abilities but risk going mad.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "dragon_spirit",
+    "name": "Dragon Spirit",
+    "description": "Dragon blood flows within you. You gain resistance to one element and a terrifying presence.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "fey_presence",
+    "name": "Fey Presence",
+    "description": "You can charm or frighten creatures near you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "undead_fortitude",
+    "name": "Undead Fortitude",
+    "description": "If damage doesn't kill you instantly, you can make a saving throw to drop to 1 hit point instead.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "construct_nature",
+    "name": "Construct Nature",
+    "description": "You are a construct. Immune to poison, disease, charm, and fear. But you cannot be healed by normal magic.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "plant_affinity",
+    "name": "Plant Affinity",
+    "description": "You can communicate with plants and are immune to being rooted by them.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_fire",
+    "name": "Elemental Body (Fire)",
+    "description": "You are made of fire. Immune to fire, vulnerable to cold. You ignite enemies on touch.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_water",
+    "name": "Elemental Body (Water)",
+    "description": "You are made of water. Resistant to acid, vulnerable to lightning. You can slip through narrow cracks.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_earth",
+    "name": "Elemental Body (Earth)",
+    "description": "You are made of earth and stone. Resistant to physical damage, but have low speed.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "elemental_body_air",
+    "name": "Elemental Body (Air)",
+    "description": "You are made of air. Resistant to lightning damage, can fly, but vulnerable to force fields.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "shadow_form",
+    "name": "Shadow Form",
+    "description": "You become a shadow. Resistant to non-magical damage, but vulnerable to radiant light.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "radiant_soul",
+    "name": "Radiant Soul",
+    "description": "Divine radiance emanates from you. You deal radiant damage to nearby undead and demons.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "corrupted_blood",
+    "name": "Corrupted Blood",
+    "description": "Your blood is cursed. You take periodic damage, and normal healing is less effective.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-1}}]"
+  },
+  {
+    "id": "heroic_resolve",
+    "name": "Heroic Resolve",
+    "description": "Once per day, you can reroll a failed saving throw.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "cowards_penalty",
+    "name": "Coward's Penalty",
+    "description": "If you try to flee from battle, you take damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "acrobatic_grace",
+    "name": "Acrobatic Grace",
+    "description": "Increases your chance to evade attacks.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"evasion\",\"change\":10}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"evasion\"}}]"
+  },
+  {
+    "id": "intellectual_fortitude",
+    "name": "Intellectual Fortitude",
+    "description": "You can use your intellect instead of constitution for concentration saving throws.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "charismatic_leader",
+    "name": "Charismatic Leader",
+    "description": "Your allies gain a bonus to morale while you are alive.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "brutal_strength",
+    "name": "Brutal Strength",
+    "description": "Your critical hits deal extra damage.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "quick_fingers",
+    "name": "Quick Fingers",
+    "description": "Increases your interaction speed with objects and traps.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "steadfast_will",
+    "name": "Steadfast Will",
+    "description": "Increases your resistance to mental attacks.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"willpower\",\"change\":5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"willpower\"}}]"
+  },
+  {
+    "id": "life_drain",
+    "name": "Life Drain",
+    "description": "You drain life energy from the target, dealing damage to them and healing yourself.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "arcane_feedback",
+    "name": "Arcane Feedback",
+    "description": "When you take damage from a spell, you restore a small amount of mana.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "time_warp",
+    "name": "Time Warp",
+    "description": "You gain an extra turn, but then skip the next one.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "mirror_image",
+    "name": "Mirror Image",
+    "description": "You create several illusory copies of yourself to confuse enemies.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "entropic_touch",
+    "name": "Entropic Touch",
+    "description": "Your attacks accelerate decay, reducing the target's maximum health.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "null_field",
+    "name": "Null Field",
+    "description": "All magic is suppressed in the area around you.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "rage_of_the_ancients",
+    "name": "Rage of the Ancients",
+    "description": "Fills you with primal rage, significantly increasing all physical stats.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"str\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"dex\",\"change\":6}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":6}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"str\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"dex\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "serenity",
+    "name": "Serenity",
+    "description": "You are completely protected from mental attacks and emotional effects.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "black_plague",
+    "name": "Black Plague",
+    "description": "A deadly disease that rapidly depletes body and soul, spreading to those nearby.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_turn_start\",\"interval\":1},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":-12}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"con\",\"change\":-5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"con\"}}]"
+  },
+  {
+    "id": "elixir_of_speed",
+    "name": "Elixir of Speed",
+    "description": "Significantly increases your speed and number of actions per turn.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"speed\",\"change\":10}},{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"action_points\",\"change\":2}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"speed\"}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"action_points\"}}]"
+  },
+  {
+    "id": "potion_of_invulnerability",
+    "name": "Potion of Invulnerability",
+    "description": "You become invulnerable to any damage for a short time.",
+    "effectsJSON": "[]"
+  },
+  {
+    "id": "tincture_of_clear_thought",
+    "name": "Tincture of Clear Thought",
+    "description": "Your mind is crystal clear. Immunity to confusion and mental attacks, bonus to intellect.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"int\",\"change\":5}},{\"trigger\":{\"type\":\"on_remove\"},\"action\":{\"type\":\"restore_stat\",\"stat\":\"int\"}}]"
+  },
+  {
+    "id": "instant_healing_minor",
+    "name": "Minor Instant Healing",
+    "description": "Wounds close magically.",
+    "effectsJSON": "[{\"trigger\":{\"type\":\"on_apply\"},\"action\":{\"type\":\"modify_stat\",\"stat\":\"hp\",\"change\":15}}]"
+  }
+]

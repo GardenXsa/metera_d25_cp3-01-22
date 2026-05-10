@@ -1,0 +1,17 @@
+{
+  "falling_aquilon": { "name": "Falling Aquilon (Ruins)", "type": "ruins", "description": "Fragments of the once-great capital crashing from the skies into a sea of fire.", "placement": "center", "x": 0, "y": 0 },
+  "expanding_scar": { "name": "Expanding Ether Scar (Rift)", "type": "anomaly", "description": "A rift spewing pure chaos and consuming reality itself.", "placement": "desert", "x": 100, "y": 80 },
+  "shattered_peaks": { "name": "Shattered Peaks (Mountains)", "type": "anomaly", "description": "Mountains torn apart by gravitational anomalies.", "placement": "mountain", "x": 50, "y": -100 },
+  "void_wastes": { "name": "Void Wastes (Plains)", "type": "anomaly", "description": "Lands where matter has ceased to exist, leaving only gray mist.", "placement": "desert", "x": -150, "y": 150 },
+  "boiling_sea": { "no_road": true, "name": "Boiling Sea (Ocean)", "type": "anomaly", "description": "An ocean evaporating under the heat of out-of-control reactors.", "placement": "water", "x": -50, "y": 180 },
+  "mutant_hive": { "name": "Mutant Hive (Cave)", "type": "anomaly", "description": "The epicenter of biological corruption, spawning twisted creatures.", "placement": "forest", "x": -120, "y": -50 },
+  "burning_forest": { "name": "Burning Forest (Forest)", "type": "anomaly", "description": "Trees engulfed in eternal plasma fire that never burns them to ash.", "placement": "forest", "x": 80, "y": -20 },
+  "chasm_of_screams": { "name": "Chasm of Screams (Ruins)", "type": "ruins", "description": "A collapsed underground city echoing with the cries of those trapped in time.", "placement": "mountain", "x": 20, "y": -100 },
+  "glass_desert": { "name": "Glass Desert (Plains)", "type": "anomaly", "description": "Sands fused into glass by orbital strikes from maddened defense systems.", "placement": "desert", "x": -250, "y": -100 },
+  "storms_eye": { "name": "Storm's Eye (Anomaly)", "type": "anomaly", "description": "The center of a permanent ether hurricane where gravity shifts every second.", "placement": "center", "x": 200, "y": 50 },
+  "bleeding_earth": { "name": "Bleeding Earth (Mountains)", "type": "anomaly", "description": "Fissures in the crust spewing lava mixed with raw mana.", "placement": "mountain", "x": 150, "y": -150 },
+  "sunken_arcanum": { "no_road": true, "name": "Sunken Arcanum (Ruins)", "type": "ruins", "description": "Archives sinking into acidic swamps.", "placement": "water", "x": -100, "y": -50 },
+  "flesh_labyrinth": { "name": "Flesh Labyrinth (Cave)", "type": "anomaly", "description": "A canyon overgrown with pulsating bio-mass that consumes all living things.", "placement": "mountain", "x": -80, "y": 50 },
+  "ruined_sky_harbor": { "name": "Ruined Sky Harbor (Ruins)", "type": "ruins", "description": "A graveyard of crashed Aerowhales and transport ships.", "placement": "coast", "x": 120, "y": 80 },
+  "ashen_coast": { "name": "Ashen Coast (Plains)", "type": "anomaly", "description": "A shore where waves wash up tons of ash and dead sea mutants.", "placement": "coast", "x": -30, "y": 120 }
+}
